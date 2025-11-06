@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PayFlow - 토스페이먼츠 간편 결제</title>
+    <script src="https://js.tosspayments.com/v1/payment"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+            padding: 40px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .product-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .product-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .product-price {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+        .btn:active {
+            transform: translateY(0);
+        }
+        .tech-stack {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+        .tech-stack h3 {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .badge {
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 PayFlow</h1>
+        <p class="subtitle">MSA + EDA + DDD 기반 결제 시스템</p>
+        
+        <div class="product-card">
+            <div class="product-name">프리미엄 개발자 도구</div>
+            <div class="product-price">1,000원</div>
+        </div>
+        
+        <form id="payment-form">
+            <div class="form-group">
+                <label for="customerName">구매자 이름</label>
+                <input type="text" id="customerName" name="customerName" value="홍길동" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="customerEmail">이메일</label>
+                <input type="email" id="customerEmail" name="customerEmail" value="customer@example.com" required>
+            </div>
+            
+            <button type="submit" class="btn">결제하기</button>
+            <div class="loading" id="loading">처리 중...</div>
+        </form>
+        
+        <div class="tech-stack">
+            <h3>기술 스택</h3>
+            <div class="badges">
+                <span class="badge">Spring Boot</span>
+                <span class="badge">JPA</span>
+                <span class="badge">Kafka</span>
+                <span class="badge">MSA</span>
+                <span class="badge">EDA</span>
+                <span class="badge">DDD</span>
+                <span class="badge">H2</span>
+                <span class="badge">Toss Payments</span>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        const clientKey = /*[[${clientKey}]]*/ 'test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq';
+        const tossPayments = TossPayments(clientKey);
+        
+        document.getElementById('payment-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const customerName = document.getElementById('customerName').value;
+            const customerEmail = document.getElementById('customerEmail').value;
+            const loading = document.getElementById('loading');
+            
+            try {
+                loading.style.display = 'block';
+                
+                // 1. 주문 생성 (Order Service)
+                const orderResponse = await fetch('/api/orders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        orderName: '프리미엄 개발자 도구',
+                        amount: 1000,
+                        customerEmail: customerEmail,
+                        customerName: customerName
+                    })
+                });
+                
+                const order = await orderResponse.json();
+                console.log('주문 생성:', order);
+                
+                // 2. 토스페이먼츠 결제창 호출
+                await tossPayments.requestPayment('카드', {
+                    amount: order.amount,
+                    orderId: order.orderId,
+                    orderName: order.orderName,
+                    customerName: customerName,
+                    customerEmail: customerEmail,
+                    successUrl: window.location.origin + '/success',
+                    failUrl: window.location.origin + '/fail',
+                });
+            } catch (error) {
+                console.error('결제 요청 실패:', error);
+                alert('결제 요청에 실패했습니다.');
+                loading.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

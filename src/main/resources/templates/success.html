@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>결제 성공</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+            padding: 40px;
+            text-align: center;
+        }
+        .icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .message {
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        .info-box {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        .info-label {
+            color: #666;
+            font-size: 14px;
+        }
+        .info-value {
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        .loading {
+            color: #667eea;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">✅</div>
+        <h1>결제 승인 중...</h1>
+        <p class="message">결제 정보를 확인하고 있습니다.</p>
+        <div class="loading" id="loading">처리 중입니다. 잠시만 기다려주세요...</div>
+        
+        <div id="result" style="display: none;">
+            <div class="info-box" id="info-box"></div>
+            <a href="/" class="btn">처음으로 돌아가기</a>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const paymentKey = urlParams.get('paymentKey');
+        const orderId = urlParams.get('orderId');
+        const amount = urlParams.get('amount');
+        
+        async function confirmPayment() {
+            try {
+                // Payment Service로 결제 승인 요청
+                const response = await fetch('/api/payments/confirm', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        paymentKey: paymentKey,
+                        orderId: orderId,
+                        amount: parseInt(amount)
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('결제 승인 실패');
+                }
+                
+                const payment = await response.json();
+                console.log('결제 승인 완료:', payment);
+                
+                // 성공 메시지 표시
+                document.querySelector('h1').textContent = '결제가 완료되었습니다!';
+                document.querySelector('.message').textContent = 
+                    'MSA + EDA 아키텍처를 통해 주문과 결제가 성공적으로 처리되었습니다.';
+                document.getElementById('loading').style.display = 'none';
+                
+                // 결제 정보 표시
+                const infoBox = document.getElementById('info-box');
+                infoBox.innerHTML = `
+                    <div class="info-row">
+                        <span class="info-label">주문번호</span>
+                        <span class="info-value">${payment.orderId}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">상품명</span>
+                        <span class="info-value">${payment.orderName}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">결제금액</span>
+                        <span class="info-value">${payment.amount.toLocaleString()}원</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">결제수단</span>
+                        <span class="info-value">${payment.method}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">상태</span>
+                        <span class="info-value">${payment.status}</span>
+                    </div>
+                `;
+                
+                document.getElementById('result').style.display = 'block';
+            } catch (error) {
+                console.error('결제 승인 실패:', error);
+                document.querySelector('.icon').textContent = '❌';
+                document.querySelector('h1').textContent = '결제 승인 실패';
+                document.querySelector('.message').textContent = 
+                    '결제 승인 중 오류가 발생했습니다. 고객센터로 문의해주세요.';
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('result').style.display = 'block';
+            }
+        }
+        
+        // 페이지 로드 시 자동으로 결제 승인 요청
+        confirmPayment();
+    </script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+${AnsiColor.BRIGHT_YELLOW}
+██████╗  █████╗ ██╗   ██╗███████╗██╗      ██████╗ ██╗    ██╗
+██╔══██╗██╔══██╗╚██╗ ██╔╝██╔════╝██║     ██╔═══██╗██║    ██║
+██████╔╝███████║ ╚████╔╝ █████╗  ██║     ██║   ██║██║ █╗ ██║
+██╔═══╝ ██╔══██║  ╚██╔╝  ██╔══╝  ██║     ██║   ██║██║███╗██║
+██║     ██║  ██║   ██║   ██║     ███████╗╚██████╔╝╚███╔███╔╝
+╚═╝     ╚═╝  ╚═╝   ╚═╝   ╚═╝     ╚══════╝ ╚═════╝  ╚══╝╚══╝
+${AnsiColor.BRIGHT_GREEN}
+╔══════════════════════════════════════════════════╗
+║          MSA Payment Gateway System              ║
+║     ⚡ Event-Driven Architecture with Kafka       ║
+╚══════════════════════════════════════════════════╝
+${AnsiColor.BRIGHT_YELLOW}
+ Service: ${spring.application.name}
+ Version: ${application.version:1.0.0}
+ Profile: ${spring.profiles.active:default}
+ Port: ${server.port:8080}
+ Instance: ${HOSTNAME:localhost}
+${AnsiColor.BRIGHT_MAGENTA}
+────────────────────────────────────────────────────
+  Java ${java.version} + Spring Boot ${spring-boot.version}
+  Microservices Architecture
+────────────────────────────────────────────────────
+${AnsiColor.BRIGHT_BLUE}
+ Core Features:
+  • Real-time Payment Processing
+  • Kafka Event Streaming
+  • Distributed Transaction Management
+  • SAGA Pattern Implementation
+${AnsiColor.DEFAULT}
