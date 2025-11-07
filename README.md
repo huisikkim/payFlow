@@ -7,10 +7,11 @@
 ### MSA (Microservices Architecture)
 - **Order Service**: 주문 생성 및 관리
 - **Payment Service**: 결제 처리 및 토스페이먼츠 연동
+- **Stage Service**: 스테이지(계) 생성 및 관리
 
 ### EDA (Event-Driven Architecture)
 - Kafka를 통한 서비스 간 비동기 통신
-- `OrderCreated` 이벤트 발행/구독
+- `OrderCreated`, `StageStarted`, `PaymentDue`, `PayoutReady` 등 이벤트 발행/구독
 - 느슨한 결합으로 서비스 독립성 확보
 
 ### DDD (Domain-Driven Design)
@@ -18,7 +19,7 @@
 domain/          # 도메인 모델 (Entity, VO, Repository)
 application/     # 애플리케이션 서비스
 presentation/    # 컨트롤러, DTO
-infrastructure/  # 외부 시스템 연동
+infrastructure/  # 외부 시스템 연동, 스케줄러
 ```
 
 ## 기술 스택
@@ -118,6 +119,20 @@ http://localhost:8080
 - `POST /api/payments/confirm` - 결제 승인
 - `GET /api/payments/{orderId}` - 결제 조회
 
+### Stage Service (스테이지/계 - 인증 필요)
+- `POST /api/stages` - 스테이지 생성
+- `GET /api/stages/{id}` - 스테이지 조회
+- `GET /api/stages` - 스테이지 목록 조회 (상태별 필터링)
+- `GET /api/stages/my` - 내가 참여한 스테이지 목록
+- `POST /api/stages/{id}/join` - 스테이지 참여
+- `POST /api/stages/{id}/start` - 스테이지 시작
+- `GET /api/stages/{id}/participants` - 참여자 목록 조회
+- `GET /api/stages/{id}/payments` - 스테이지별 결제 내역
+- `GET /api/stages/payments/my` - 내 결제 내역
+- `GET /api/stages/{id}/payouts` - 스테이지별 약정금 내역
+- `GET /api/stages/payouts/my` - 내 약정금 내역
+- `POST /api/stages/payouts/{id}/complete` - 약정금 지급 완료 처리
+
 ### Web UI
 - `GET /` - 결제 페이지
 - `GET /success` - 결제 성공 페이지
@@ -209,3 +224,15 @@ curl -X POST http://localhost:8080/api/orders \
 - 인증된 API 호출
 - 권한 기반 접근 제어
 - 인증 실패 시나리오
+
+### 스테이지(계) 기능 테스트
+```bash
+./test-stage-api.sh
+```
+
+이 스크립트는 다음을 테스트합니다:
+- 스테이지 생성
+- 참여자 모집 (순번 선택)
+- 스테이지 시작
+- 참여자 목록 조회
+- 내 스테이지 목록 조회
