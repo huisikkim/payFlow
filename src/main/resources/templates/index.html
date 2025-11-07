@@ -34,6 +34,28 @@
             margin-bottom: 30px;
             font-size: 14px;
         }
+        .user-info {
+            background: #f0f7ff;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .user-info span {
+            color: #667eea;
+            font-weight: 600;
+        }
+        .btn-logout {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
         .product-card {
             background: #f8f9fa;
             border-radius: 12px;
@@ -128,12 +150,34 @@
         <h1>🚀 PayFlow</h1>
         <p class="subtitle">MSA + EDA + DDD 기반 결제 시스템</p>
         
-        <div class="product-card">
-            <div class="product-name">프리미엄 개발자 도구</div>
-            <div class="product-price">1,000원</div>
+        <!-- 로그인 상태 표시 -->
+        <div class="user-info" id="user-info" style="display: none;">
+            <span id="username-display"></span>
+            <button class="btn-logout" onclick="logout()">로그아웃</button>
         </div>
         
-        <form id="payment-form">
+        <!-- 로그인 폼 -->
+        <form id="login-form" style="display: none;">
+            <div class="form-group">
+                <label for="username">아이디</label>
+                <input type="text" id="username" value="user" required>
+            </div>
+            <div class="form-group">
+                <label for="password">비밀번호</label>
+                <input type="password" id="password" value="password123" required>
+            </div>
+            <button type="submit" class="btn">로그인</button>
+            <div class="loading" id="login-loading">로그인 중...</div>
+        </form>
+        
+        <!-- 결제 폼 -->
+        <div id="payment-section" style="display: none;">
+            <div class="product-card">
+                <div class="product-name">프리미엄 개발자 도구</div>
+                <div class="product-price">1,000원</div>
+            </div>
+            
+            <form id="payment-form">
             <div class="form-group">
                 <label for="customerName">구매자 이름</label>
                 <input type="text" id="customerName" name="customerName" value="홍길동" required>
@@ -144,9 +188,10 @@
                 <input type="email" id="customerEmail" name="customerEmail" value="customer@example.com" required>
             </div>
             
-            <button type="submit" class="btn">결제하기</button>
-            <div class="loading" id="loading">처리 중...</div>
-        </form>
+                <button type="submit" class="btn">결제하기</button>
+                <div class="loading" id="loading">처리 중...</div>
+            </form>
+        </div>
         
         <div class="tech-stack">
             <h3>기술 스택</h3>
@@ -167,20 +212,112 @@
         const clientKey = /*[[${clientKey}]]*/ 'test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq';
         const tossPayments = TossPayments(clientKey);
         
+        // 토큰 관리
+        function getToken() {
+            return localStorage.getItem('accessToken');
+        }
+        
+        function setToken(token) {
+            localStorage.setItem('accessToken', token);
+        }
+        
+        function removeToken() {
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('username');
+        }
+        
+        function getUsername() {
+            return localStorage.getItem('username');
+        }
+        
+        // 페이지 로드 시 로그인 상태 확인
+        window.addEventListener('load', () => {
+            const token = getToken();
+            if (token) {
+                showPaymentSection();
+            } else {
+                showLoginForm();
+            }
+        });
+        
+        function showLoginForm() {
+            document.getElementById('login-form').style.display = 'block';
+            document.getElementById('payment-section').style.display = 'none';
+            document.getElementById('user-info').style.display = 'none';
+        }
+        
+        function showPaymentSection() {
+            document.getElementById('login-form').style.display = 'none';
+            document.getElementById('payment-section').style.display = 'block';
+            document.getElementById('user-info').style.display = 'flex';
+            document.getElementById('username-display').textContent = '👤 ' + getUsername();
+        }
+        
+        // 로그인 처리
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const loading = document.getElementById('login-loading');
+            
+            try {
+                loading.style.display = 'block';
+                
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('로그인 실패');
+                }
+                
+                const data = await response.json();
+                setToken(data.accessToken);
+                localStorage.setItem('username', data.username);
+                
+                showPaymentSection();
+            } catch (error) {
+                console.error('로그인 실패:', error);
+                alert('로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.');
+            } finally {
+                loading.style.display = 'none';
+            }
+        });
+        
+        // 로그아웃
+        function logout() {
+            removeToken();
+            showLoginForm();
+        }
+        
+        // 결제 처리
         document.getElementById('payment-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             
             const customerName = document.getElementById('customerName').value;
             const customerEmail = document.getElementById('customerEmail').value;
             const loading = document.getElementById('loading');
+            const token = getToken();
+            
+            if (!token) {
+                alert('로그인이 필요합니다.');
+                showLoginForm();
+                return;
+            }
             
             try {
                 loading.style.display = 'block';
                 
-                // 1. 주문 생성 (Order Service)
+                // 1. 주문 생성 (Order Service) - JWT 토큰 포함
                 const orderResponse = await fetch('/api/orders', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
                     body: JSON.stringify({
                         orderName: '프리미엄 개발자 도구',
                         amount: 1000,
@@ -188,6 +325,13 @@
                         customerName: customerName
                     })
                 });
+                
+                if (orderResponse.status === 401 || orderResponse.status === 403) {
+                    alert('인증이 만료되었습니다. 다시 로그인해주세요.');
+                    removeToken();
+                    showLoginForm();
+                    return;
+                }
                 
                 const order = await orderResponse.json();
                 console.log('주문 생성:', order);

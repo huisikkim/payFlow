@@ -103,10 +103,15 @@
         
         async function confirmPayment() {
             try {
+                const token = localStorage.getItem('accessToken');
+                
                 // Payment Service로 결제 승인 요청
                 const response = await fetch('/api/payments/confirm', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
                     body: JSON.stringify({
                         paymentKey: paymentKey,
                         orderId: orderId,
