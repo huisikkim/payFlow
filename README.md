@@ -102,11 +102,19 @@ http://localhost:8080
 
 ## API 엔드포인트
 
-### Order Service
+### Authentication (인증)
+- `POST /api/auth/signup` - 회원가입
+- `POST /api/auth/login` - 로그인 (JWT 토큰 발급)
+
+### User (사용자)
+- `GET /api/user/profile` - 사용자 프로필 조회 (인증 필요)
+- `GET /api/admin/dashboard` - 관리자 대시보드 (ADMIN 권한 필요)
+
+### Order Service (인증 필요)
 - `POST /api/orders` - 주문 생성
 - `GET /api/orders/{orderId}` - 주문 조회
 
-### Payment Service
+### Payment Service (인증 필요)
 - `POST /api/payments/confirm` - 결제 승인
 - `GET /api/payments/{orderId}` - 결제 조회
 
@@ -127,3 +135,77 @@ H2 Console: http://localhost:8080/h2-console
 kafka-topics --list --bootstrap-server localhost:9092
 kafka-console-consumer --topic OrderCreated --from-beginning --bootstrap-server localhost:9092
 ```
+
+## Spring Security 인증/인가
+
+### 기본 사용자 계정
+애플리케이션 시작 시 자동으로 생성됩니다:
+
+**일반 사용자:**
+- Username: `user`
+- Password: `password`
+- Role: `ROLE_USER`
+
+**관리자:**
+- Username: `admin`
+- Password: `admin`
+- Role: `ROLE_USER`, `ROLE_ADMIN`
+
+### JWT 인증 사용법
+
+#### 1. 회원가입
+```bash
+curl -X POST http://localhost:8080/api/auth/signup \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "newuser",
+    "password": "password123",
+    "email": "newuser@example.com"
+  }'
+```
+
+#### 2. 로그인 (JWT 토큰 발급)
+```bash
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "user",
+    "password": "password"
+  }'
+```
+
+응답:
+```json
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "tokenType": "Bearer",
+  "username": "user"
+}
+```
+
+#### 3. 인증이 필요한 API 호출
+```bash
+curl -X POST http://localhost:8080/api/orders \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -d '{
+    "productName": "테스트 상품",
+    "amount": 10000
+  }'
+```
+
+### 권한 체계
+- **ROLE_USER**: 일반 사용자 권한 (주문, 결제 API 접근)
+- **ROLE_ADMIN**: 관리자 권한 (모든 API 접근 + 관리자 전용 API)
+
+### 보안 테스트
+```bash
+./test-security-api.sh
+```
+
+이 스크립트는 다음을 테스트합니다:
+- 회원가입
+- 로그인 (일반 사용자 / 관리자)
+- 인증된 API 호출
+- 권한 기반 접근 제어
+- 인증 실패 시나리오

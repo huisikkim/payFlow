@@ -5,6 +5,7 @@ import com.example.payflow.payment.presentation.dto.PaymentConfirmRequest;
 import com.example.payflow.payment.presentation.dto.PaymentResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -15,12 +16,14 @@ public class PaymentController {
     private final PaymentService paymentService;
     
     @PostMapping("/confirm")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<PaymentResponse> confirmPayment(@RequestBody PaymentConfirmRequest request) {
         PaymentResponse response = paymentService.confirmPayment(request);
         return ResponseEntity.ok(response);
     }
     
     @GetMapping("/{orderId}")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<PaymentResponse> getPayment(@PathVariable String orderId) {
         PaymentResponse response = paymentService.getPayment(orderId);
         return ResponseEntity.ok(response);
