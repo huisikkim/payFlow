@@ -3,6 +3,7 @@ package com.example.payflow.stage.presentation;
 import com.example.payflow.stage.application.StagePaymentService;
 import com.example.payflow.stage.application.StagePayoutService;
 import com.example.payflow.stage.application.StageService;
+import com.example.payflow.stage.application.StageSettlementService;
 import com.example.payflow.stage.domain.*;
 import com.example.payflow.stage.presentation.dto.*;
 import jakarta.validation.Valid;
@@ -23,6 +24,7 @@ public class StageController {
     private final StageService stageService;
     private final StagePaymentService paymentService;
     private final StagePayoutService payoutService;
+    private final StageSettlementService settlementService;
 
     @PostMapping
     public ResponseEntity<StageResponse> createStage(
@@ -148,5 +150,51 @@ public class StageController {
             @Valid @RequestBody CompletePayoutRequest request) {
         payoutService.completePayout(payoutId, request.getTransactionId());
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{stageId}/settlement")
+    public ResponseEntity<StageSettlementResponse> generateSettlement(@PathVariable Long stageId) {
+        StageSettlement settlement = settlementService.generateSettlement(stageId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(StageSettlementResponse.from(settlement));
+    }
+
+    @GetMapping("/{stageId}/settlement")
+    public ResponseEntity<StageSettlementResponse> getSettlement(@PathVariable Long stageId) {
+        StageSettlement settlement = settlementService.getSettlement(stageId);
+        return ResponseEntity.ok(StageSettlementResponse.from(settlement));
+    }
+
+    @GetMapping("/{stageId}/settlement/participants")
+    public ResponseEntity<List<ParticipantSettlementResponse>> getParticipantSettlements(
+            @PathVariable Long stageId) {
+        List<ParticipantSettlement> settlements = settlementService.getParticipantSettlements(stageId);
+        
+        List<ParticipantSettlementResponse> responses = settlements.stream()
+                .map(ParticipantSettlementResponse::from)
+                .collect(Collectors.toList());
+        
+        return ResponseEntity.ok(responses);
+    }
+
+    @GetMapping("/{stageId}/settlement/my")
+    public ResponseEntity<ParticipantSettlementResponse> getMySettlement(
+            @PathVariable Long stageId,
+            Authentication authentication) {
+        String username = authentication.getName();
+        ParticipantSettlement settlement = settlementService.getMySettlement(stageId, username);
+        return ResponseEntity.ok(ParticipantSettlementResponse.from(settlement));
+    }
+
+    @GetMapping("/settlement/my")
+    public ResponseEntity<List<ParticipantSettlementResponse>> getMyAllSettlements(
+            Authentication authentication) {
+        String username = authentication.getName();
+        List<ParticipantSettlement> settlements = settlementService.getMyAllSettlements(username);
+        
+        List<ParticipantSettlementResponse> responses = settlements.stream()
+                .map(ParticipantSettlementResponse::from)
+                .collect(Collectors.toList());
+        
+        return ResponseEntity.ok(responses);
     }
 }

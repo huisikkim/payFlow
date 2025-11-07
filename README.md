@@ -132,11 +132,18 @@ http://localhost:8080
 - `GET /api/stages/{id}/payouts` - 스테이지별 약정금 내역
 - `GET /api/stages/payouts/my` - 내 약정금 내역
 - `POST /api/stages/payouts/{id}/complete` - 약정금 지급 완료 처리
+- `POST /api/stages/{id}/settlement` - 정산 생성
+- `GET /api/stages/{id}/settlement` - 정산 조회
+- `GET /api/stages/{id}/settlement/participants` - 참여자별 정산 내역
+- `GET /api/stages/{id}/settlement/my` - 내 정산 내역
+- `GET /api/stages/settlement/my` - 내 전체 정산 내역
 
 ### Web UI
 - `GET /` - 결제 페이지
 - `GET /success` - 결제 성공 페이지
 - `GET /fail` - 결제 실패 페이지
+- `GET /stages` - 스테이지 목록 페이지
+- `GET /stages/{id}/settlement` - 정산 대시보드 페이지
 
 ## 데이터베이스
 
@@ -225,7 +232,7 @@ curl -X POST http://localhost:8080/api/orders \
 - 권한 기반 접근 제어
 - 인증 실패 시나리오
 
-### 스테이지(계) 기능 테스트
+### 스테이지 기능 테스트
 ```bash
 ./test-stage-api.sh
 ```
