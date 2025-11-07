@@ -99,6 +99,8 @@ public class StageService {
         eventPublisher.publish(event);
 
         log.info("스테이지 종료: id={}", stageId);
+        
+        // 참고: 정산은 별도로 POST /api/stages/{id}/settlement 호출하여 생성
     }
 
     public Stage getStage(Long stageId) {
@@ -107,6 +109,9 @@ public class StageService {
     }
 
     public List<Stage> getStagesByStatus(StageStatus status) {
+        if (status == null) {
+            return stageRepository.findAll();
+        }
         return stageRepository.findByStatus(status);
     }
 

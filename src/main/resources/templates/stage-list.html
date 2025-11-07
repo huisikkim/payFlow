@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>스테이지 목록 - PayFlow</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header .subtitle {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .stage-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .stage-card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .stage-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stage-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+
+        .stage-name {
+            color: #333;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-badge.recruiting {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-badge.active {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-badge.completed {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .stage-info {
+            margin-bottom: 15px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .info-label {
+            font-weight: 600;
+        }
+
+        .info-value {
+            color: #333;
+        }
+
+        .stage-footer {
+            padding-top: 15px;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        .empty-state {
+            background: white;
+            border-radius: 16px;
+            padding: 60px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .empty-title {
+            color: #333;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .empty-text {
+            color: #666;
+            font-size: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .stage-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>스테이지 목록</h1>
+            <p class="subtitle">진행 중인 계모임을 확인하세요</p>
+        </div>
+
+        <div th:if="${stages.isEmpty()}" class="empty-state">
+            <div class="empty-icon">📋</div>
+            <h2 class="empty-title">스테이지가 없습니다</h2>
+            <p class="empty-text">새로운 스테이지를 생성해보세요</p>
+        </div>
+
+        <div th:unless="${stages.isEmpty()}" class="stage-grid">
+            <div th:each="stage : ${stages}" class="stage-card">
+                <div class="stage-header">
+                    <h3 class="stage-name" th:text="${stage.name}">스테이지 이름</h3>
+                    <span th:class="'status-badge ' + ${stage.status.name().toLowerCase()}"
+                          th:text="${stage.status == T(com.example.payflow.stage.domain.StageStatus).RECRUITING ? '모집중' : 
+                                    stage.status == T(com.example.payflow.stage.domain.StageStatus).ACTIVE ? '진행중' : 
+                                    stage.status == T(com.example.payflow.stage.domain.StageStatus).COMPLETED ? '완료' : '취소'}">
+                        상태
+                    </span>
+                </div>
+
+                <div class="stage-info">
+                    <div class="info-row">
+                        <span class="info-label">참여 인원</span>
+                        <span class="info-value" th:text="${stage.participants.size()} + ' / ' + ${stage.totalParticipants} + '명'">0 / 0명</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">월 납입액</span>
+                        <span class="info-value" th:text="${#numbers.formatInteger(stage.monthlyPayment, 0, 'COMMA')} + '원'">0원</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">이율</span>
+                        <span class="info-value" th:text="${#numbers.formatDecimal(stage.interestRate * 100, 1, 2)} + '%'">0%</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">결제일</span>
+                        <span class="info-value" th:text="'매월 ' + ${stage.paymentDay} + '일'">매월 0일</span>
+                    </div>
+                    <div th:if="${stage.startDate != null}" class="info-row">
+                        <span class="info-label">시작일</span>
+                        <span class="info-value" th:text="${#temporals.format(stage.startDate, 'yyyy-MM-dd')}">2025-01-01</span>
+                    </div>
+                </div>
+
+                <div class="stage-footer">
+                    <a th:if="${stage.status == T(com.example.payflow.stage.domain.StageStatus).COMPLETED}"
+                       th:href="@{/stages/{id}/settlement(id=${stage.id})}" 
+                       class="btn btn-primary"
+                       onclick="window.location.href=this.href; return false;">
+                        정산 보기
+                    </a>
+                    <a th:unless="${stage.status == T(com.example.payflow.stage.domain.StageStatus).COMPLETED}"
+                       href="javascript:void(0);" 
+                       class="btn btn-secondary"
+                       style="cursor: not-allowed; opacity: 0.6;">
+                        진행 중
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

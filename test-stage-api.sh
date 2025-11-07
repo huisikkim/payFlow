@@ -221,3 +221,18 @@ echo -e "curl -X POST ${BASE_URL}/api/stages/payouts/\${PAYOUT_ID}/complete \\"
 echo -e "  -H \"Content-Type: application/json\" \\"
 echo -e "  -H \"Authorization: Bearer \${TOKEN}\" \\"
 echo -e "  -d '{\"transactionId\": \"TXN-20251108-001\"}'"
+
+# 18. 정산 생성 (스테이지 완료 후)
+echo -e "${YELLOW}18. 정산 생성...${NC}"
+echo -e "${YELLOW}(참고: 실제로는 스테이지가 COMPLETED 상태여야 합니다)${NC}"
+# SETTLEMENT_RESPONSE=$(curl -s -X POST "${BASE_URL}/api/stages/${STAGE_ID}/settlement" \
+#   -H "Authorization: Bearer ${TOKEN}")
+# echo $SETTLEMENT_RESPONSE | jq '.' 2>/dev/null || echo $SETTLEMENT_RESPONSE
+echo ""
+
+echo -e "${GREEN}=== 정산 기능 추가 완료! ===${NC}"
+echo -e "${YELLOW}정산 기능:${NC}"
+echo -e "  - 총 납입액/지급액/이자 계산"
+echo -e "  - 참여자별 손익 계산"
+echo -e "  - 실질 이율 계산"
+echo -e "  - 정산 검증"
