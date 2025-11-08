@@ -80,5 +80,8 @@
         document.getElementById('error-message').textContent = 
             message || '알 수 없는 오류가 발생했습니다.';
     </script>
+    
+    <!-- 챗봇 버튼 -->
+    <div th:replace="~{fragments/chatbot-button :: button}"></div>
 </body>
 </html>

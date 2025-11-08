@@ -8,6 +8,7 @@
 - **Order Service**: 주문 생성 및 관리
 - **Payment Service**: 결제 처리 및 토스페이먼츠 연동
 - **Stage Service**: 스테이지(계) 생성 및 관리
+- **Chatbot Service**: AI 챗봇 고객 지원 (규칙 기반)
 
 ### EDA (Event-Driven Architecture)
 - Kafka를 통한 서비스 간 비동기 통신
@@ -138,12 +139,19 @@ http://localhost:8080
 - `GET /api/stages/{id}/settlement/my` - 내 정산 내역
 - `GET /api/stages/settlement/my` - 내 전체 정산 내역
 
+### Chatbot Service (챗봇)
+- `POST /api/chatbot/chat` - 채팅 메시지 전송
+- `GET /api/chatbot/conversations/{id}/history` - 대화 히스토리 조회
+- `POST /api/chatbot/conversations/{id}/close` - 대화 종료
+- `GET /api/chatbot/health` - 챗봇 서비스 상태 확인
+
 ### Web UI
 - `GET /` - 결제 페이지
 - `GET /success` - 결제 성공 페이지
 - `GET /fail` - 결제 실패 페이지
 - `GET /stages` - 스테이지 목록 페이지
 - `GET /stages/{id}/settlement` - 정산 대시보드 페이지
+- `GET /chatbot` - AI 챗봇 페이지
 
 ## 데이터베이스
 
@@ -243,3 +251,36 @@ curl -X POST http://localhost:8080/api/orders \
 - 스테이지 시작
 - 참여자 목록 조회
 - 내 스테이지 목록 조회
+
+## 🤖 AI 챗봇 기능
+
+PayFlow에는 규칙 기반 AI 챗봇이 통합되어 있습니다.
+
+### 주요 특징
+- ✅ **비용 없음**: 외부 API 없이 내부 규칙 기반으로 동작
+- ✅ **DDD 패턴**: Domain, Application, Presentation 레이어 분리
+- ✅ **EDA 적용**: Kafka를 통한 이벤트 발행
+- ✅ **대화 이력 관리**: H2 DB에 모든 대화 저장
+
+### 지원하는 기능
+- 인사 및 환영 메시지
+- 주문 조회 안내
+- 결제 내역 확인 안내
+- 배송 상태 조회 안내
+- 환불/취소 처리 안내
+- 스테이지 참여 및 시작 방법 안내
+- 정산 내역 확인 안내
+- 도움말 제공
+
+### 챗봇 사용하기
+
+**웹 UI:**
+```
+http://localhost:8080/chatbot
+```
+또는 메인 페이지 우측 하단의 💬버튼 클릭!
+
+**API 테스트:**
+```bash
+./test-chatbot-api.sh
+```
