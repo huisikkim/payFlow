@@ -26,4 +26,9 @@ public class WebController {
     public String fail() {
         return "fail";
     }
+    
+    @GetMapping("/chatbot")
+    public String chatbot() {
+        return "chatbot";
+    }
 }

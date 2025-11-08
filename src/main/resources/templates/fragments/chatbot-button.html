@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <!-- 챗봇 플로팅 버튼 Fragment -->
+    <div th:fragment="button">
+        <style>
+            /* 챗봇 플로팅 버튼 */
+            .chatbot-button {
+                position: fixed !important;
+                bottom: 30px !important;
+                right: 30px !important;
+                width: 80px !important;
+                height: 80px !important;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+                border-radius: 50% !important;
+                display: flex !important;
+                justify-content: center !important;
+                align-items: center !important;
+                cursor: pointer !important;
+                box-shadow: 0 6px 30px rgba(102, 126, 234, 0.5) !important;
+                transition: transform 0.3s, box-shadow 0.3s !important;
+                z-index: 9999 !important;
+                border: none !important;
+            }
+            
+            .chatbot-button:hover {
+                transform: scale(1.15) !important;
+                box-shadow: 0 8px 40px rgba(102, 126, 234, 0.7) !important;
+            }
+            
+            .chatbot-button:active {
+                transform: scale(0.95) !important;
+            }
+            
+            .chatbot-icon {
+                font-size: 40px !important;
+                animation: bounce 2s infinite !important;
+            }
+            
+            @keyframes bounce {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-8px); }
+            }
+            
+            .chatbot-badge {
+                position: absolute !important;
+                top: -5px !important;
+                right: -5px !important;
+                background: #ff6b6b !important;
+                color: white !important;
+                width: 26px !important;
+                height: 26px !important;
+                border-radius: 50% !important;
+                display: flex !important;
+                justify-content: center !important;
+                align-items: center !important;
+                font-size: 14px !important;
+                font-weight: bold !important;
+                animation: pulse 2s infinite !important;
+            }
+            
+            @keyframes pulse {
+                0%, 100% { transform: scale(1); }
+                50% { transform: scale(1.15); }
+            }
+        </style>
+        
+        <button class="chatbot-button" onclick="openChatbot()" title="챗봇 문의하기">
+            <span class="chatbot-icon">💬</span>
+            <span class="chatbot-badge">!</span>
+        </button>
+        
+        <script>
+            function openChatbot() {
+                window.open('/chatbot', 'PayFlow 챗봇', 'width=650,height=750,scrollbars=yes,resizable=yes');
+            }
+        </script>
+    </div>
+</body>
+</html>

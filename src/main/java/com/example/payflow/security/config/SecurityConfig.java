@@ -54,6 +54,7 @@ public class SecurityConfig {
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/", "/index", "/success", "/fail").permitAll()
                         .requestMatchers("/stages", "/stages/**").permitAll()
+                        .requestMatchers("/chatbot", "/api/chatbot/**").permitAll()
                         .requestMatchers("/api/orders/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/api/payments/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/api/stages/**").hasAnyRole("USER", "ADMIN")
