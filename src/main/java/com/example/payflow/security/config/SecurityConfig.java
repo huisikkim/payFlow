@@ -53,7 +53,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/saga/**").permitAll()  // Saga 테스트 API 허용
                         .requestMatchers("/h2-console/**").permitAll()
-                        .requestMatchers("/", "/index", "/success", "/fail").permitAll()
+                        .requestMatchers("/", "/index", "/payment", "/success", "/fail").permitAll()
                         .requestMatchers("/stages", "/stages/**").permitAll()
                         .requestMatchers("/chatbot", "/api/chatbot/**").permitAll()
                         .requestMatchers("/api/orders/**").hasAnyRole("USER", "ADMIN")

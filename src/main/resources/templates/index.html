@@ -61,6 +61,7 @@
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 30px;
+            text-align: center;
         }
         .product-name {
             font-size: 18px;
@@ -72,6 +73,10 @@
             font-size: 24px;
             font-weight: 700;
             color: #667eea;
+        }
+        .product-emoji {
+            font-size: 48px;
+            margin-bottom: 10px;
         }
         .form-group {
             margin-bottom: 20px;
@@ -175,8 +180,9 @@
         <!-- 결제 폼 -->
         <div id="payment-section" style="display: none;">
             <div class="product-card">
-                <div class="product-name">프리미엄 개발자 도구</div>
-                <div class="product-price">1,000원</div>
+                <div class="product-emoji" style="font-size: 48px; text-align: center; margin-bottom: 10px;">🛠️</div>
+                <div class="product-name" id="product-name">프리미엄 개발자 도구</div>
+                <div class="product-price" id="product-price">1,000원</div>
             </div>
             
             <form id="payment-form">
@@ -232,8 +238,19 @@
             return localStorage.getItem('username');
         }
         
-        // 페이지 로드 시 로그인 상태 확인
+        // 페이지 로드 시 로그인 상태 확인 및 상품 정보 로드
         window.addEventListener('load', () => {
+            // 선택된 상품 정보 로드
+            const selectedProduct = sessionStorage.getItem('selectedProduct');
+            if (selectedProduct) {
+                const product = JSON.parse(selectedProduct);
+                document.querySelector('.product-emoji').textContent = product.emoji;
+                document.getElementById('product-name').textContent = product.name;
+                document.getElementById('product-price').textContent = product.price.toLocaleString() + '원';
+                // 전역 변수로 저장
+                window.currentProduct = product;
+            }
+            
             const token = getToken();
             if (token) {
                 showPaymentSection();
@@ -313,6 +330,9 @@
             try {
                 loading.style.display = 'block';
                 
+                // 현재 상품 정보 가져오기
+                const product = window.currentProduct || { name: '프리미엄 개발자 도구', price: 1000 };
+                
                 // 1. 주문 생성 (Order Service) - JWT 토큰 포함
                 const orderResponse = await fetch('/api/orders', {
                     method: 'POST',
@@ -321,8 +341,8 @@
                         'Authorization': 'Bearer ' + token
                     },
                     body: JSON.stringify({
-                        orderName: '프리미엄 개발자 도구',
-                        amount: 1000,
+                        orderName: product.name,
+                        amount: product.price,
                         customerEmail: customerEmail,
                         customerName: customerName
                     })

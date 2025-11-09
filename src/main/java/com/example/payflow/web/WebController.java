@@ -12,7 +12,12 @@ public class WebController {
     private String clientKey;
     
     @GetMapping("/")
-    public String index(Model model) {
+    public String home() {
+        return "home";
+    }
+    
+    @GetMapping("/payment")
+    public String payment(Model model) {
         model.addAttribute("clientKey", clientKey);
         return "index";
     }

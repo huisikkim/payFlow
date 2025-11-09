@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PayFlow Shop</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #f5f5f7;
+            color: #1d1d1f;
+        }
+        
+        /* 헤더 */
+        header {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid #d2d2d7;
+        }
+        
+        nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 60px;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: #1d1d1f;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        .nav-links a:hover {
+            color: #667eea;
+        }
+        
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .btn-login, .btn-logout {
+            padding: 8px 20px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-login {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-logout {
+            background: #f5f5f7;
+            color: #1d1d1f;
+        }
+        
+        .username {
+            font-weight: 600;
+            color: #667eea;
+        }
+        
+        /* 히어로 섹션 */
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 80px 20px;
+            text-align: center;
+        }
+        
+        .hero h1 {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+        
+        .hero p {
+            font-size: 20px;
+            opacity: 0.9;
+            margin-bottom: 30px;
+        }
+        
+        .tech-badges {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 30px;
+        }
+        
+        .tech-badge {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        
+        /* 상품 그리드 */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 60px 20px;
+        }
+        
+        .section-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+        
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 30px;
+        }
+        
+        .product-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+        }
+        
+        .product-image {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 64px;
+        }
+        
+        .product-info {
+            padding: 20px;
+        }
+        
+        .product-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #1d1d1f;
+        }
+        
+        .product-description {
+            font-size: 14px;
+            color: #86868b;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        
+        .product-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .product-price {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+        }
+        
+        .btn-buy {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-buy:hover {
+            transform: scale(1.05);
+        }
+        
+        /* 푸터 */
+        footer {
+            background: #1d1d1f;
+            color: #f5f5f7;
+            padding: 40px 20px;
+            text-align: center;
+            margin-top: 80px;
+        }
+        
+        footer p {
+            opacity: 0.7;
+            font-size: 14px;
+        }
+        
+        /* 로그인 모달 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .modal-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1d1d1f;
+        }
+        
+        .btn-close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #86868b;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #1d1d1f;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #d2d2d7;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .loading-text {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 32px; }
+            .hero p { font-size: 16px; }
+            .nav-links { display: none; }
+            .products-grid {
+                grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+                gap: 20px;
+            }
+            .modal-content {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 챗봇 플로팅 버튼 -->
+    <div th:replace="~{fragments/chatbot-button :: button}"></div>
+    
+    <!-- 로그인 모달 -->
+    <div class="modal" id="login-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">로그인</h2>
+                <button class="btn-close" onclick="closeLoginModal()">×</button>
+            </div>
+            <form id="login-form" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="username">아이디</label>
+                    <input type="text" id="username" name="username" value="user" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">비밀번호</label>
+                    <input type="password" id="password" name="password" value="password123" required>
+                </div>
+                <button type="submit" class="btn-submit">로그인</button>
+                <div class="loading-text" id="login-loading">로그인 중...</div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- 헤더 -->
+    <header>
+        <nav>
+            <div class="logo">🚀 PayFlow Shop</div>
+            <ul class="nav-links">
+                <li><a href="/">홈</a></li>
+                <li><a href="#products">상품</a></li>
+                <li><a href="/stages">스테이지 목록</a></li>
+                <li><a href="/chatbot">고객센터</a></li>
+            </ul>
+            <div class="user-section">
+                <div id="user-info" style="display: none;">
+                    <span class="username" id="username-display"></span>
+                    <button class="btn-logout" onclick="logout()">로그아웃</button>
+                </div>
+                <button class="btn-login" id="login-btn" onclick="showLoginModal()" style="display: none;">
+                    로그인
+                </button>
+            </div>
+        </nav>
+    </header>
+    
+    <!-- 히어로 섹션 -->
+    <section class="hero">
+        <h1>개발자를 위한<br>프리미엄 도구</h1>
+        <p>MSA + EDA + DDD 기반의 안전한 결제 시스템</p>
+        <div class="tech-badges">
+            <span class="tech-badge">Spring Boot</span>
+            <span class="tech-badge">Apache Kafka</span>
+            <span class="tech-badge">MSA</span>
+            <span class="tech-badge">EDA</span>
+            <span class="tech-badge">DDD</span>
+            <span class="tech-badge">H2 Database</span>
+            <span class="tech-badge">Toss Payments</span>
+        </div>
+    </section>
+    
+    <!-- 상품 섹션 -->
+    <div class="container" id="products">
+        <h2 class="section-title">인기 상품</h2>
+        <div class="products-grid">
+            <div class="product-card" onclick="buyProduct('프리미엄 개발자 도구', 1000, '🛠️')">
+                <div class="product-image">🛠️</div>
+                <div class="product-info">
+                    <div class="product-name">프리미엄 개발자 도구</div>
+                    <div class="product-description">생산성을 높이는 필수 개발 도구 패키지</div>
+                    <div class="product-footer">
+                        <div class="product-price">1,000원</div>
+                        <button class="btn-buy">구매하기</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="product-card" onclick="buyProduct('코드 리뷰 서비스', 5000, '👨‍💻')">
+                <div class="product-image">👨‍💻</div>
+                <div class="product-info">
+                    <div class="product-name">코드 리뷰 서비스</div>
+                    <div class="product-description">전문가의 1:1 코드 리뷰 및 피드백</div>
+                    <div class="product-footer">
+                        <div class="product-price">5,000원</div>
+                        <button class="btn-buy">구매하기</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="product-card" onclick="buyProduct('클라우드 호스팅', 10000, '☁️')">
+                <div class="product-image">☁️</div>
+                <div class="product-info">
+                    <div class="product-name">클라우드 호스팅</div>
+                    <div class="product-description">안정적인 클라우드 인프라 1개월 이용권</div>
+                    <div class="product-footer">
+                        <div class="product-price">10,000원</div>
+                        <button class="btn-buy">구매하기</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="product-card" onclick="buyProduct('API 모니터링 도구', 3000, '📊')">
+                <div class="product-image">📊</div>
+                <div class="product-info">
+                    <div class="product-name">API 모니터링 도구</div>
+                    <div class="product-description">실시간 API 성능 모니터링 및 알림</div>
+                    <div class="product-footer">
+                        <div class="product-price">3,000원</div>
+                        <button class="btn-buy">구매하기</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="product-card" onclick="buyProduct('데이터베이스 최적화', 7000, '🗄️')">
+                <div class="product-image">🗄️</div>
+                <div class="product-info">
+                    <div class="product-name">데이터베이스 최적화</div>
+                    <div class="product-description">DB 성능 분석 및 최적화 컨설팅</div>
+                    <div class="product-footer">
+                        <div class="product-price">7,000원</div>
+                        <button class="btn-buy">구매하기</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="product-card" onclick="buyProduct('보안 진단 서비스', 15000, '🔒')">
+                <div class="product-image">🔒</div>
+                <div class="product-info">
+                    <div class="product-name">보안 진단 서비스</div>
+                    <div class="product-description">애플리케이션 보안 취약점 진단</div>
+                    <div class="product-footer">
+                        <div class="product-price">15,000원</div>
+                        <button class="btn-buy">구매하기</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 푸터 -->
+    <footer>
+        <p>© 2025 PayFlow Shop. MSA + EDA + DDD 기반 결제 시스템</p>
+        <p>Spring Boot • Kafka • H2 • Toss Payments</p>
+    </footer>
+    
+    <script>
+        // 토큰 관리
+        function getToken() {
+            return localStorage.getItem('accessToken');
+        }
+        
+        function getUsername() {
+            return localStorage.getItem('username');
+        }
+        
+        function removeToken() {
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('username');
+        }
+        
+        // 페이지 로드 시 로그인 상태 확인
+        window.addEventListener('load', () => {
+            const token = getToken();
+            const username = getUsername();
+            
+            if (token && username) {
+                document.getElementById('user-info').style.display = 'flex';
+                document.getElementById('username-display').textContent = '👤 ' + username;
+                document.getElementById('login-btn').style.display = 'none';
+            } else {
+                document.getElementById('user-info').style.display = 'none';
+                document.getElementById('login-btn').style.display = 'block';
+            }
+        });
+        
+        // 로그아웃
+        function logout() {
+            removeToken();
+            location.reload();
+        }
+        
+        // 로그인 모달 열기/닫기
+        function showLoginModal() {
+            document.getElementById('login-modal').classList.add('active');
+        }
+        
+        function closeLoginModal() {
+            document.getElementById('login-modal').classList.remove('active');
+        }
+        
+        // 모달 외부 클릭 시 닫기
+        document.addEventListener('click', (e) => {
+            const modal = document.getElementById('login-modal');
+            if (e.target === modal) {
+                closeLoginModal();
+            }
+        });
+        
+        // 로그인 처리
+        async function handleLogin(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const loading = document.getElementById('login-loading');
+            
+            try {
+                loading.style.display = 'block';
+                
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('로그인 실패');
+                }
+                
+                const data = await response.json();
+                localStorage.setItem('accessToken', data.accessToken);
+                localStorage.setItem('username', data.username);
+                
+                // 로그인 성공 후 페이지 새로고침
+                location.reload();
+            } catch (error) {
+                console.error('로그인 실패:', error);
+                alert('로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.');
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+        
+        // 상품 구매
+        function buyProduct(productName, price, emoji) {
+            const token = getToken();
+            
+            if (!token) {
+                alert('로그인이 필요합니다.');
+                showLoginModal();
+                return;
+            }
+            
+            // 상품 정보를 세션 스토리지에 저장
+            sessionStorage.setItem('selectedProduct', JSON.stringify({
+                name: productName,
+                price: price,
+                emoji: emoji
+            }));
+            
+            // 결제 페이지로 이동
+            location.href = '/payment';
+        }
+    </script>
+</body>
+</html>
