@@ -70,4 +70,23 @@ public class OrderService {
             .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다: " + orderId));
         return OrderResponse.from(order);
     }
+    
+    // Saga 테스트용 메서드
+    @Transactional
+    public Order createOrder(String orderName, Long amount, String customerEmail, String customerName) {
+        String orderId = "ORDER_" + UUID.randomUUID().toString().substring(0, 8);
+        
+        Order order = new Order(
+            orderId,
+            orderName,
+            amount,
+            customerEmail,
+            customerName
+        );
+        
+        orderRepository.save(order);
+        log.info("✅ 주문 생성: {}", orderId);
+        
+        return order;
+    }
 }

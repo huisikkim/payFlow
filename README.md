@@ -284,3 +284,18 @@ http://localhost:8080/chatbot
 ```bash
 ./test-chatbot-api.sh
 ```
+
+## Saga 패턴 (보상 트랜잭션)
+
+PayFlow는 분산 트랜잭션 관리를 위한 **Saga 패턴**을 구현.
+
+### 주요 기능
+- ✅ 주문 → 결제 → 재고 예약의 순차적 트랜잭션
+- ✅ 실패 시 자동 보상 트랜잭션 (Rollback)
+- ✅ Saga 상태 추적 및 모니터링
+- ✅ 에러 처리 및 로깅
+
+### Saga 테스트
+```bash
+./test-saga.sh
+```
