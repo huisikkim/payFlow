@@ -51,6 +51,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/saga/**").permitAll()  // Saga 테스트 API 허용
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/", "/index", "/success", "/fail").permitAll()
                         .requestMatchers("/stages", "/stages/**").permitAll()

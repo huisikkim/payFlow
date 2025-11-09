@@ -1,5 +1,6 @@
 package com.example.payflow.security.config;
 
+import com.example.payflow.inventory.application.InventoryService;
 import com.example.payflow.security.domain.Role;
 import com.example.payflow.security.domain.User;
 import com.example.payflow.security.domain.UserRepository;
@@ -19,6 +20,7 @@ public class DataInitializer {
     
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final InventoryService inventoryService;
     
     @Bean
     public CommandLineRunner initData() {
@@ -45,6 +47,17 @@ public class DataInitializer {
                         .build();
                 userRepository.save(admin);
                 log.info("Created default admin: username=admin, password=admin");
+            }
+            
+            // Saga 테스트용 재고 데이터 생성
+            try {
+                log.info("🔧 Saga 테스트용 초기 데이터 생성 중...");
+                inventoryService.createInventory("PROD-TEST-001", "테스트 상품 1", 100);
+                inventoryService.createInventory("PROD-TEST-002", "테스트 상품 2", 50);
+                inventoryService.createInventory("PROD-TEST-003", "테스트 상품 3", 0);
+                log.info("✅ Saga 테스트용 초기 데이터 생성 완료");
+            } catch (Exception e) {
+                log.warn("초기 데이터 생성 중 오류 (이미 존재할 수 있음): {}", e.getMessage());
             }
         };
     }
