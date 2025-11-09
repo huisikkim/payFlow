@@ -38,13 +38,15 @@ public class StageWebController {
         try {
             Stage stage = stageService.getStage(stageId);
             StageSettlement settlement = settlementService.getSettlement(stageId);
+
+            settlement.getParticipantSettlements().size();
             
             model.addAttribute("stage", stage);
             model.addAttribute("settlement", settlement);
             
             return "stage-settlement";
-        } catch (IllegalArgumentException e) {
-            model.addAttribute("error", e.getMessage());
+        } catch (Exception e) {
+            model.addAttribute("error", "정산 정보를 불러오는 중 오류가 발생했습니다: " + e.getMessage());
             return "error";
         }
     }

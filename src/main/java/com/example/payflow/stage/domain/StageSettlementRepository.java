@@ -10,7 +10,7 @@ public interface StageSettlementRepository extends JpaRepository<StageSettlement
     
     Optional<StageSettlement> findByStageId(Long stageId);
     
-    @Query("SELECT s FROM StageSettlement s LEFT JOIN FETCH s.participantSettlements WHERE s.stage.id = :stageId")
+    @Query("SELECT s FROM StageSettlement s LEFT JOIN FETCH s.participantSettlements LEFT JOIN FETCH s.stage WHERE s.stage.id = :stageId")
     Optional<StageSettlement> findByStageIdWithParticipants(@Param("stageId") Long stageId);
     
     boolean existsByStageId(Long stageId);

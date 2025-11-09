@@ -214,25 +214,25 @@
         <div class="summary-cards">
             <div class="card neutral">
                 <div class="card-title">총 납입액</div>
-                <div class="card-value" th:text="${#numbers.formatInteger(settlement.totalPayments, 0, 'COMMA')} + '원'">0원</div>
+                <div class="card-value" th:text="${#numbers.formatDecimal(settlement.totalPayments, 0, 'COMMA', 0, 'POINT')} + '원'">0원</div>
                 <div class="card-subtitle">전체 참여자 납입 합계</div>
             </div>
 
             <div class="card neutral">
                 <div class="card-title">총 지급액</div>
-                <div class="card-value" th:text="${#numbers.formatInteger(settlement.totalPayouts, 0, 'COMMA')} + '원'">0원</div>
+                <div class="card-value" th:text="${#numbers.formatDecimal(settlement.totalPayouts, 0, 'COMMA', 0, 'POINT')} + '원'">0원</div>
                 <div class="card-subtitle">전체 약정금 합계</div>
             </div>
 
             <div class="card positive">
                 <div class="card-title">총 이자</div>
-                <div class="card-value" th:text="${#numbers.formatInteger(settlement.totalInterest, 0, 'COMMA')} + '원'">0원</div>
+                <div class="card-value" th:text="${#numbers.formatDecimal(settlement.totalInterest, 0, 'COMMA', 0, 'POINT')} + '원'">0원</div>
                 <div class="card-subtitle">지급액 - 납입액</div>
             </div>
 
             <div class="card positive">
                 <div class="card-title">평균 수익률</div>
-                <div class="card-value" th:text="${#numbers.formatDecimal(settlement.averageReturn, 1, 2)} + '%'">0%</div>
+                <div class="card-value" th:text="${#numbers.formatDecimal(settlement.averageReturn, 1, 'POINT', 2, 'COMMA')} + '%'">0%</div>
                 <div class="card-subtitle">전체 평균</div>
             </div>
         </div>
@@ -262,17 +262,17 @@
                     <tr th:each="ps : ${settlement.participantSettlements}">
                         <td th:text="${ps.turnNumber} + '번'">1번</td>
                         <td th:text="${ps.username}">user1</td>
-                        <td th:text="${#numbers.formatInteger(ps.totalPaid, 0, 'COMMA')} + '원'">300,000원</td>
-                        <td th:text="${#numbers.formatInteger(ps.totalReceived, 0, 'COMMA')} + '원'">300,000원</td>
+                        <td th:text="${#numbers.formatDecimal(ps.totalPaid, 0, 'COMMA', 0, 'POINT')} + '원'">300,000원</td>
+                        <td th:text="${#numbers.formatDecimal(ps.totalReceived, 0, 'COMMA', 0, 'POINT')} + '원'">300,000원</td>
                         <td>
-                            <span th:class="${ps.profitLoss > 0} ? 'positive-value' : 'neutral-value'"
-                                  th:text="${ps.profitLoss > 0 ? '+' : ''} + ${#numbers.formatInteger(ps.profitLoss, 0, 'COMMA')} + '원'">
+                            <span th:class="${ps.profitLoss.compareTo(T(java.math.BigDecimal).ZERO) > 0} ? 'positive-value' : 'neutral-value'"
+                                  th:text="${ps.profitLoss.compareTo(T(java.math.BigDecimal).ZERO) > 0 ? '+' : ''} + ${#numbers.formatDecimal(ps.profitLoss, 0, 'COMMA', 0, 'POINT')} + '원'">
                                 0원
                             </span>
                         </td>
                         <td>
-                            <span th:class="${ps.effectiveRate > 0} ? 'positive-value' : 'neutral-value'"
-                                  th:text="${ps.effectiveRate > 0 ? '+' : ''} + ${#numbers.formatDecimal(ps.effectiveRate, 1, 2)} + '%'">
+                            <span th:class="${ps.effectiveRate.compareTo(T(java.math.BigDecimal).ZERO) > 0} ? 'positive-value' : 'neutral-value'"
+                                  th:text="${ps.effectiveRate.compareTo(T(java.math.BigDecimal).ZERO) > 0 ? '+' : ''} + ${#numbers.formatDecimal(ps.effectiveRate, 1, 'COMMA', 2, 'POINT')} + '%'">
                                 0%
                             </span>
                         </td>
@@ -290,9 +290,18 @@
 
     <script th:inline="javascript">
         /*<![CDATA[*/
-        const participantData = /*[[${settlement.participantSettlements}]]*/ [];
-        
         // 데이터 준비
+        const participantData = [
+            /*[# th:each="ps : ${settlement.participantSettlements}"]*/
+            {
+                turnNumber: /*[[${ps.turnNumber}]]*/ 0,
+                username: /*[[${ps.username}]]*/ '',
+                profitLoss: /*[[${ps.profitLoss}]]*/ 0,
+                effectiveRate: /*[[${ps.effectiveRate}]]*/ 0
+            },
+            /*[/]*/
+        ];
+        
         const labels = participantData.map(p => `${p.turnNumber}번 (${p.username})`);
         const profitLossData = participantData.map(p => p.profitLoss);
         const effectiveRateData = participantData.map(p => p.effectiveRate);
