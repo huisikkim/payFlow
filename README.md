@@ -34,23 +34,91 @@ infrastructure/  # 외부 시스템 연동, 스케줄러
 
 ## 사전 준비
 
-### 1. Kafka 설치 및 실행
+### 1. Kafka 환경 설정
 
-**macOS (Homebrew):**
+PayFlow는 **로컬 개발**과 **개발 서버** 두 가지 카프카 환경을 지원합니다.
+
+#### 로컬 환경 (Docker Kafka)
+
+**Docker Compose 사용:**
 ```bash
+docker-compose up -d
+```
+
+**또는 개별 실행:**
+```bash
+# macOS (Homebrew)
 brew install kafka
 brew services start zookeeper
 brew services start kafka
-```
 
-**Docker:**
-```bash
+# Docker
 docker run -d --name zookeeper -p 2181:2181 zookeeper:3.7
 docker run -d --name kafka -p 9092:9092 \
   -e KAFKA_ZOOKEEPER_CONNECT=host.docker.internal:2181 \
   -e KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092 \
   -e KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1 \
   confluentinc/cp-kafka:latest
+```
+
+**로컬 환경으로 실행:**
+```bash
+./gradlew bootRun --args='--spring.profiles.active=local'
+```
+
+#### 개발 서버 (CloudType Kafka)
+
+**설정 정보:**
+- 호스트: `svc.sel5.cloudtype.app:30851`
+- 환경: 개발/테스트용
+- 설정 파일: `src/main/resources/application-dev.properties`
+
+**개발 서버로 실행:**
+```bash
+./gradlew bootRun --args='--spring.profiles.active=dev'
+# 또는 환경변수 없이 실행 (기본값: dev)
+./gradlew bootRun
+```
+
+#### Kafka 토픽 구성
+
+현재 프로젝트에서 사용하는 토픽:
+- `OrderCreated` - 주문 생성 이벤트
+- `PaymentApproved` - 결제 승인 이벤트
+- `PaymentFailed` - 결제 실패 이벤트
+- `StageStarted` - 스테이지 시작 이벤트
+- `SettlementCompleted` - 정산 완료 이벤트
+- `PaymentDue` - 납입 예정 이벤트
+- `PayoutReady` - 약정금 지급 준비 이벤트
+
+#### Kafka 설정 상태 (개발 서버)
+
+**파티션 및 복제:**
+- 파티션 수: 1개 (개발/테스트 환경)
+- Replication Factor: 1 (단일 브로커)
+- ⚠️ 프로덕션 환경에서는 파티션 수 증가 및 복제본 2~3 이상 권장
+
+**컨슈머 그룹:**
+- `event-log-collector` - 이벤트 로그 수집
+- `payflow-group` - 일반 이벤트 처리
+- `payment-service` - 결제 서비스 전용
+
+**모니터링 명령어 (CloudType 터미널):**
+```bash
+# 토픽 목록 확인
+/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list
+
+# 토픽 상세 정보
+/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --describe
+
+# 컨슈머 그룹 목록
+/opt/kafka/bin/kafka-consumer-groups.sh --bootstrap-server localhost:9092 --list
+
+# 컨슈머 그룹 상세 정보
+/opt/kafka/bin/kafka-consumer-groups.sh --bootstrap-server localhost:9092 --describe --group event-log-collector
+
+# 메시지 확인
+/opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic PaymentApproved --from-beginning
 ```
 
 ### 2. 토스페이먼츠 테스트 키 발급
@@ -160,10 +228,21 @@ H2 Console: http://localhost:8080/h2-console
 - Username: `sa`
 - Password: (비워두기)
 
-### Kafka 토픽 확인
+### Kafka 테스트
+
+**로컬에서 카프카 연결 테스트:**
 ```bash
-kafka-topics --list --bootstrap-server localhost:9092
-kafka-console-consumer --topic OrderCreated --from-beginning --bootstrap-server localhost:9092
+# 테스트 이벤트 발행
+curl -X POST "http://localhost:8080/api/test/kafka?eventType=PaymentApproved"
+
+# 응답 예시
+이벤트 발행 완료: PaymentApproved (eventId: xxx-xxx-xxx)
+```
+
+**Spring Boot 로그에서 확인:**
+```
+📨 이벤트 발행: topic=PaymentApproved, eventId=...
+Event collected: PaymentApproved from payment
 ```
 
 ## Spring Security 인증/인가
