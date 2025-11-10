@@ -56,6 +56,7 @@ public class SecurityConfig {
                         .requestMatchers("/", "/index", "/payment", "/success", "/fail").permitAll()
                         .requestMatchers("/stages", "/stages/**").permitAll()
                         .requestMatchers("/chatbot", "/api/chatbot/**").permitAll()
+                        .requestMatchers("/logs/dashboard", "/api/logs/**").permitAll()  // 로그 대시보드 허용
                         .requestMatchers("/api/orders/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/api/payments/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/api/stages/**").hasAnyRole("USER", "ADMIN")

@@ -1,6 +1,7 @@
 package com.example.payflow.order.application;
 
 import com.example.payflow.common.event.EventPublisher;
+import com.example.payflow.logging.application.EventLoggingService;
 import com.example.payflow.order.domain.Order;
 import com.example.payflow.order.domain.OrderRepository;
 import com.example.payflow.order.domain.event.OrderCreatedEvent;
@@ -11,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -20,9 +22,11 @@ public class OrderService {
     
     private final OrderRepository orderRepository;
     private final EventPublisher eventPublisher;
+    private final EventLoggingService eventLoggingService;
     
     @Transactional
     public OrderResponse createOrder(CreateOrderRequest request) {
+        long startTime = System.currentTimeMillis();
         String orderId = "ORDER_" + UUID.randomUUID().toString().substring(0, 8);
         
         Order order = new Order(
@@ -45,6 +49,21 @@ public class OrderService {
         );
         eventPublisher.publish(event);
         
+        // 이벤트 로그 저장
+        long processingTime = System.currentTimeMillis() - startTime;
+        eventLoggingService.logEvent(
+            orderId,
+            "OrderCreated",
+            "order",
+            Map.of(
+                "orderId", orderId,
+                "orderName", request.getOrderName(),
+                "amount", request.getAmount(),
+                "customerEmail", request.getCustomerEmail(),
+                "processingTimeMs", processingTime
+            )
+        );
+        
         return OrderResponse.from(order);
     }
     
@@ -53,6 +72,15 @@ public class OrderService {
         Order order = orderRepository.findByOrderId(orderId)
             .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다: " + orderId));
         order.confirm();
+        
+        // 이벤트 로그 저장
+        eventLoggingService.logEvent(
+            orderId,
+            "OrderConfirmed",
+            "order",
+            Map.of("orderId", orderId, "status", "CONFIRMED")
+        );
+        
         log.info("주문 확정: {}", orderId);
     }
     
@@ -61,6 +89,15 @@ public class OrderService {
         Order order = orderRepository.findByOrderId(orderId)
             .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다: " + orderId));
         order.fail();
+        
+        // 실패 이벤트 로그
+        eventLoggingService.logFailedEvent(
+            orderId,
+            "OrderFailed",
+            "order",
+            "Payment failed"
+        );
+        
         log.info("주문 실패: {}", orderId);
     }
     

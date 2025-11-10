@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로그 분석 대시보드 - PayFlow</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #667eea;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 16px;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .metric-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .metric-card h3 {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        
+        .metric-value {
+            font-size: 36px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .metric-label {
+            color: #999;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        
+        .chart-container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .chart-container h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+        
+        .event-list {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .event-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .event-item:last-child {
+            border-bottom: none;
+        }
+        
+        .event-type {
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .event-service {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .event-status {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-failed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .event-time {
+            color: #999;
+            font-size: 12px;
+        }
+        
+        .refresh-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s;
+        }
+        
+        .refresh-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(102, 126, 234, 0.6);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .bar-chart {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .bar-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .bar-label {
+            min-width: 150px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .bar-container {
+            flex: 1;
+            background: #f0f0f0;
+            border-radius: 10px;
+            height: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .bar-fill {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+        
+        .bar-value {
+            min-width: 60px;
+            text-align: right;
+            font-weight: bold;
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 로그 분석 대시보드</h1>
+            <p>실시간 이벤트 모니터링 및 성능 메트릭</p>
+            <button class="refresh-btn" onclick="loadDashboard()">🔄 새로고침</button>
+        </div>
+        
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <h3>총 이벤트</h3>
+                <div class="metric-value" id="totalEvents">-</div>
+                <div class="metric-label">최근 24시간</div>
+            </div>
+            <div class="metric-card">
+                <h3>실패 이벤트</h3>
+                <div class="metric-value" id="failedEvents" style="color: #e74c3c;">-</div>
+                <div class="metric-label">에러 발생 건수</div>
+            </div>
+            <div class="metric-card">
+                <h3>성공률</h3>
+                <div class="metric-value" id="successRate" style="color: #27ae60;">-</div>
+                <div class="metric-label">전체 성공률</div>
+            </div>
+            <div class="metric-card">
+                <h3>평균 처리시간</h3>
+                <div class="metric-value" id="avgProcessingTime">-</div>
+                <div class="metric-label">밀리초</div>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <h2>📈 이벤트 타입별 건수</h2>
+            <div class="bar-chart" id="eventTypeChart"></div>
+        </div>
+        
+        <div class="chart-container">
+            <h2>🎯 서비스별 성공률</h2>
+            <div class="bar-chart" id="successRateChart"></div>
+        </div>
+        
+        <div class="event-list">
+            <h2>🔥 실시간 이벤트 스트림</h2>
+            <div id="recentEvents" class="loading">로딩 중...</div>
+        </div>
+    </div>
+    
+    <script>
+        async function loadDashboard() {
+            try {
+                // 대시보드 메트릭 로드
+                const metricsResponse = await fetch('/api/logs/dashboard/metrics?hours=24');
+                const metrics = await metricsResponse.json();
+                
+                // 메트릭 카드 업데이트
+                document.getElementById('totalEvents').textContent = metrics.totalEvents.toLocaleString();
+                document.getElementById('failedEvents').textContent = metrics.failedEvents.toLocaleString();
+                
+                const successRate = ((metrics.totalEvents - metrics.failedEvents) / metrics.totalEvents * 100).toFixed(1);
+                document.getElementById('successRate').textContent = successRate + '%';
+                
+                // 평균 처리시간 계산
+                const avgTime = metrics.serviceProcessingTimes.length > 0
+                    ? metrics.serviceProcessingTimes.reduce((sum, item) => sum + item.avgProcessingTimeMs, 0) / metrics.serviceProcessingTimes.length
+                    : 0;
+                document.getElementById('avgProcessingTime').textContent = avgTime.toFixed(0) + 'ms';
+                
+                // 이벤트 타입별 차트
+                renderBarChart('eventTypeChart', metrics.eventTypeCounts, 'eventType', 'count');
+                
+                // 서비스별 성공률 차트
+                renderSuccessRateChart('successRateChart', metrics.serviceSuccessRates);
+                
+                // 실시간 이벤트 로드
+                const eventsResponse = await fetch('/api/logs/events/recent?limit=20');
+                const events = await eventsResponse.json();
+                renderRecentEvents(events);
+                
+            } catch (error) {
+                console.error('대시보드 로드 실패:', error);
+                document.getElementById('recentEvents').innerHTML = '<p style="color: red;">데이터 로드 실패</p>';
+            }
+        }
+        
+        function renderBarChart(containerId, data, labelKey, valueKey) {
+            const container = document.getElementById(containerId);
+            if (!data || data.length === 0) {
+                container.innerHTML = '<p style="color: #999;">데이터가 없습니다</p>';
+                return;
+            }
+            
+            const maxValue = Math.max(...data.map(item => item[valueKey]));
+            
+            container.innerHTML = data.map(item => `
+                <div class="bar-item">
+                    <div class="bar-label">${item[labelKey]}</div>
+                    <div class="bar-container">
+                        <div class="bar-fill" style="width: ${(item[valueKey] / maxValue * 100)}%"></div>
+                    </div>
+                    <div class="bar-value">${item[valueKey]}</div>
+                </div>
+            `).join('');
+        }
+        
+        function renderSuccessRateChart(containerId, data) {
+            const container = document.getElementById(containerId);
+            if (!data || data.length === 0) {
+                container.innerHTML = '<p style="color: #999;">데이터가 없습니다</p>';
+                return;
+            }
+            
+            container.innerHTML = data.map(item => `
+                <div class="bar-item">
+                    <div class="bar-label">${item.serviceName}</div>
+                    <div class="bar-container">
+                        <div class="bar-fill" style="width: ${item.successRate}%"></div>
+                    </div>
+                    <div class="bar-value">${item.successRate.toFixed(1)}%</div>
+                </div>
+            `).join('');
+        }
+        
+        function renderRecentEvents(events) {
+            const container = document.getElementById('recentEvents');
+            
+            if (!events || events.length === 0) {
+                container.innerHTML = '<p style="color: #999;">최근 이벤트가 없습니다</p>';
+                return;
+            }
+            
+            container.innerHTML = events.map(event => `
+                <div class="event-item">
+                    <div>
+                        <div class="event-type">${event.eventType}</div>
+                        <div class="event-service">서비스: ${event.serviceName}</div>
+                        <div class="event-time">${new Date(event.timestamp).toLocaleString('ko-KR')}</div>
+                    </div>
+                    <span class="event-status status-${event.status.toLowerCase()}">${event.status}</span>
+                </div>
+            `).join('');
+        }
+        
+        // 페이지 로드 시 대시보드 로드
+        loadDashboard();
+        
+        // 30초마다 자동 새로고침
+        setInterval(loadDashboard, 30000);
+    </script>
+</body>
+</html>
