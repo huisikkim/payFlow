@@ -37,7 +37,7 @@ CREATE_STAGE_RESPONSE=$(curl -s -X POST "${BASE_URL}/api/stages" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer ${TOKEN}" \
   -d '{
-    "name": "테스트 계모임",
+    "name": "여행 계모임",
     "totalParticipants": 3,
     "monthlyPayment": 100000,
     "interestRate": 0.05,

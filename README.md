@@ -299,3 +299,119 @@ PayFlow는 분산 트랜잭션 관리를 위한 **Saga 패턴**을 구현.
 ```bash
 ./test-saga.sh
 ```
+
+## 📊 로그 수집·분석 시스템
+
+PayFlow는  로그 수집 및 분석 시스템 을 구현합니다.
+
+### 주요 기능
+
+#### 1. 실시간 이벤트 로그 수집
+- ✅ 모든 비즈니스 이벤트를 Kafka 토픽으로 전송
+- ✅ 주문, 결제, 정산 서비스의 이벤트를 JSON 형식으로 발행
+- ✅ Kafka Consumer를 통한 중앙 집중식 로그 집계
+
+#### 2. Correlation ID 기반 분산 추적
+- ✅ 하나의 요청이 여러 서비스를 거치는 과정을 추적
+- ✅ HTTP 헤더 `X-Correlation-ID`를 통한 자동 추적
+- ✅ 전체 이벤트 체인 조회 가능
+
+#### 3. 이벤트 소싱 패턴
+- ✅ 결제 도메인에 이벤트 소싱 적용
+- ✅ 결제 상태 변경 이력을 순차적으로 저장
+  - `PENDING` → `APPROVING` → `APPROVED`
+  - `PENDING` → `APPROVING` → `FAILED`
+- ✅ 특정 시점의 결제 상태 재구성 가능
+- ✅ Event Store를 별도 테이블로 구성
+
+#### 4. 로그 분석 대시보드
+- ✅ 실시간 메트릭 모니터링
+  - 시간대별 이벤트 건수
+  - 이벤트 타입별 통계
+  - 서비스별 성공률
+  - 평균 처리 시간
+- ✅ 실시간 이벤트 스트림 (최근 이벤트 조회)
+- ✅ 시각화된 차트 및 그래프
+
+### API 엔드포인트
+
+```bash
+# 대시보드 메트릭 조회
+GET /api/logs/dashboard/metrics?hours=24
+
+# 실시간 이벤트 스트림
+GET /api/logs/events/recent?limit=50
+
+# Correlation ID로 이벤트 체인 추적
+GET /api/logs/events/trace/{correlationId}
+
+# 결제 이벤트 히스토리 (이벤트 소싱)
+GET /api/logs/payments/{paymentId}/history
+
+# 특정 시점의 결제 상태 재구성
+GET /api/logs/payments/{paymentId}/state?sequence=3
+
+# 사용자별 이벤트 조회
+GET /api/logs/events/user/{userId}
+```
+
+### 대시보드 접속
+
+```
+http://localhost:8080/logs/dashboard
+```
+
+### 로그 시스템 테스트
+
+```bash
+./test-logging-api.sh
+```
+
+### 아키텍처
+
+```
+[Order Service] ──┐
+                  │
+[Payment Service] ├──> Kafka Topics ──> Event Log Consumer ──> H2 Database
+                  │                                              (event_logs)
+[Stage Service] ──┘                                              (payment_event_store)
+                                                                        │
+                                                                        ▼
+                                                                 Log Analytics API
+                                                                        │
+                                                                        ▼
+                                                                  Dashboard UI
+```
+
+### 기술 스택
+- **이벤트 수집**: Kafka (비동기 메시징)
+- **로그 저장소**: H2 Database (중앙 집중식)
+- **이벤트 소싱**: JPA Event Store
+- **분산 추적**: Correlation ID (MDC)
+- **분석**: Spring Data JPA Aggregation
+- **시각화**: Thymeleaf + Vanilla JS
+
+### 포인트
+
+1. **EDA (Event-Driven Architecture)**
+   - Kafka를 활용한 비동기 이벤트 처리
+   - 서비스 간 느슨한 결합
+
+2. **분산 시스템 추적**
+   - Correlation ID를 통한 분산 트랜잭션 추적
+   - MSA 환경에서의 디버깅 능력
+
+3. **이벤트 소싱 패턴**
+   - 상태 변경 이력 관리
+   - 시간 여행 (Time Travel) 가능
+   - 감사(Audit) 로그 자동 생성
+
+4. **데이터 분석**
+   - 실시간 메트릭 집계
+   - 성능 모니터링
+   - 비즈니스 인사이트 도출
+
+5. **운영 효율성**
+   - 중앙 집중식 로그 관리
+   - 장애 추적 및 디버깅
+   - SLA 모니터링

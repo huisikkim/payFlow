@@ -1,6 +1,7 @@
 package com.example.payflow.stage.application;
 
 import com.example.payflow.common.event.EventPublisher;
+import com.example.payflow.logging.application.EventLoggingService;
 import com.example.payflow.stage.domain.*;
 import com.example.payflow.stage.domain.event.StageCompletedEvent;
 import com.example.payflow.stage.domain.event.StageStartedEvent;
@@ -12,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +24,7 @@ public class StageService {
     private final StageRepository stageRepository;
     private final StageParticipantRepository participantRepository;
     private final EventPublisher eventPublisher;
+    private final EventLoggingService eventLoggingService;
 
     @Transactional
     public Stage createStage(String name, Integer totalParticipants, BigDecimal monthlyPayment,
@@ -78,6 +81,19 @@ public class StageService {
                 stage.getPaymentDay()
         );
         eventPublisher.publish(event);
+        
+        // 이벤트 로그 저장
+        eventLoggingService.logEvent(
+            "STAGE_" + stageId,
+            "StageStarted",
+            "stage",
+            Map.of(
+                "stageId", stageId,
+                "stageName", stage.getName(),
+                "totalParticipants", stage.getTotalParticipants(),
+                "startDate", stage.getStartDate().toString()
+            )
+        );
 
         log.info("스테이지 시작: id={}, startDate={}", stageId, stage.getStartDate());
     }
@@ -97,6 +113,18 @@ public class StageService {
                 LocalDate.now()
         );
         eventPublisher.publish(event);
+        
+        // 이벤트 로그 저장
+        eventLoggingService.logEvent(
+            "STAGE_" + stageId,
+            "StageCompleted",
+            "stage",
+            Map.of(
+                "stageId", stageId,
+                "stageName", stage.getName(),
+                "completedDate", LocalDate.now().toString()
+            )
+        );
 
         log.info("스테이지 종료: id={}", stageId);
         
