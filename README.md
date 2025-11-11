@@ -7,7 +7,6 @@
 ### MSA (Microservices Architecture)
 - **Order Service**: 주문 생성 및 관리
 - **Payment Service**: 결제 처리 및 토스페이먼츠 연동
-- **Stage Service**: 스테이지(계) 생성 및 관리
 - **Chatbot Service**: AI 챗봇 고객 지원 (규칙 기반)
 
 ### EDA (Event-Driven Architecture)
@@ -86,7 +85,6 @@ docker run -d --name kafka -p 9092:9092 \
 - `OrderCreated` - 주문 생성 이벤트
 - `PaymentApproved` - 결제 승인 이벤트
 - `PaymentFailed` - 결제 실패 이벤트
-- `StageStarted` - 스테이지 시작 이벤트
 - `SettlementCompleted` - 정산 완료 이벤트
 - `PaymentDue` - 납입 예정 이벤트
 - `PayoutReady` - 약정금 지급 준비 이벤트
@@ -187,23 +185,11 @@ http://localhost:8080
 ### Payment Service (인증 필요)
 - `POST /api/payments/confirm` - 결제 승인
 - `GET /api/payments/{orderId}` - 결제 조회
-
-### Stage Service (스테이지/계 - 인증 필요)
-- `POST /api/stages` - 스테이지 생성
-- `GET /api/stages/{id}` - 스테이지 조회
-- `GET /api/stages` - 스테이지 목록 조회 (상태별 필터링)
-- `GET /api/stages/my` - 내가 참여한 스테이지 목록
-- `POST /api/stages/{id}/join` - 스테이지 참여
-- `POST /api/stages/{id}/start` - 스테이지 시작
-- `GET /api/stages/{id}/participants` - 참여자 목록 조회
-- `GET /api/stages/{id}/payments` - 스테이지별 결제 내역
 - `GET /api/stages/payments/my` - 내 결제 내역
-- `GET /api/stages/{id}/payouts` - 스테이지별 약정금 내역
 - `GET /api/stages/payouts/my` - 내 약정금 내역
 - `POST /api/stages/payouts/{id}/complete` - 약정금 지급 완료 처리
 - `POST /api/stages/{id}/settlement` - 정산 생성
 - `GET /api/stages/{id}/settlement` - 정산 조회
-- `GET /api/stages/{id}/settlement/participants` - 참여자별 정산 내역
 - `GET /api/stages/{id}/settlement/my` - 내 정산 내역
 - `GET /api/stages/settlement/my` - 내 전체 정산 내역
 
@@ -217,9 +203,8 @@ http://localhost:8080
 - `GET /` - 결제 페이지
 - `GET /success` - 결제 성공 페이지
 - `GET /fail` - 결제 실패 페이지
-- `GET /stages` - 스테이지 목록 페이지
 - `GET /stages/{id}/settlement` - 정산 대시보드 페이지
-- `GET /chatbot` - AI 챗봇 페이지
+- `GET /chatbot` - 챗봇 페이지
 
 ## 데이터베이스
 
@@ -319,21 +304,9 @@ curl -X POST http://localhost:8080/api/orders \
 - 권한 기반 접근 제어
 - 인증 실패 시나리오
 
-### 스테이지 기능 테스트
-```bash
-./test-stage-api.sh
-```
+## 🤖 챗봇 기능
 
-이 스크립트는 다음을 테스트합니다:
-- 스테이지 생성
-- 참여자 모집 (순번 선택)
-- 스테이지 시작
-- 참여자 목록 조회
-- 내 스테이지 목록 조회
-
-## 🤖 AI 챗봇 기능
-
-PayFlow에는 규칙 기반 AI 챗봇이 통합되어 있습니다.
+PayFlow에는 규칙 기반 챗봇이 통합되어 있습니다.
 
 ### 주요 특징
 - ✅ **비용 없음**: 외부 API 없이 내부 규칙 기반으로 동작
@@ -347,7 +320,6 @@ PayFlow에는 규칙 기반 AI 챗봇이 통합되어 있습니다.
 - 결제 내역 확인 안내
 - 배송 상태 조회 안내
 - 환불/취소 처리 안내
-- 스테이지 참여 및 시작 방법 안내
 - 정산 내역 확인 안내
 - 도움말 제공
 
