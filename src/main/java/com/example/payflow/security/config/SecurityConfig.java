@@ -54,10 +54,14 @@ public class SecurityConfig {
                         .requestMatchers("/api/saga/**").permitAll()  // Saga 테스트 API 허용
                         .requestMatchers("/api/test/**").permitAll()  // 카프카 테스트 API 허용
                         .requestMatchers("/h2-console/**").permitAll()
+                        .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()  // Static 리소스 허용
                         .requestMatchers("/", "/index", "/payment", "/success", "/fail").permitAll()
                         .requestMatchers("/stages", "/stages/**").permitAll()
                         .requestMatchers("/chatbot", "/api/chatbot/**").permitAll()
                         .requestMatchers("/logs/dashboard", "/api/logs/**").permitAll()  // 로그 대시보드 허용
+                        .requestMatchers("/api/session-replay/events").permitAll()  // 이벤트 수집 API 허용
+                        .requestMatchers("/session-replay/**", "/api/session-replay/**").permitAll()  // 세션 재생 (개발용: 모두 허용)
+                        // TODO: 프로덕션에서는 .hasRole("ADMIN")으로 변경
                         .requestMatchers("/api/orders/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/api/payments/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/api/stages/**").hasAnyRole("USER", "ADMIN")

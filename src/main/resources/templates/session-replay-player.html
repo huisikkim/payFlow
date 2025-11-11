@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>세션 재생 - PayFlow</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #1a1a1a;
+            color: white;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: #2a2a2a;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #3a3a3a;
+        }
+        
+        .header h1 {
+            font-size: 20px;
+            color: #667eea;
+        }
+        
+        .back-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .back-btn:hover {
+            background: #5568d3;
+        }
+        
+        .player-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .replay-area {
+            flex: 1;
+            background: white;
+            position: relative;
+            overflow: auto;
+        }
+        
+        .event-sidebar {
+            width: 350px;
+            background: #2a2a2a;
+            border-left: 1px solid #3a3a3a;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .event-sidebar h3 {
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+        
+        .event-item {
+            background: #3a3a3a;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .event-item:hover {
+            background: #4a4a4a;
+        }
+        
+        .event-item.active {
+            background: #667eea;
+        }
+        
+        .event-type {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .event-time {
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .controls {
+            background: #2a2a2a;
+            padding: 20px 30px;
+            border-top: 1px solid #3a3a3a;
+        }
+        
+        .control-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+        
+        .control-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .control-btn:hover {
+            background: #5568d3;
+        }
+        
+        .control-btn:disabled {
+            background: #4a4a4a;
+            cursor: not-allowed;
+        }
+        
+        .speed-selector {
+            background: #3a3a3a;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        .timeline {
+            position: relative;
+            height: 40px;
+            background: #3a3a3a;
+            border-radius: 8px;
+            cursor: pointer;
+            overflow: hidden;
+        }
+        
+        .timeline-progress {
+            height: 100%;
+            background: #667eea;
+            transition: width 0.1s linear;
+        }
+        
+        .timeline-markers {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+        }
+        
+        .timeline-marker {
+            position: absolute;
+            width: 3px;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.5);
+        }
+        
+        .timeline-time {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 14px;
+            font-weight: bold;
+            pointer-events: none;
+        }
+        
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            font-size: 18px;
+            color: #666;
+        }
+        
+        .event-highlight {
+            position: absolute;
+            border: 3px solid #667eea;
+            border-radius: 8px;
+            pointer-events: none;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎬 세션 재생: <span th:text="${sessionId}"></span></h1>
+        <a href="/session-replay/dashboard" class="back-btn">← 대시보드로 돌아가기</a>
+    </div>
+    
+    <div class="player-container">
+        <div class="replay-area" id="replayArea">
+            <div class="loading">세션 데이터를 로드하는 중...</div>
+        </div>
+        
+        <div class="event-sidebar">
+            <h3>📋 이벤트 목록</h3>
+            <div id="eventList"></div>
+        </div>
+    </div>
+    
+    <div class="controls">
+        <div class="control-buttons">
+            <button class="control-btn" id="playBtn" onclick="togglePlay()">▶️ 재생</button>
+            <button class="control-btn" onclick="restart()">⏮️ 처음부터</button>
+            <select class="speed-selector" id="speedSelector" onchange="changeSpeed()">
+                <option value="0.5">0.5x</option>
+                <option value="1" selected>1x</option>
+                <option value="2">2x</option>
+                <option value="4">4x</option>
+            </select>
+            <span id="eventCounter" style="margin-left: auto;">0 / 0 이벤트</span>
+        </div>
+        
+        <div class="timeline" id="timeline" onclick="seekTimeline(event)">
+            <div class="timeline-progress" id="timelineProgress"></div>
+            <div class="timeline-markers" id="timelineMarkers"></div>
+            <div class="timeline-time" id="timelineTime">00:00 / 00:00</div>
+        </div>
+    </div>
+    
+    <script th:inline="javascript">
+        const sessionId = /*[[${sessionId}]]*/ '';
+        let events = [];
+        let currentEventIndex = 0;
+        let isPlaying = false;
+        let playbackSpeed = 1;
+        let playbackTimer = null;
+        let startTime = 0;
+        let totalDuration = 0;
+        
+        async function loadSession() {
+            try {
+                const response = await fetch(`/api/session-replay/sessions/${sessionId}/events`);
+                events = await response.json();
+                
+                if (events.length === 0) {
+                    document.getElementById('replayArea').innerHTML = 
+                        '<div class="loading">이 세션에는 이벤트가 없습니다</div>';
+                    return;
+                }
+                
+                startTime = events[0].timestamp;
+                totalDuration = events[events.length - 1].timestamp - startTime;
+                
+                renderEventList();
+                renderTimelineMarkers();
+                updateEventCounter();
+                
+                document.getElementById('replayArea').innerHTML = 
+                    '<div class="loading">재생 버튼을 눌러 세션을 시작하세요</div>';
+                
+            } catch (error) {
+                console.error('세션 로드 실패:', error);
+                document.getElementById('replayArea').innerHTML = 
+                    '<div class="loading" style="color: red;">세션 로드 실패</div>';
+            }
+        }
+        
+        function renderEventList() {
+            const container = document.getElementById('eventList');
+            container.innerHTML = events.map((event, index) => `
+                <div class="event-item" id="event-${index}" onclick="jumpToEvent(${index})">
+                    <div class="event-type">${getEventIcon(event.eventType)} ${event.eventType}</div>
+                    <div class="event-time">${formatTimestamp(event.timestamp)}</div>
+                </div>
+            `).join('');
+        }
+        
+        function renderTimelineMarkers() {
+            const container = document.getElementById('timelineMarkers');
+            container.innerHTML = events.map(event => {
+                const position = ((event.timestamp - startTime) / totalDuration) * 100;
+                return `<div class="timeline-marker" style="left: ${position}%"></div>`;
+            }).join('');
+        }
+        
+        function togglePlay() {
+            isPlaying = !isPlaying;
+            const btn = document.getElementById('playBtn');
+            
+            if (isPlaying) {
+                btn.textContent = '⏸️ 일시정지';
+                playEvents();
+            } else {
+                btn.textContent = '▶️ 재생';
+                if (playbackTimer) {
+                    clearTimeout(playbackTimer);
+                }
+            }
+        }
+        
+        function playEvents() {
+            if (!isPlaying || currentEventIndex >= events.length) {
+                isPlaying = false;
+                document.getElementById('playBtn').textContent = '▶️ 재생';
+                return;
+            }
+            
+            const event = events[currentEventIndex];
+            displayEvent(event, currentEventIndex);
+            
+            currentEventIndex++;
+            updateEventCounter();
+            updateTimeline();
+            
+            if (currentEventIndex < events.length) {
+                const nextEvent = events[currentEventIndex];
+                const delay = (nextEvent.timestamp - event.timestamp) / playbackSpeed;
+                playbackTimer = setTimeout(playEvents, delay);
+            } else {
+                isPlaying = false;
+                document.getElementById('playBtn').textContent = '▶️ 재생';
+            }
+        }
+        
+        function displayEvent(event, index) {
+            const replayArea = document.getElementById('replayArea');
+            
+            // 이벤트 타입별 표시
+            let content = `
+                <div style="padding: 40px; color: #333;">
+                    <h2>${getEventIcon(event.eventType)} ${event.eventType}</h2>
+                    <p style="margin-top: 20px; font-size: 16px;">
+                        <strong>시간:</strong> ${formatTimestamp(event.timestamp)}<br>
+                        <strong>페이로드:</strong>
+                    </p>
+                    <pre style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin-top: 10px; overflow: auto;">
+${JSON.stringify(event.payload, null, 2)}
+                    </pre>
+                </div>
+            `;
+            
+            replayArea.innerHTML = content;
+            
+            // 이벤트 목록에서 활성화 표시
+            document.querySelectorAll('.event-item').forEach(el => el.classList.remove('active'));
+            document.getElementById(`event-${index}`)?.classList.add('active');
+        }
+        
+        function jumpToEvent(index) {
+            currentEventIndex = index;
+            displayEvent(events[index], index);
+            updateEventCounter();
+            updateTimeline();
+        }
+        
+        function restart() {
+            currentEventIndex = 0;
+            isPlaying = false;
+            document.getElementById('playBtn').textContent = '▶️ 재생';
+            if (playbackTimer) {
+                clearTimeout(playbackTimer);
+            }
+            updateEventCounter();
+            updateTimeline();
+            document.getElementById('replayArea').innerHTML = 
+                '<div class="loading">재생 버튼을 눌러 세션을 시작하세요</div>';
+        }
+        
+        function changeSpeed() {
+            playbackSpeed = parseFloat(document.getElementById('speedSelector').value);
+        }
+        
+        function seekTimeline(event) {
+            const timeline = document.getElementById('timeline');
+            const rect = timeline.getBoundingClientRect();
+            const clickX = event.clientX - rect.left;
+            const percentage = clickX / rect.width;
+            
+            currentEventIndex = Math.floor(percentage * events.length);
+            if (currentEventIndex >= events.length) {
+                currentEventIndex = events.length - 1;
+            }
+            
+            displayEvent(events[currentEventIndex], currentEventIndex);
+            updateEventCounter();
+            updateTimeline();
+        }
+        
+        function updateTimeline() {
+            const progress = (currentEventIndex / events.length) * 100;
+            document.getElementById('timelineProgress').style.width = progress + '%';
+            
+            const currentTime = currentEventIndex > 0 
+                ? events[currentEventIndex - 1].timestamp - startTime 
+                : 0;
+            document.getElementById('timelineTime').textContent = 
+                `${formatDuration(currentTime)} / ${formatDuration(totalDuration)}`;
+        }
+        
+        function updateEventCounter() {
+            document.getElementById('eventCounter').textContent = 
+                `${currentEventIndex} / ${events.length} 이벤트`;
+        }
+        
+        function getEventIcon(eventType) {
+            const icons = {
+                'CLICK': '🖱️',
+                'SCROLL': '📜',
+                'INPUT': '⌨️',
+                'NAVIGATION': '🧭',
+                'MOUSE_MOVE': '🖱️',
+                'RESIZE': '↔️',
+                'FOCUS': '🎯',
+                'BLUR': '💨'
+            };
+            return icons[eventType] || '📌';
+        }
+        
+        function formatTimestamp(timestamp) {
+            const elapsed = timestamp - startTime;
+            return formatDuration(elapsed);
+        }
+        
+        function formatDuration(ms) {
+            const seconds = Math.floor(ms / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+        }
+        
+        // 페이지 로드 시 세션 로드
+        loadSession();
+    </script>
+</body>
+</html>

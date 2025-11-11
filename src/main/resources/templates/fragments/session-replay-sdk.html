@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="sdk">
+    <!-- Session Replay SDK - 임시 비활성화 -->
+    <!--
+    <script th:src="@{/js/session-replay-sdk.js}"></script>
+    <script>
+        // SDK 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            const sdk = new SessionReplaySDK({
+                apiEndpoint: '/api/session-replay/events',
+                batchSize: 10,
+                flushInterval: 5000,
+                maxRetries: 3,
+                maxEventsPerSecond: 100
+            });
+            
+            sdk.start();
+            
+            // 페이지 언로드 시 SDK 정리
+            window.addEventListener('beforeunload', function() {
+                sdk.stop();
+            });
+            
+            console.log('Session Replay SDK initialized');
+        });
+    </script>
+    -->
+</head>
+</html>
