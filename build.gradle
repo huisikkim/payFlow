@@ -47,6 +47,12 @@ dependencies {
     // Guava (for RateLimiter)
     implementation 'com.google.guava:guava:33.0.0-jre'
     
+    // Jsoup for web scraping
+    implementation 'org.jsoup:jsoup:1.17.2'
+    
+    // JSON processing
+    implementation 'com.google.code.gson:gson:2.10.1'
+    
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'com.h2database:h2'
     annotationProcessor 'org.projectlombok:lombok'

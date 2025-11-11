@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>토탈소싱기 - 키워드 분석</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .search-box {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+        
+        .search-form {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .platform-select {
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            background: white;
+            cursor: pointer;
+        }
+        
+        .search-btn {
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .search-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .quick-btn {
+            padding: 10px 20px;
+            background: #f5f5f5;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .quick-btn:hover {
+            background: #e0e0e0;
+        }
+        
+        .results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        
+        .result-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        
+        .result-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .platform-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        .platform-naver {
+            background: #03C75A;
+            color: white;
+        }
+        
+        .platform-coupang {
+            background: #FF6B00;
+            color: white;
+        }
+        
+        .keyword-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .metric-label {
+            color: #666;
+        }
+        
+        .metric-value {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .market-type {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .blue-ocean {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .red-ocean {
+            background: #ffebee;
+            color: #c62828;
+        }
+        
+        .normal-market {
+            background: #f5f5f5;
+            color: #666;
+        }
+        
+        .recommendation {
+            margin-top: 15px;
+            padding: 15px;
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .data-notice {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #1976d2;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: white;
+            font-size: 1.2em;
+        }
+        
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 토탈소싱기</h1>
+            <p>네이버/쿠팡 키워드 분석으로 블루오션을 찾아보세요</p>
+        </div>
+        
+        <div class="data-notice">
+            ℹ️ <strong>데이터 안내:</strong> 검색량은 네이버 데이터랩 API 기반 추정치입니다. 
+            정확한 검색량은 네이버 검색광고 API(유료)를 통해 확인 가능합니다.
+        </div>
+        
+        <div class="search-box">
+            <div class="search-form">
+                <input type="text" 
+                       id="keywordInput" 
+                       class="search-input" 
+                       placeholder="분석할 키워드를 입력하세요 (예: 무선이어폰, 텀블러)">
+                <select id="platformSelect" class="platform-select">
+                    <option value="ALL">전체 플랫폼</option>
+                    <option value="NAVER">네이버 쇼핑</option>
+                    <option value="COUPANG">쿠팡</option>
+                </select>
+                <button class="search-btn" onclick="analyzeKeyword()">분석하기</button>
+            </div>
+            
+            <div class="quick-actions">
+                <button class="quick-btn" onclick="showBlueOcean()">블루오션 키워드</button>
+                <button class="quick-btn" onclick="showRecent()">최근 분석</button>
+            </div>
+        </div>
+        
+        <div id="errorMessage" class="error" style="display: none;"></div>
+        <div id="loading" class="loading" style="display: none;">분석 중...</div>
+        <div id="results" class="results"></div>
+    </div>
+    
+    <script>
+        function analyzeKeyword() {
+            const keyword = document.getElementById('keywordInput').value.trim();
+            const platform = document.getElementById('platformSelect').value;
+            
+            if (!keyword) {
+                showError('키워드를 입력해주세요');
+                return;
+            }
+            
+            showLoading();
+            hideError();
+            
+            fetch('/api/sourcing/analyze', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ keyword, platform })
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading();
+                displayResults(data);
+            })
+            .catch(error => {
+                hideLoading();
+                showError('분석 중 오류가 발생했습니다: ' + error.message);
+            });
+        }
+        
+        function showBlueOcean() {
+            showLoading();
+            hideError();
+            
+            fetch('/api/sourcing/blue-ocean')
+            .then(response => response.json())
+            .then(data => {
+                hideLoading();
+                displayResults(data);
+            })
+            .catch(error => {
+                hideLoading();
+                showError('조회 중 오류가 발생했습니다: ' + error.message);
+            });
+        }
+        
+        function showRecent() {
+            showLoading();
+            hideError();
+            
+            fetch('/api/sourcing/recent?days=7')
+            .then(response => response.json())
+            .then(data => {
+                hideLoading();
+                displayResults(data);
+            })
+            .catch(error => {
+                hideLoading();
+                showError('조회 중 오류가 발생했습니다: ' + error.message);
+            });
+        }
+        
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('results');
+            
+            if (!data || data.length === 0) {
+                resultsDiv.innerHTML = '<div class="loading">분석 결과가 없습니다</div>';
+                return;
+            }
+            
+            resultsDiv.innerHTML = data.map(item => `
+                <div class="result-card">
+                    <span class="platform-badge platform-${item.platform.toLowerCase()}">
+                        ${item.platform}
+                    </span>
+                    <div class="keyword-title">${item.keyword}</div>
+                    
+                    <div class="metric">
+                        <span class="metric-label">월 검색량 (추정)</span>
+                        <span class="metric-value">${item.searchVolume.toLocaleString()}회</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">경쟁도</span>
+                        <span class="metric-value">${item.competitionScore}/100</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">상품 수</span>
+                        <span class="metric-value">${item.productCount.toLocaleString()}개</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">평균 가격</span>
+                        <span class="metric-value">${Math.round(item.averagePrice).toLocaleString()}원</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">수익성 점수</span>
+                        <span class="metric-value">${item.profitabilityScore.toFixed(1)}</span>
+                    </div>
+                    
+                    <div class="market-type ${getMarketClass(item.marketType)}">
+                        ${getMarketTypeText(item.marketType)}
+                    </div>
+                    
+                    <div class="recommendation">
+                        💡 ${item.recommendation}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function getMarketClass(marketType) {
+            if (marketType === 'BLUE_OCEAN') return 'blue-ocean';
+            if (marketType === 'RED_OCEAN') return 'red-ocean';
+            return 'normal-market';
+        }
+        
+        function getMarketTypeText(marketType) {
+            if (marketType === 'BLUE_OCEAN') return '🌊 블루오션';
+            if (marketType === 'RED_OCEAN') return '🔥 레드오션';
+            return '📊 일반 시장';
+        }
+        
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').innerHTML = '';
+        }
+        
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+        
+        function hideError() {
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+        
+        // Enter 키로 검색
+        document.getElementById('keywordInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                analyzeKeyword();
+            }
+        });
+    </script>
+</body>
+</html>
