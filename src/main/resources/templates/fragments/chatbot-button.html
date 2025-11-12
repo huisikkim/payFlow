@@ -335,27 +335,26 @@
             <div class="chatbot-widget-header">
                 <div class="chatbot-header-top">
                     <div class="chatbot-brand">
-                        <div class="chatbot-logo">💼</div>
-                        <div class="chatbot-brand-name">PayFlow</div>
+                        <div class="chatbot-logo">👨‍💻</div>
+                        <div class="chatbot-brand-name">DevSphere</div>
                     </div>
                     <button class="chatbot-close-btn" onclick="toggleChatbot()">×</button>
                 </div>
-                <div class="chatbot-subtitle">채용 공고 검색 도우미</div>
+                <div class="chatbot-subtitle">질문해주세요.</div>
             </div>
 
             <!-- 초기 환영 화면 -->
             <div class="chatbot-welcome" id="chatbotWelcome">
                 <div class="chatbot-welcome-message">
-                    안녕하세요! 👋<br>
-                    채용 공고 검색을 도와드리겠습니다.
+                    안녕하세요! 👋
                 </div>
-                <button class="chatbot-start-btn" onclick="startChat()">
-                    <span>채팅 시작하기</span>
-                    <span>✈️</span>
+                <button class="chatbot-start-btn" onclick="startChatWidget()">
+                    <span>시작하기</span>
+                    <span>🚀</span>
                 </button>
                 <div class="chatbot-response-time">
                     <div class="chatbot-avatar-small"></div>
-                    <span>몇 분 내로 응답드립니다</span>
+                    <span>궁금한 내용을 질문해 보세요</span>
                 </div>
             </div>
 
@@ -370,7 +369,7 @@
 
             <!-- 푸터 -->
             <div class="chatbot-footer">
-                Powered by PayFlow AI
+                시니어 백엔드 개발자 | GitHub: huisikkim/payFlow
             </div>
         </div>
         
@@ -390,17 +389,75 @@
                 chatbotWidget.classList.toggle('active');
             }
 
-            function startChat() {
+            function startChatWidget() {
                 isChatStarted = true;
                 chatbotWelcome.style.display = 'none';
                 chatbotChatContainer.classList.add('active');
                 
-                // 초기 메시지 추가
-                addChatbotMessage('안녕하세요! 채용 공고 검색을 도와드리겠습니다.\n\'채용 찾기\' 또는 \'일자리 검색\'이라고 말씀해주세요.', false);
+                // 초기 메시지와 버튼 추가
+                addChatbotMessage('안녕하세요! 👋\n 궁금하신 내용을 선택하거나 직접 질문해주세요!', false);
+                addChatbotQuestionButtons();
                 
                 setTimeout(() => {
                     chatbotInput.focus();
                 }, 100);
+            }
+
+            function addChatbotQuestionButtons() {
+                const buttonsDiv = document.createElement('div');
+                buttonsDiv.className = 'chatbot-message bot';
+                
+                const buttonsContainer = document.createElement('div');
+                buttonsContainer.className = 'question-buttons';
+                buttonsContainer.style.maxWidth = '75%';
+                buttonsContainer.style.display = 'flex';
+                buttonsContainer.style.flexDirection = 'column';
+                buttonsContainer.style.gap = '8px';
+                buttonsContainer.style.margin = '16px 0';
+                
+                const questions = [
+                    { icon: '💼', text: '자기소개', keyword: '소개' },
+                    { icon: '🏗️', text: '아키텍처 경험', keyword: '아키텍처' },
+                    { icon: '🔧', text: '레거시 현대화', keyword: '레거시' },
+                    { icon: '💻', text: '기술 스택', keyword: '기술' },
+                    { icon: '📂', text: '프로젝트 경험', keyword: '프로젝트' },
+                    { icon: '🏢', text: '회사 문화', keyword: '회사문화' }
+                ];
+                
+                questions.forEach(q => {
+                    const btn = document.createElement('button');
+                    btn.style.padding = '12px 16px';
+                    btn.style.background = 'white';
+                    btn.style.border = '1px solid #dee2e6';
+                    btn.style.borderRadius = '8px';
+                    btn.style.textAlign = 'left';
+                    btn.style.cursor = 'pointer';
+                    btn.style.transition = 'all 0.2s';
+                    btn.style.fontSize = '14px';
+                    btn.style.color = '#495057';
+                    btn.innerHTML = `<span style="margin-right: 8px;">${q.icon}</span>${q.text}`;
+                    btn.onmouseover = () => {
+                        btn.style.background = '#f8f9fa';
+                        btn.style.borderColor = '#2d2d2d';
+                        btn.style.transform = 'translateX(4px)';
+                    };
+                    btn.onmouseout = () => {
+                        btn.style.background = 'white';
+                        btn.style.borderColor = '#dee2e6';
+                        btn.style.transform = 'translateX(0)';
+                    };
+                    btn.onclick = () => sendChatbotQuestionFromButton(q.keyword);
+                    buttonsContainer.appendChild(btn);
+                });
+                
+                buttonsDiv.appendChild(buttonsContainer);
+                chatbotMessages.appendChild(buttonsDiv);
+                chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+            }
+
+            function sendChatbotQuestionFromButton(keyword) {
+                chatbotInput.value = keyword;
+                sendChatbotMessage();
             }
 
             function addChatbotMessage(content, isUser) {

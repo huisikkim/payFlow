@@ -8,41 +8,53 @@ public enum Intent {
         "인사",
         Arrays.asList("안녕", "하이", "헬로", "hi", "hello", "반가워", "처음", "시작")
     ),
-    JOB_SEARCH_START(
-        "채용검색시작",
-        Arrays.asList("채용", "구인", "일자리", "취업", "job", "채용공고", "구직", "채용정보", "회사찾기", "일찾기")
+    ABOUT_ME(
+        "자기소개",
+        Arrays.asList("소개", "누구", "경력", "프로필", "about", "who")
     ),
-    REGION_SELECTION(
-        "지역선택",
-        Arrays.asList("서울", "경기", "인천", "부산", "대구", "광주", "대전", "울산", "세종", "강원", "충북", "충남", "전북", "전남", "경북", "경남", "제주")
+    CAREER_TRANSITION(
+        "이직전략",
+        Arrays.asList("이직", "전략", "준비", "어떻게", "방법", "transition")
     ),
-    INDUSTRY_SELECTION(
-        "업종선택",
-        Arrays.asList("IT", "금융", "제조", "유통", "서비스", "교육", "의료", "건설", "미디어", "게임", "스타트업")
+    ARCHITECTURE_EXPERIENCE(
+        "아키텍처경험",
+        Arrays.asList("아키텍처", "설계", "MSA", "마이크로서비스", "architecture", "설계경험")
     ),
-    SALARY_INPUT(
-        "연봉입력",
-        Arrays.asList("만원", "천만원", "억", "연봉", "salary")
+    LEGACY_MODERNIZATION(
+        "레거시현대화",
+        Arrays.asList("레거시", "현대화", "리팩토링", "모놀리스", "legacy", "refactoring")
     ),
-    JOB_SELECTION(
-        "공고선택",
-        Arrays.asList("번", "선택", "지원", "면접")
+    TECH_STACK(
+        "기술스택",
+        Arrays.asList("기술", "스택", "사용", "언어", "프레임워크", "tech", "stack")
     ),
-    START_INTERVIEW(
-        "면접시작",
-        Arrays.asList("면접", "면접보기", "면접시작", "준비", "테스트")
+    PROJECT_EXPERIENCE(
+        "프로젝트경험",
+        Arrays.asList("프로젝트", "경험", "구축", "개발", "project", "experience")
     ),
-    ANSWER_QUESTION(
-        "질문답변",
-        Arrays.asList() // 면접 중에는 모든 답변이 이 의도로 처리됨
+    INTERVIEW_TIP(
+        "면접팁",
+        Arrays.asList("면접", "팁", "조언", "준비", "interview", "tip")
     ),
-    RESTART_SEARCH(
-        "검색재시작",
-        Arrays.asList("다시", "재검색", "처음부터", "새로", "리셋", "reset")
+    RESUME_TIP(
+        "이력서팁",
+        Arrays.asList("이력서", "포트폴리오", "resume", "cv", "작성")
+    ),
+    SALARY_NEGOTIATION(
+        "연봉협상",
+        Arrays.asList("연봉", "협상", "salary", "연봉협상", "급여")
+    ),
+    COMPANY_CULTURE(
+        "회사문화",
+        Arrays.asList("문화", "분위기", "환경", "culture", "회사선택")
     ),
     HELP(
         "도움말",
-        Arrays.asList("도움", "도움말", "help", "뭐할수있어", "기능", "무엇", "뭐해줘")
+        Arrays.asList("도움", "도움말", "help", "뭐할수있어", "기능", "무엇", "뭐해줘", "질문")
+    ),
+    RESTART(
+        "재시작",
+        Arrays.asList("다시", "처음", "새로", "리셋", "reset", "restart")
     ),
     UNKNOWN(
         "알수없음",

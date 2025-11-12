@@ -78,6 +78,36 @@
             margin-left: 52px;
         }
 
+        /* 질문 버튼 스타일 */
+        .question-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin: 16px 0;
+        }
+
+        .question-btn {
+            padding: 12px 16px;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+            color: #495057;
+        }
+
+        .question-btn:hover {
+            background: #f8f9fa;
+            border-color: #2d2d2d;
+            transform: translateX(4px);
+        }
+
+        .question-btn-icon {
+            margin-right: 8px;
+        }
+
         /* 환영 화면 */
         .chat-welcome {
             padding: 32px 24px;
@@ -288,26 +318,25 @@
         <div class="chat-header">
             <div class="chat-header-top">
                 <div class="chat-brand">
-                    <div class="chat-logo">💼</div>
-                    <div class="chat-brand-name">PayFlow</div>
+                    <div class="chat-logo">👨‍💻</div>
+                    <div class="chat-brand-name">Career Mentor</div>
                 </div>
             </div>
-            <div class="chat-subtitle">채용 공고 검색 도우미</div>
+            <div class="chat-subtitle">궁금해</div>
         </div>
 
         <!-- 환영 화면 -->
         <div class="chat-welcome" id="chatWelcome">
             <div class="chat-welcome-message">
-                안녕하세요! 👋<br>
-                채용 공고 검색을 도와드리겠습니다.
+                안녕하세요!
             </div>
             <button class="chat-start-btn" onclick="startChat()">
-                <span>채팅 시작하기</span>
-                <span>✈️</span>
+                <span>시작하기</span>
+                <span>🚀</span>
             </button>
             <div class="chat-response-time">
                 <div class="chat-avatar-small"></div>
-                <span>몇 분 내로 응답드립니다</span>
+                <span>궁금한 내용을 질문해보세요</span>
             </div>
         </div>
 
@@ -322,7 +351,7 @@
 
         <!-- 푸터 -->
         <div class="chat-footer">
-            Powered by PayFlow AI
+            시니어 백엔드 개발자 | GitHub: huisikkim/payFlow
         </div>
     </div>
 
@@ -340,12 +369,48 @@
             chatWelcome.classList.add('hidden');
             chatContent.classList.add('active');
             
-            // 초기 메시지 추가
-            addMessage('안녕하세요! 채용 공고 검색을 도와드리겠습니다.\n\'채용 찾기\' 또는 \'일자리 검색\'이라고 말씀해주세요.', false);
+            // 초기 메시지와 버튼 추가
+            addMessage('안녕하세요! 👋\n\n궁금하신 내용을 선택하거나 직접 질문해주세요!', false);
+            addQuestionButtons();
             
             setTimeout(() => {
                 messageInput.focus();
             }, 100);
+        }
+
+        function addQuestionButtons() {
+            const buttonsDiv = document.createElement('div');
+            buttonsDiv.className = 'message bot';
+            
+            const buttonsContainer = document.createElement('div');
+            buttonsContainer.className = 'question-buttons';
+            buttonsContainer.style.maxWidth = '75%';
+            
+            const questions = [
+                { icon: '💼', text: '자기소개', keyword: '소개' },
+                { icon: '🏗️', text: '아키텍처 경험', keyword: '아키텍처' },
+                { icon: '🔧', text: '레거시 현대화', keyword: '레거시' },
+                { icon: '💻', text: '기술 스택', keyword: '기술' },
+                { icon: '📂', text: '프로젝트 경험', keyword: '프로젝트' },
+                { icon: '🏢', text: '회사 문화', keyword: '회사문화' }
+            ];
+            
+            questions.forEach(q => {
+                const btn = document.createElement('button');
+                btn.className = 'question-btn';
+                btn.innerHTML = `<span class="question-btn-icon">${q.icon}</span>${q.text}`;
+                btn.onclick = () => sendQuestionFromButton(q.keyword);
+                buttonsContainer.appendChild(btn);
+            });
+            
+            buttonsDiv.appendChild(buttonsContainer);
+            chatMessages.appendChild(buttonsDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function sendQuestionFromButton(keyword) {
+            messageInput.value = keyword;
+            sendMessage();
         }
 
         function addMessage(content, isUser) {
