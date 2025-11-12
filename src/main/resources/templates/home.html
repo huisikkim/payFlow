@@ -428,101 +428,143 @@
     
     <!-- 히어로 섹션 -->
     <section class="hero">
-        <h1>개발자를 위한<br>프리미엄 도구</h1>
-        <p>MSA + EDA + DDD 기반의 안전한 결제 시스템</p>
-        <div class="tech-badges">
-            <span class="tech-badge">Spring Boot</span>
-            <span class="tech-badge">Apache Kafka</span>
-            <span class="tech-badge">MSA</span>
-            <span class="tech-badge">EDA</span>
-            <span class="tech-badge">DDD</span>
-            <span class="tech-badge">H2 Database</span>
-            <span class="tech-badge">Toss Payments</span>
-        </div>
+        <h1>저는 이런 개발자입니다.</br>
+            누군가 질문을 하거나 바로 답을 원한다면</br>
+            그냥 모르면 모른다고 말합니다. </br>
+            그대신 답을 찾는 방법을 알고 있고</br>
+            반드시 답을 찾아서</br>
+            해결을 해왔기 때문에</br>
+            함께 일하기 좋은 동료입니다.
+        </h1>
     </section>
     
     <!-- 상품 섹션 -->
     <div class="container" id="products">
         <h2 class="section-title">인기 상품</h2>
         <div class="products-grid">
-            <div class="product-card" onclick="buyProduct('프리미엄 개발자 도구', 1000, '🛠️')">
-                <div class="product-image">🛠️</div>
+            <div class="product-card" onclick="buyProduct('MSA 아키텍처 설계 패키지', 100, '🏗️️')">
+                <div class="product-image">🏗️️</div>
                 <div class="product-info">
-                    <div class="product-name">프리미엄 개발자 도구</div>
-                    <div class="product-description">생산성을 높이는 필수 개발 도구 패키지</div>
+                    <div class="product-name">MSA 아키텍처 설계 패키지</div>
+                        <div class="product-description">
+                            <span>시니어 개발자의 마이크로서비스 전환 노하우</span><br>
+                            <span>모놀리식 →모듈러 모놀리스 →MSA 단계별 전환 전략 포함</span>
+                        </div>
                     <div class="product-footer">
-                        <div class="product-price">1,000원</div>
+                        <div class="product-price">100원</div>
                         <button class="btn-buy">구매하기</button>
                     </div>
                 </div>
             </div>
             
-            <div class="product-card" onclick="buyProduct('코드 리뷰 서비스', 5000, '👨‍💻')">
+            <div class="product-card" onclick="buyProduct('DDD 도메인 설계', 700, '👨‍💻')">
                 <div class="product-image">👨‍💻</div>
                 <div class="product-info">
-                    <div class="product-name">코드 리뷰 서비스</div>
-                    <div class="product-description">전문가의 1:1 코드 리뷰 및 피드백</div>
+                    <div class="product-name">DDD 도메인 설계</div>
+                    <div class="product-description">Entity, Value Object, Repository 패턴 실무 적용</div>
                     <div class="product-footer">
-                        <div class="product-price">5,000원</div>
+                        <div class="product-price">700원</div>
                         <button class="btn-buy">구매하기</button>
                     </div>
                 </div>
             </div>
-            
-            <div class="product-card" onclick="buyProduct('클라우드 호스팅', 10000, '☁️')">
-                <div class="product-image">☁️</div>
+
+            <div class="product-card" onclick="buyProduct('EDA 이벤트 기반 처리 (Kafka 통합)', 800, '🔄')">
+                <div class="product-image">🔄</div>
                 <div class="product-info">
-                    <div class="product-name">클라우드 호스팅</div>
-                    <div class="product-description">안정적인 클라우드 인프라 1개월 이용권</div>
+                    <div class="product-name">EDA 이벤트 기반 처리 (Kafka 통합)</div>
+                    <div class="product-description">Kafka Topic을 통한 서비스 간 비동기 통신</div>
                     <div class="product-footer">
-                        <div class="product-price">10,000원</div>
+                        <div class="product-price">800원</div>
                         <button class="btn-buy">구매하기</button>
                     </div>
                 </div>
             </div>
             
-            <div class="product-card" onclick="buyProduct('API 모니터링 도구', 3000, '📊')">
-                <div class="product-image">📊</div>
+            <div class="product-card" onclick="buyProduct('토스페이먼츠 통합 솔루션', 3000000000, '💸')">
+                <div class="product-image">💸</div>
                 <div class="product-info">
-                    <div class="product-name">API 모니터링 도구</div>
-                    <div class="product-description">실시간 API 성능 모니터링 및 알림</div>
+                    <div class="product-name">간편 결제 연동</div>
+                    <div class="product-description">PG 연동부터 결제 검증까지 완전한 구현</div>
                     <div class="product-footer">
-                        <div class="product-price">3,000원</div>
+                        <div class="product-price">300원</div>
                         <button class="btn-buy">구매하기</button>
                     </div>
                 </div>
             </div>
             
-            <div class="product-card" onclick="buyProduct('데이터베이스 최적화', 7000, '🗄️')">
-                <div class="product-image">🗄️</div>
+            <div class="product-card" onclick="buyProduct('실무 경험 기반 서비스 상품', 120, '🎓')">
+                <div class="product-image">🎓</div>
                 <div class="product-info">
-                    <div class="product-name">데이터베이스 최적화</div>
-                    <div class="product-description">DB 성능 분석 및 최적화 컨설팅</div>
+                    <div class="product-name">실무 경험 기반 서비스 상품</div>
+                    <div class="product-description">레거시 시스템 마이그레이션</div>
                     <div class="product-footer">
-                        <div class="product-price">7,000원</div>
+                        <div class="product-price">120원</div>
+                        <button class="btn-buy">구매하기</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-card" onclick="buyProduct('Spring Security + JWT 인증', 700, '️🔐')">
+                <div class="product-image">🔐️</div>
+                <div class="product-info">
+                    <div class="product-name">Spring Security + JWT 인증</div>
+                    <div class="product-description">토큰 기반 인증/인가 시스템 구현</div>
+                    <div class="product-footer">
+                        <div class="product-price">700원</div>
                         <button class="btn-buy">구매하기</button>
                     </div>
                 </div>
             </div>
             
-            <div class="product-card" onclick="buyProduct('보안 진단 서비스', 15000, '🔒')">
+            <div class="product-card" onclick="buyProduct('블록체인 연동 모듈', 150, '🔒')">
                 <div class="product-image">🔒</div>
                 <div class="product-info">
-                    <div class="product-name">보안 진단 서비스</div>
-                    <div class="product-description">애플리케이션 보안 취약점 진단</div>
+                    <div class="product-name">블록체인 연동 모듈</div>
+                    <div class="product-description">
+                        <span>Solidity + Web3 라이브러리 활용</span><br>
+                        <span>암호화폐 국내/해외 거래소 OPEN API 통합 경험</span><br>
+                    </div>
                     <div class="product-footer">
-                        <div class="product-price">15,000원</div>
+                        <div class="product-price">150원</div>
                         <button class="btn-buy">구매하기</button>
                     </div>
                 </div>
             </div>
-        </div>
+
+            <div class="product-card" onclick="buyProduct('키오스크 셀프 결제 시스템', 250, '🖥')">
+                <div class="product-image">🖥️</div>
+                <div class="product-info">
+                    <div class="product-name">키오스크 셀프 결제 시스템</div>
+                    <div class="product-description">
+                        <span>무인 주문/결제 단말기 통합 개발 경험</span><br>
+                        <span>터치스크린 UI</span><br>
+                    </div>
+                    <div class="product-footer">
+                        <div class="product-price">250원</div>
+                        <button class="btn-buy">구매하기</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-card" onclick="buyProduct('GR 카트 영상 관리 시스템', 350, '🏎️')">
+                <div class="product-image">🏎️📹</div>
+                <div class="product-info">
+                    <div class="product-name">GR 카트 영상 관리 시스템</div>
+                    <div class="product-description">
+                        <span>TCP 소켓 통신 시스템</span>
+                    </div>
+                    <div class="product-footer">
+                        <div class="product-price">350원</div>
+                        <button class="btn-buy">구매하기</button>
+                    </div>
+                </div>
+            </div>
     </div>
     
     <!-- 푸터 -->
     <footer>
-        <p>© 2025 PayFlow Shop. MSA + EDA + DDD 기반 결제 시스템</p>
-        <p>Spring Boot • Kafka • H2 • Toss Payments</p>
+        <p>© 2025 PayFlow Shop</p>
     </footer>
     
     <script>
@@ -634,5 +676,6 @@
             location.href = '/payment';
         }
     </script>
+    </div>
 </body>
 </html>
