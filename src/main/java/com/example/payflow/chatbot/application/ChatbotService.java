@@ -22,6 +22,7 @@ public class ChatbotService {
     private final ResponseGenerator responseGenerator;
     private final EventPublisher eventPublisher;
     private final JobSearchService jobSearchService;
+    private final InterviewService interviewService;
 
     @Transactional
     public ChatResponse chat(ChatRequest request) {
@@ -91,7 +92,16 @@ public class ChatbotService {
                 return handleSalaryStep(conversationId, context, message);
             
             case SHOWING_RESULTS:
-                return handleResultsStep(context);
+                return handleResultsStep(conversationId, context, message);
+            
+            case ASKING_JOB_SELECTION:
+                return handleJobSelectionStep(conversationId, context, message);
+            
+            case ASKING_TECH_STACK:
+                return handleTechStackStep(conversationId, context, message);
+            
+            case CONDUCTING_INTERVIEW:
+                return handleInterviewStep(conversationId, context, message);
             
             default:
                 return responseGenerator.generate(Intent.UNKNOWN);
@@ -155,7 +165,7 @@ public class ChatbotService {
         
         if (salaryRange != null) {
             jobSearchService.updateSalary(conversationId, salaryRange[0], salaryRange[1]);
-            return handleResultsStep(context);
+            return handleResultsStep(conversationId, context, message);
         }
         
         return "연봉 정보를 정확히 이해하지 못했어요. 😅\n\n" +
@@ -163,7 +173,7 @@ public class ChatbotService {
                "(예: 3000만원~5000만원, 4000만원 이상)";
     }
 
-    private String handleResultsStep(ConversationContext context) {
+    private String handleResultsStep(Long conversationId, ConversationContext context, String message) {
         List<Job> jobs = jobSearchService.searchJobs(context);
         
         if (jobs.isEmpty()) {
@@ -179,6 +189,9 @@ public class ChatbotService {
                 context.getMaxSalary() / 10000);
         }
         
+        // 결과를 컨텍스트에 저장 (나중에 선택할 수 있도록)
+        jobSearchService.saveSearchResults(conversationId, jobs);
+        
         StringBuilder result = new StringBuilder();
         result.append(String.format("🎉 총 %d개의 채용 공고를 찾았습니다!\n\n", jobs.size()));
         
@@ -187,11 +200,11 @@ public class ChatbotService {
             if (count >= 5) break; // 최대 5개만 표시
             
             result.append(String.format("━━━━━━━━━━━━━━━━━━━━\n"));
-            result.append(String.format("📌 %s\n", job.getCompanyName()));
-            result.append(String.format("💼 %s\n", job.getPosition()));
-            result.append(String.format("📍 %s | %s\n", job.getRegion(), job.getIndustry()));
-            result.append(String.format("💰 %s\n", job.getSalaryRange()));
-            result.append(String.format("📝 %s\n\n", job.getDescription()));
+            result.append(String.format("[%d] %s\n", count + 1, job.getCompanyName()));
+            result.append(String.format("%s\n", job.getPosition()));
+            result.append(String.format("%s | %s\n", job.getRegion(), job.getIndustry()));
+            result.append(String.format("%s\n", job.getSalaryRange()));
+            result.append(String.format("%s\n\n", job.getDescription()));
             count++;
         }
         
@@ -199,9 +212,195 @@ public class ChatbotService {
             result.append(String.format("... 외 %d개 공고가 더 있습니다.\n\n", jobs.size() - 5));
         }
         
+        result.append("💡 관심있는 공고가 있으신가요?\n");
+        result.append("번호를 입력하시면 해당 포지션에 대한 모의 면접을 진행할 수 있습니다!\n");
+        result.append("(예: 1번, 2번 면접)\n\n");
         result.append("'다시'라고 입력하시면 새로운 검색을 시작할 수 있어요!");
         
+        context.moveToStep(ConversationStep.ASKING_JOB_SELECTION);
+        jobSearchService.getOrCreateContext(conversationId);
+        
         return result.toString();
+    }
+
+    private String handleJobSelectionStep(Long conversationId, ConversationContext context, String message) {
+        // 번호 추출
+        Integer jobNumber = extractJobNumber(message);
+        
+        if (jobNumber == null) {
+            return "공고 번호를 정확히 입력해주세요.\n(예: 1번, 2번 면접)";
+        }
+        
+        List<Job> searchResults = jobSearchService.getSearchResults(conversationId);
+        if (searchResults == null || jobNumber < 1 || jobNumber > searchResults.size()) {
+            return String.format("1번부터 %d번 사이의 번호를 입력해주세요.", 
+                searchResults != null ? searchResults.size() : 0);
+        }
+        
+        Job selectedJob = searchResults.get(jobNumber - 1);
+        context.setSelectedJobId(selectedJob.getId());
+        context.moveToStep(ConversationStep.ASKING_TECH_STACK);
+        jobSearchService.getOrCreateContext(conversationId);
+        
+        return String.format("'%s - %s' 포지션을 선택하셨네요! 👍\n\n" +
+            "모의 면접을 시작하기 전에, 보유하신 기술 스택을 알려주세요.\n" +
+            "여러 개를 쉼표(,)로 구분하여 입력해주세요.\n\n" +
+            "예: Java, Spring Boot, MySQL, AWS",
+            selectedJob.getCompanyName(), selectedJob.getPosition());
+    }
+
+    private String handleTechStackStep(Long conversationId, ConversationContext context, String message) {
+        // 기술 스택 파싱
+        List<String> techStacks = parseTechStacks(message);
+        
+        if (techStacks.isEmpty()) {
+            return "기술 스택을 입력해주세요.\n예: Java, Spring Boot, MySQL";
+        }
+        
+        // 기술 스택 저장
+        techStacks.forEach(context::addTechStack);
+        jobSearchService.getOrCreateContext(conversationId);
+        
+        // 면접 시작
+        Interview interview = interviewService.startInterview(
+            conversationId, 
+            context.getSelectedJobId(), 
+            conversationRepository.findById(conversationId)
+                .map(Conversation::getUserId)
+                .orElse("unknown"),
+            techStacks
+        );
+        
+        context.setCurrentInterviewId(interview.getId());
+        context.moveToStep(ConversationStep.CONDUCTING_INTERVIEW);
+        jobSearchService.getOrCreateContext(conversationId);
+        
+        // 첫 번째 질문 가져오기
+        InterviewQuestion firstQuestion = interviewService.getNextQuestion(interview.getId());
+        
+        return String.format("좋습니다! 기술 스택: %s\n\n" +
+            "🎤 모의 면접을 시작하겠습니다!\n" +
+            "총 %d개의 질문이 준비되어 있습니다.\n\n" +
+            "━━━━━━━━━━━━━━━━━━━━\n" +
+            "질문 %d/%d [%s]\n\n" +
+            "%s\n\n" +
+            "답변을 입력해주세요:",
+            String.join(", ", techStacks),
+            interview.getQuestions().size(),
+            firstQuestion.getQuestionNumber(),
+            interview.getQuestions().size(),
+            getCategoryName(firstQuestion.getCategory()),
+            firstQuestion.getQuestion());
+    }
+
+    private String handleInterviewStep(Long conversationId, ConversationContext context, String message) {
+        Long interviewId = context.getCurrentInterviewId();
+        if (interviewId == null) {
+            return "면접 정보를 찾을 수 없습니다. 처음부터 다시 시작해주세요.";
+        }
+        
+        // 현재 질문 가져오기
+        InterviewQuestion currentQuestion = interviewService.getNextQuestion(interviewId);
+        
+        if (currentQuestion == null) {
+            // 모든 질문에 답변 완료 - 결과 표시
+            InterviewService.InterviewResult result = interviewService.completeInterview(interviewId);
+            context.moveToStep(ConversationStep.SHOWING_INTERVIEW_RESULT);
+            jobSearchService.getOrCreateContext(conversationId);
+            
+            return formatInterviewResult(result);
+        }
+        
+        // 이전 질문에 대한 답변 저장 (첫 질문이 아닌 경우)
+        if (currentQuestion.getQuestionNumber() > 1) {
+            InterviewQuestion prevQuestion = interviewService.getNextQuestion(interviewId);
+            if (prevQuestion != null && prevQuestion.getQuestionNumber() == currentQuestion.getQuestionNumber() - 1) {
+                interviewService.answerQuestion(interviewId, prevQuestion.getQuestionNumber(), message);
+            }
+        }
+        
+        // 답변 저장
+        interviewService.answerQuestion(interviewId, currentQuestion.getQuestionNumber(), message);
+        
+        // 다음 질문 가져오기
+        InterviewQuestion nextQuestion = interviewService.getNextQuestion(interviewId);
+        
+        if (nextQuestion == null) {
+            // 마지막 질문 완료 - 결과 표시
+            InterviewService.InterviewResult result = interviewService.completeInterview(interviewId);
+            context.moveToStep(ConversationStep.SHOWING_INTERVIEW_RESULT);
+            jobSearchService.getOrCreateContext(conversationId);
+            
+            return "답변 감사합니다! 😊\n\n" + formatInterviewResult(result);
+        }
+        
+        // 다음 질문 표시
+        Interview interview = interviewService.getInterviewByConversation(conversationId)
+            .orElseThrow(() -> new IllegalArgumentException("Interview not found"));
+        
+        return String.format("답변 감사합니다! 😊\n\n" +
+            "━━━━━━━━━━━━━━━━━━━━\n" +
+            "질문 %d/%d [%s]\n\n" +
+            "%s\n\n" +
+            "답변을 입력해주세요:",
+            nextQuestion.getQuestionNumber(),
+            interview.getQuestions().size(),
+            getCategoryName(nextQuestion.getCategory()),
+            nextQuestion.getQuestion());
+    }
+
+    private String formatInterviewResult(InterviewService.InterviewResult result) {
+        return String.format(
+            "🎊 면접이 완료되었습니다!\n\n" +
+            "━━━━━━━━━━━━━━━━━━━━\n" +
+            "면접 결과\n" +
+            "━━━━━━━━━━━━━━━━━━━━\n\n" +
+            "답변한 질문: %d/%d\n" +
+            "총점: %d점\n" +
+            "평균 점수: %d점\n" +
+            "합격 예상률: %.1f%%\n\n" +
+            "━━━━━━━━━━━━━━━━━━━━\n" +
+            "💬 종합 평가\n" +
+            "━━━━━━━━━━━━━━━━━━━━\n" +
+            "%s\n\n" +
+            "'다시'라고 입력하시면 새로운 검색을 시작할 수 있어요!",
+            result.answeredCount,
+            result.totalQuestions,
+            result.totalScore,
+            result.averageScore,
+            result.passRate,
+            result.overallFeedback
+        );
+    }
+
+    private Integer extractJobNumber(String message) {
+        String normalized = message.replaceAll("[^0-9]", "");
+        if (normalized.isEmpty()) {
+            return null;
+        }
+        try {
+            return Integer.parseInt(normalized);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private List<String> parseTechStacks(String message) {
+        return java.util.Arrays.stream(message.split("[,，]"))
+            .map(String::trim)
+            .filter(s -> !s.isEmpty())
+            .collect(java.util.stream.Collectors.toList());
+    }
+
+    private String getCategoryName(QuestionCategory category) {
+        switch (category) {
+            case TECHNICAL: return "기술";
+            case EXPERIENCE: return "경험";
+            case PROBLEM_SOLVING: return "문제해결";
+            case CULTURE_FIT: return "문화적합성";
+            case PROJECT: return "프로젝트";
+            default: return "일반";
+        }
     }
 
     @Transactional(readOnly = true)

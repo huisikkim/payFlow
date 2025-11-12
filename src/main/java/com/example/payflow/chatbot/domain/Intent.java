@@ -24,6 +24,18 @@ public enum Intent {
         "연봉입력",
         Arrays.asList("만원", "천만원", "억", "연봉", "salary")
     ),
+    JOB_SELECTION(
+        "공고선택",
+        Arrays.asList("번", "선택", "지원", "면접")
+    ),
+    START_INTERVIEW(
+        "면접시작",
+        Arrays.asList("면접", "면접보기", "면접시작", "준비", "테스트")
+    ),
+    ANSWER_QUESTION(
+        "질문답변",
+        Arrays.asList() // 면접 중에는 모든 답변이 이 의도로 처리됨
+    ),
     RESTART_SEARCH(
         "검색재시작",
         Arrays.asList("다시", "재검색", "처음부터", "새로", "리셋", "reset")

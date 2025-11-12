@@ -6,7 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,6 +18,9 @@ public class JobSearchService {
 
     private final JobRepository jobRepository;
     private final ConversationContextRepository contextRepository;
+    
+    // 검색 결과를 임시 저장 (실제로는 Redis나 DB에 저장하는 것이 좋음)
+    private final Map<Long, List<Job>> searchResultsCache = new ConcurrentHashMap<>();
 
     @Transactional
     public ConversationContext getOrCreateContext(Long conversationId) {
@@ -121,5 +125,13 @@ public class JobSearchService {
         }
         
         return null;
+    }
+
+    public void saveSearchResults(Long conversationId, List<Job> jobs) {
+        searchResultsCache.put(conversationId, new ArrayList<>(jobs));
+    }
+
+    public List<Job> getSearchResults(Long conversationId) {
+        return searchResultsCache.get(conversationId);
     }
 }
