@@ -8,30 +8,25 @@ public enum Intent {
         "인사",
         Arrays.asList("안녕", "하이", "헬로", "hi", "hello", "반가워", "처음", "시작")
     ),
-    ORDER_INQUIRY(
-        "주문조회",
-        Arrays.asList("주문", "주문조회", "내주문", "주문내역", "주문확인", "order")
+    JOB_SEARCH_START(
+        "채용검색시작",
+        Arrays.asList("채용", "구인", "일자리", "취업", "job", "채용공고", "구직", "채용정보", "회사찾기", "일찾기")
     ),
-    PAYMENT_INQUIRY(
-        "결제조회",
-        Arrays.asList("결제", "결제조회", "결제내역", "결제확인", "payment", "pay")
+    REGION_SELECTION(
+        "지역선택",
+        Arrays.asList("서울", "경기", "인천", "부산", "대구", "광주", "대전", "울산", "세종", "강원", "충북", "충남", "전북", "전남", "경북", "경남", "제주")
     ),
-    DELIVERY_INQUIRY(
-        "배송조회",
-        Arrays.asList("배송", "배송조회", "언제도착", "배송상태", "언제오나", "delivery")
+    INDUSTRY_SELECTION(
+        "업종선택",
+        Arrays.asList("IT", "금융", "제조", "유통", "서비스", "교육", "의료", "건설", "미디어", "게임", "스타트업")
     ),
-    REFUND_REQUEST(
-        "환불요청",
-        Arrays.asList("환불", "취소", "반품", "refund", "cancel", "환불하고싶어", "취소하고싶어")
+    SALARY_INPUT(
+        "연봉입력",
+        Arrays.asList("만원", "천만원", "억", "연봉", "salary")
     ),
-    STAGE_INQUIRY(
-        "정산조회",
-        Arrays.asList("정산", "정산조회", "정산내역", "settlement")
-    ),
-    STAGE_GUIDE(
-        "스테이지안내",
-        Arrays.asList("스테이지", "stage", "계", "스테이지참여", "스테이지시작", "스테이지만들기", 
-                     "스테이지가뭐야", "스테이지어떻게", "계모임", "순번", "참여방법")
+    RESTART_SEARCH(
+        "검색재시작",
+        Arrays.asList("다시", "재검색", "처음부터", "새로", "리셋", "reset")
     ),
     HELP(
         "도움말",
