@@ -269,7 +269,10 @@
                 document.getElementById('totalEvents').textContent = metrics.totalEvents.toLocaleString();
                 document.getElementById('failedEvents').textContent = metrics.failedEvents.toLocaleString();
                 
-                const successRate = ((metrics.totalEvents - metrics.failedEvents) / metrics.totalEvents * 100).toFixed(1);
+                // 성공률 계산 (totalEvents가 0이면 0%로 표시)
+                const successRate = metrics.totalEvents > 0 
+                    ? ((metrics.totalEvents - metrics.failedEvents) / metrics.totalEvents * 100).toFixed(1)
+                    : '0.0';
                 document.getElementById('successRate').textContent = successRate + '%';
                 
                 // 평균 처리시간 계산

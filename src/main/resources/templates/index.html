@@ -7,8 +7,169 @@
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <div th:replace="~{fragments/session-replay-sdk :: sdk}"></div>
     <script src="https://js.tosspayments.com/v1/payment"></script>
+    <style>
+        /* 헤더 스타일 - home.css와 동일 */
+        header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
+        
+        .logo {
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #e0e7ff 0%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            filter: drop-shadow(0 2px 8px rgba(165, 180, 252, 0.3));
+            transition: all 0.3s ease;
+        }
+        
+        .logo:hover {
+            transform: scale(1.05);
+            filter: drop-shadow(0 4px 12px rgba(165, 180, 252, 0.5));
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 8px;
+            list-style: none;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: rgba(224, 231, 255, 0.85);
+            font-size: 14px;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .nav-links a:hover {
+            color: #e0e7ff;
+            background: rgba(165, 180, 252, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(165, 180, 252, 0.15);
+        }
+        
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%) scaleX(0);
+            width: 60%;
+            height: 2px;
+            background: linear-gradient(90deg, #a5b4fc, #e0e7ff);
+            border-radius: 2px;
+            transition: transform 0.3s ease;
+            box-shadow: 0 0 8px rgba(165, 180, 252, 0.6);
+        }
+        
+        .nav-links a:hover::after {
+            transform: translateX(-50%) scaleX(1);
+        }
+        
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        #header-user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .btn-login-header, .btn-logout-header {
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-login-header {
+            background: linear-gradient(135deg, #a5b4fc 0%, #818cf8 100%);
+            color: #1a1a2e;
+            box-shadow: 0 4px 16px rgba(165, 180, 252, 0.4);
+            font-weight: 700;
+        }
+        
+        .btn-login-header:hover {
+            background: linear-gradient(135deg, #c7d2fe 0%, #a5b4fc 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(165, 180, 252, 0.6);
+        }
+        
+        .btn-logout-header {
+            background: rgba(165, 180, 252, 0.15);
+            color: #e0e7ff;
+            border: 1px solid rgba(165, 180, 252, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        .btn-logout-header:hover {
+            background: rgba(165, 180, 252, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(165, 180, 252, 0.3);
+            border-color: rgba(165, 180, 252, 0.5);
+        }
+        
+        .username-header {
+            font-weight: 600;
+            color: #e0e7ff;
+            font-size: 14px;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+    </style>
 </head>
 <body>
+    <!-- 헤더 -->
+    <header>
+        <nav>
+            <div class="logo">Legacy-Free Commerce</div>
+            <ul class="nav-links">
+                <li><a href="/">홈</a></li>
+                <li><a href="/#products">상품</a></li>
+                <li><a href="/logs/dashboard">이벤트 대시보드</a></li>
+                <li><a href="/session-replay/dashboard">🎬 세션 재생</a></li>
+            </ul>
+            <div class="user-section">
+                <div id="header-user-info" style="display: none;">
+                    <span class="username-header" id="header-username-display"></span>
+                    <button class="btn-logout-header" onclick="logoutFromHeader()">로그아웃</button>
+                </div>
+                <button class="btn-login-header" id="header-login-btn" onclick="goToHome()" style="display: none;">
+                    로그인
+                </button>
+            </div>
+        </nav>
+    </header>
+    
     <!-- 챗봇 플로팅 버튼 -->
     <div th:replace="~{fragments/chatbot-button :: button}"></div>
     <div class="container">
@@ -85,6 +246,36 @@
     <script th:inline="javascript">
         const clientKey = /*[[${clientKey}]]*/ 'test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq';
         initPaymentPage(clientKey);
+        
+        // 헤더 로그인 상태 확인
+        function updateHeaderLoginStatus() {
+            const token = localStorage.getItem('accessToken');
+            const username = localStorage.getItem('username');
+            
+            if (token && username) {
+                document.getElementById('header-user-info').style.display = 'flex';
+                document.getElementById('header-username-display').textContent = '👤 ' + username;
+                document.getElementById('header-login-btn').style.display = 'none';
+            } else {
+                document.getElementById('header-user-info').style.display = 'none';
+                document.getElementById('header-login-btn').style.display = 'block';
+            }
+        }
+        
+        // 헤더에서 로그아웃
+        function logoutFromHeader() {
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('username');
+            location.href = '/';
+        }
+        
+        // 홈으로 이동
+        function goToHome() {
+            location.href = '/';
+        }
+        
+        // 페이지 로드 시 헤더 상태 업데이트
+        updateHeaderLoginStatus();
     </script>
 </body>
 </html>
