@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "conversation_contexts")
@@ -28,6 +30,15 @@ public class ConversationContext {
     private String selectedIndustry;
     private Long minSalary;
     private Long maxSalary;
+
+    private Long selectedJobId;
+    
+    @ElementCollection
+    @CollectionTable(name = "user_tech_stacks_context", joinColumns = @JoinColumn(name = "context_id"))
+    @Column(name = "tech_stack")
+    private List<String> userTechStacks = new ArrayList<>();
+
+    private Long currentInterviewId;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
@@ -63,12 +74,33 @@ public class ConversationContext {
         this.updatedAt = LocalDateTime.now();
     }
 
+    public void setSelectedJobId(Long jobId) {
+        this.selectedJobId = jobId;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void addTechStack(String techStack) {
+        if (this.userTechStacks == null) {
+            this.userTechStacks = new ArrayList<>();
+        }
+        this.userTechStacks.add(techStack);
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void setCurrentInterviewId(Long interviewId) {
+        this.currentInterviewId = interviewId;
+        this.updatedAt = LocalDateTime.now();
+    }
+
     public void reset() {
         this.currentStep = ConversationStep.INITIAL;
         this.selectedRegion = null;
         this.selectedIndustry = null;
         this.minSalary = null;
         this.maxSalary = null;
+        this.selectedJobId = null;
+        this.userTechStacks = new ArrayList<>();
+        this.currentInterviewId = null;
         this.updatedAt = LocalDateTime.now();
     }
 }
