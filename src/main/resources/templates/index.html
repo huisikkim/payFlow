@@ -13,7 +13,6 @@
     <div th:replace="~{fragments/chatbot-button :: button}"></div>
     <div class="container">
         <h1>Legacy-Free Commerce</h1>
-        <p class="subtitle">결제</p>
         
         <!-- 로그인 상태 표시 -->
         <div class="user-info" id="user-info" style="display: none;">
@@ -41,6 +40,14 @@
                 <div class="product-emoji" style="font-size: 48px; text-align: center; margin-bottom: 10px;">🛠️</div>
                 <div class="product-name" id="product-name">프리미엄 개발자 도구</div>
                 <div class="product-price" id="product-price">1,000원</div>
+                
+                <!-- 상품 상세 내역 -->
+                <div class="product-details" id="product-details" style="margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 8px; text-align: left;">
+                    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 12px; color: #212529; text-align: left;">📋 상품 상세 내역</h3>
+                    <div id="product-details-content" style="font-size: 14px; line-height: 1.8; color: #495057; text-align: left;">
+                        <!-- 동적으로 채워질 내용 -->
+                    </div>
+                </div>
             </div>
             
             <form id="payment-form">
@@ -74,164 +81,10 @@
         </div>
     </div>
 
+    <script src="/js/payment.js"></script>
     <script th:inline="javascript">
         const clientKey = /*[[${clientKey}]]*/ 'test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq';
-        const tossPayments = TossPayments(clientKey);
-        
-        // 토큰 관리
-        function getToken() {
-            return localStorage.getItem('accessToken');
-        }
-        
-        function setToken(token) {
-            localStorage.setItem('accessToken', token);
-        }
-        
-        function removeToken() {
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('username');
-        }
-        
-        function getUsername() {
-            return localStorage.getItem('username');
-        }
-        
-        // 페이지 로드 시 로그인 상태 확인 및 상품 정보 로드
-        window.addEventListener('load', () => {
-            // 선택된 상품 정보 로드
-            const selectedProduct = sessionStorage.getItem('selectedProduct');
-            if (selectedProduct) {
-                const product = JSON.parse(selectedProduct);
-                document.querySelector('.product-emoji').textContent = product.emoji;
-                document.getElementById('product-name').textContent = product.name;
-                document.getElementById('product-price').textContent = product.price.toLocaleString() + '원';
-                // 전역 변수로 저장
-                window.currentProduct = product;
-            }
-            
-            const token = getToken();
-            if (token) {
-                showPaymentSection();
-            } else {
-                showLoginForm();
-            }
-        });
-        
-        function showLoginForm() {
-            document.getElementById('login-form').style.display = 'block';
-            document.getElementById('payment-section').style.display = 'none';
-            document.getElementById('user-info').style.display = 'none';
-        }
-        
-        function showPaymentSection() {
-            document.getElementById('login-form').style.display = 'none';
-            document.getElementById('payment-section').style.display = 'block';
-            document.getElementById('user-info').style.display = 'flex';
-            document.getElementById('username-display').textContent = '👤 ' + getUsername();
-        }
-        
-        // 로그인 처리
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const loading = document.getElementById('login-loading');
-            
-            try {
-                loading.style.display = 'block';
-                
-                const response = await fetch('/api/auth/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
-                });
-                
-                if (!response.ok) {
-                    throw new Error('로그인 실패');
-                }
-                
-                const data = await response.json();
-                setToken(data.accessToken);
-                localStorage.setItem('username', data.username);
-                
-                showPaymentSection();
-            } catch (error) {
-                console.error('로그인 실패:', error);
-                alert('로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.');
-            } finally {
-                loading.style.display = 'none';
-            }
-        });
-        
-        // 로그아웃
-        function logout() {
-            removeToken();
-            showLoginForm();
-        }
-        
-        // 결제 처리
-        document.getElementById('payment-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const customerName = document.getElementById('customerName').value;
-            const customerEmail = document.getElementById('customerEmail').value;
-            const loading = document.getElementById('loading');
-            const token = getToken();
-            
-            if (!token) {
-                alert('로그인이 필요합니다.');
-                showLoginForm();
-                return;
-            }
-            
-            try {
-                loading.style.display = 'block';
-                
-                // 현재 상품 정보 가져오기
-                const product = window.currentProduct || { name: '프리미엄 개발자 도구', price: 1000 };
-                
-                // 1. 주문 생성 (Order Service) - JWT 토큰 포함
-                const orderResponse = await fetch('/api/orders', {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + token
-                    },
-                    body: JSON.stringify({
-                        orderName: product.name,
-                        amount: product.price,
-                        customerEmail: customerEmail,
-                        customerName: customerName
-                    })
-                });
-                
-                if (orderResponse.status === 401 || orderResponse.status === 403) {
-                    alert('인증이 만료되었습니다. 다시 로그인해주세요.');
-                    removeToken();
-                    showLoginForm();
-                    return;
-                }
-                
-                const order = await orderResponse.json();
-                console.log('주문 생성:', order);
-                
-                // 2. 토스페이먼츠 결제창 호출
-                await tossPayments.requestPayment('카드', {
-                    amount: order.amount,
-                    orderId: order.orderId,
-                    orderName: order.orderName,
-                    customerName: customerName,
-                    customerEmail: customerEmail,
-                    successUrl: window.location.origin + '/success',
-                    failUrl: window.location.origin + '/fail',
-                });
-            } catch (error) {
-                console.error('결제 요청 실패:', error);
-                alert('결제 요청에 실패했습니다.');
-                loading.style.display = 'none';
-            }
-        });
+        initPaymentPage(clientKey);
     </script>
 </body>
 </html>
