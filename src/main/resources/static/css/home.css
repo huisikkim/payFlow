@@ -94,6 +94,12 @@ nav {
     gap: 12px;
 }
 
+#user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
 .btn-login, .btn-logout {
     padding: 10px 20px;
     border-radius: 10px;
