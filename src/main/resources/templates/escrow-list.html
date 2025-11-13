@@ -229,6 +229,12 @@
                         <td th:text="${#temporals.format(escrow.createdAt, 'yyyy-MM-dd HH:mm')}">2024-01-01 10:00</td>
                         <td>
                             <a th:href="@{/escrow/{id}(id=${escrow.transactionId})}" class="btn btn-sm">상세보기</a>
+                            <a th:if="${escrow.status.name() == 'INITIATED'}" 
+                               th:href="@{/escrow/{id}/payment(id=${escrow.transactionId})}" 
+                               class="btn btn-sm btn-primary" 
+                               style="margin-left: 8px;">
+                                💳 입금
+                            </a>
                         </td>
                     </tr>
                 </tbody>

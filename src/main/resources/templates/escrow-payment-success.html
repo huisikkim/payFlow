@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>입금 처리 중 - 레거시 없이 시작하는 커머스</title>
+    <link rel="stylesheet" href="/css/escrow.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #f8f9fa;
+        }
+        
+        .success-container {
+            max-width: 600px;
+            margin: 100px auto;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .success-card {
+            background: white;
+            border-radius: 16px;
+            padding: 48px 32px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .spinner {
+            width: 64px;
+            height: 64px;
+            border: 4px solid #f1f3f5;
+            border-top: 4px solid #0f3460;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 24px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        h2 {
+            color: #212529;
+            margin-bottom: 16px;
+        }
+        
+        .message {
+            color: #6c757d;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .error-message {
+            color: #dc3545;
+            margin-top: 16px;
+            padding: 16px;
+            background: #f8d7da;
+            border-radius: 8px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="success-container">
+        <div class="success-card">
+            <div class="spinner"></div>
+            <h2>입금 처리 중입니다</h2>
+            <p class="message">
+                결제 승인 및 에스크로 입금을 처리하고 있습니다.<br>
+                잠시만 기다려주세요...
+            </p>
+            <div class="error-message" id="error-message"></div>
+        </div>
+    </div>
+    
+    <script th:inline="javascript">
+        const urlParams = new URLSearchParams(window.location.search);
+        const transactionId = urlParams.get('transactionId');
+        const paymentKey = urlParams.get('paymentKey');
+        const orderId = urlParams.get('orderId');
+        const amount = urlParams.get('amount');
+        
+        async function confirmPayment() {
+            try {
+                const response = await fetch(`/api/escrow/${transactionId}/payment/confirm`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        paymentKey: paymentKey,
+                        orderId: orderId,
+                        amount: parseInt(amount)
+                    })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || '입금 처리에 실패했습니다');
+                }
+                
+                const result = await response.json();
+                
+                // 성공 시 거래 상세 페이지로 이동
+                alert('✅ 입금이 완료되었습니다!');
+                window.location.href = `/escrow/${transactionId}`;
+                
+            } catch (error) {
+                console.error('입금 처리 실패:', error);
+                document.getElementById('error-message').textContent = error.message;
+                document.getElementById('error-message').style.display = 'block';
+                
+                setTimeout(() => {
+                    window.location.href = `/escrow/${transactionId}`;
+                }, 3000);
+            }
+        }
+        
+        // 페이지 로드 시 자동으로 결제 승인 처리
+        confirmPayment();
+    </script>
+</body>
+</html>

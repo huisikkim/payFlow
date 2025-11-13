@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>입금 실패 - 레거시 없이 시작하는 커머스</title>
+    <link rel="stylesheet" href="/css/escrow.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #f8f9fa;
+        }
+        
+        .fail-container {
+            max-width: 600px;
+            margin: 100px auto;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .fail-card {
+            background: white;
+            border-radius: 16px;
+            padding: 48px 32px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .fail-icon {
+            font-size: 64px;
+            margin-bottom: 24px;
+        }
+        
+        h2 {
+            color: #dc3545;
+            margin-bottom: 16px;
+        }
+        
+        .error-info {
+            background: #f8d7da;
+            border: 1px solid #f5c2c7;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 24px 0;
+            text-align: left;
+        }
+        
+        .error-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f5c2c7;
+        }
+        
+        .error-row:last-child {
+            border-bottom: none;
+        }
+        
+        .error-label {
+            color: #842029;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .error-value {
+            color: #58151c;
+            font-size: 14px;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border-radius: 8px;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: #0f3460;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #16213e;
+        }
+        
+        .btn-secondary {
+            background: #f1f3f5;
+            color: #495057;
+        }
+        
+        .btn-secondary:hover {
+            background: #e9ecef;
+        }
+    </style>
+</head>
+<body>
+    <div class="fail-container">
+        <div class="fail-card">
+            <div class="fail-icon">❌</div>
+            <h2>입금 처리 실패</h2>
+            <p style="color: #6c757d; margin-bottom: 24px;">
+                결제 처리 중 문제가 발생했습니다.
+            </p>
+            
+            <div class="error-info">
+                <div class="error-row">
+                    <span class="error-label">오류 코드</span>
+                    <span class="error-value" th:text="${code}">ERROR_CODE</span>
+                </div>
+                <div class="error-row">
+                    <span class="error-label">오류 메시지</span>
+                    <span class="error-value" th:text="${message}">오류 메시지</span>
+                </div>
+            </div>
+            
+            <div class="btn-group">
+                <a th:href="@{/escrow/{id}/payment(id=${transactionId})}" class="btn btn-primary">
+                    다시 시도
+                </a>
+                <a th:href="@{/escrow/{id}(id=${transactionId})}" class="btn btn-secondary">
+                    거래 상세로
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

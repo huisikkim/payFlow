@@ -485,3 +485,283 @@ http://localhost:8080/logs/dashboard
    - 중앙 집중식 로그 관리
    - 장애 추적 및 디버깅
    - SLA 모니터링
+
+## 🚗 에스크로 결제 시스템
+
+PayFlow는 **중고차 거래를 위한 안전한 에스크로 시스템**을 구현합니다.
+
+### 주요 특징
+
+#### 1. 토스 페이먼츠 통합
+- ✅ 실제 결제 시스템과 연동된 에스크로 입금
+- ✅ 토스 결제 위젯을 통한 안전한 결제
+- ✅ 결제 승인 후 자동 입금 처리
+- ✅ 테스트 환경에서 전체 플로우 검증 가능
+
+#### 2. 완전한 거래 생명주기 관리
+```
+1. INITIATED           → 거래 생성
+2. DEPOSITED          → 입금 완료 (토스 결제)
+3. DELIVERED          → 차량 인도
+4. VERIFIED           → 차량 검증
+5. OWNERSHIP_TRANSFERRED → 명의 이전
+6. COMPLETED          → 정산 완료 (판매자 지급)
+```
+
+#### 3. 안전장치
+- ✅ **에스크로 보관**: 입금된 금액은 모든 조건 충족 시까지 보관
+- ✅ **단계별 검증**: 각 단계마다 필수 조건 확인
+- ✅ **분쟁 처리**: 문제 발생 시 분쟁 제기 및 해결
+- ✅ **자동 환불**: 거래 취소 시 구매자에게 자동 환불
+
+#### 4. DDD 패턴 적용
+```
+domain/
+  ├── EscrowTransaction    # 에스크로 거래 집합 루트
+  ├── Deposit             # 입금 엔티티
+  ├── Verification        # 검증 엔티티
+  ├── Settlement          # 정산 엔티티
+  └── Dispute             # 분쟁 엔티티
+
+application/
+  ├── EscrowService           # 거래 관리
+  ├── EscrowPaymentService    # 토스 결제 통합
+  ├── DepositService          # 입금 처리
+  ├── VerificationService     # 검증 처리
+  ├── SettlementService       # 정산 처리
+  └── DisputeService          # 분쟁 처리
+```
+
+#### 5. 이벤트 소싱 & EDA
+- ✅ 모든 상태 변경을 이벤트로 기록
+- ✅ Kafka를 통한 이벤트 발행
+- ✅ 이벤트 히스토리 조회 가능
+- ✅ 특정 시점의 거래 상태 재구성
+
+### 에스크로 API 엔드포인트
+
+#### 거래 관리
+```bash
+# 거래 생성
+POST /api/escrow
+
+# 거래 조회
+GET /api/escrow/{transactionId}
+
+# 구매자별 거래 목록
+GET /api/escrow/buyer/{buyerId}
+
+# 판매자별 거래 목록
+GET /api/escrow/seller/{sellerId}
+
+# 상태별 거래 목록
+GET /api/escrow/status/{status}
+
+# 거래 취소
+DELETE /api/escrow/{transactionId}?reason=취소사유
+```
+
+#### 입금 처리
+```bash
+# 토스 결제 페이지
+GET /escrow/{transactionId}/payment
+
+# 결제 승인 및 입금 처리
+POST /api/escrow/{transactionId}/payment/confirm
+
+# 입금 내역 조회
+GET /api/escrow/{transactionId}/deposits
+```
+
+#### 차량 인도 & 검증
+```bash
+# 차량 인도 확인
+POST /api/escrow/{transactionId}/delivery
+
+# 차량 검증
+POST /api/escrow/{transactionId}/verification
+
+# 명의 이전 확인
+POST /api/escrow/{transactionId}/ownership-transfer
+
+# 검증 내역 조회
+GET /api/escrow/{transactionId}/verifications
+```
+
+#### 정산 & 분쟁
+```bash
+# 정산 시작
+POST /api/escrow/{transactionId}/settlement/start
+
+# 정산 완료
+POST /api/escrow/{transactionId}/settlement/complete
+
+# 정산 조회
+GET /api/escrow/{transactionId}/settlement
+
+# 분쟁 제기
+POST /api/escrow/{transactionId}/dispute
+
+# 분쟁 해결
+POST /api/escrow/disputes/{disputeId}/resolve
+
+# 분쟁 목록
+GET /api/escrow/{transactionId}/disputes
+```
+
+#### 이벤트 소싱
+```bash
+# 이벤트 히스토리
+GET /api/escrow/{transactionId}/events
+
+# 특정 시점 상태 재구성
+GET /api/escrow/{transactionId}/events/{sequence}
+```
+
+### 웹 UI
+
+```bash
+# 에스크로 거래 목록
+http://localhost:8080/escrow
+
+# 거래 생성
+http://localhost:8080/escrow/create
+
+# 거래 상세
+http://localhost:8080/escrow/{transactionId}
+
+# 입금 결제 페이지
+http://localhost:8080/escrow/{transactionId}/payment
+```
+
+### 에스크로 테스트
+
+#### 전체 플로우 테스트
+```bash
+# 1. 거래 생성
+curl -X POST http://localhost:8080/api/escrow \
+  -H "Content-Type: application/json" \
+  -d '{
+    "buyer": {
+      "userId": "buyer001",
+      "name": "홍길동",
+      "email": "buyer@example.com",
+      "phone": "010-1234-5678"
+    },
+    "seller": {
+      "userId": "seller001",
+      "name": "김판매",
+      "email": "seller@example.com",
+      "phone": "010-8765-4321"
+    },
+    "vehicle": {
+      "vin": "KMHXX00XXXX000001",
+      "manufacturer": "현대",
+      "model": "그랜저",
+      "year": 2023,
+      "registrationNumber": "12가3456"
+    },
+    "amount": 50000000,
+    "feeRate": 0.03
+  }'
+
+# 2. 웹 브라우저에서 입금 진행
+# http://localhost:8080/escrow/{transactionId}/payment
+# 토스 테스트 카드: 4330123412341234
+
+# 3. 차량 인도
+curl -X POST http://localhost:8080/api/escrow/{transactionId}/delivery \
+  -H "Content-Type: application/json" \
+  -d '{
+    "transactionId": "{transactionId}",
+    "confirmedBy": "seller001",
+    "deliveredAt": "2025-11-13T12:00:00",
+    "deliveryLocation": "서울시 강남구",
+    "deliveryNotes": "차량 인도 완료"
+  }'
+
+# 4. 차량 검증
+curl -X POST http://localhost:8080/api/escrow/{transactionId}/verification \
+  -H "Content-Type: application/json" \
+  -d '{
+    "transactionId": "{transactionId}",
+    "type": "VEHICLE_CONDITION",
+    "result": "PASSED",
+    "verifiedBy": "inspector001",
+    "notes": "차량 상태 양호",
+    "documentId": "DOC-001"
+  }'
+
+# 5. 명의 이전
+curl -X POST http://localhost:8080/api/escrow/{transactionId}/ownership-transfer \
+  -H "Content-Type: application/json" \
+  -d '{
+    "transactionId": "{transactionId}",
+    "verifiedBy": "inspector001",
+    "documentId": "TRANSFER-DOC-001",
+    "notes": "명의 이전 완료",
+    "newOwnerId": "buyer001",
+    "transferDate": "2025-11-13",
+    "registrationOffice": "서울시청"
+  }'
+
+# 6. 정산 시작 및 완료
+curl -X POST http://localhost:8080/api/escrow/{transactionId}/settlement/start
+curl -X POST "http://localhost:8080/api/escrow/{transactionId}/settlement/complete?paymentMethod=BANK_TRANSFER&paymentReference=SETTLE-001"
+```
+
+#### 자동화된 테스트 스크립트
+```bash
+./test-escrow-api.sh
+```
+
+### 에스크로 이벤트
+
+시스템에서 발행되는 에스크로 관련 이벤트:
+
+- `EscrowCreated` - 거래 생성
+- `DepositConfirmed` - 입금 확인
+- `VehicleDelivered` - 차량 인도
+- `VehicleVerified` - 차량 검증
+- `VerificationFailed` - 검증 실패
+- `OwnershipTransferred` - 명의 이전
+- `EscrowCompleted` - 거래 완료
+- `EscrowCancelled` - 거래 취소
+- `SettlementFailed` - 정산 실패
+- `DisputeRaised` - 분쟁 제기
+- `DisputeResolved` - 분쟁 해결
+
+### 이벤트 대시보드에서 확인
+
+```
+http://localhost:8080/logs/dashboard
+```
+
+에스크로 이벤트가 실시간으로 표시되며, 서비스별 성공률과 처리 시간을 모니터링할 수 있습니다.
+
+### 정리
+
+1. **실제 결제 시스템 통합**
+   - 토스 페이먼츠 API 연동
+   - 결제 승인 후 자동 입금 처리
+   - 실제 테스트 환경에서 검증 가능
+
+2. **비즈니스 로직**
+   - 6단계 거래 생명주기
+   - 각 단계별 상태 전이 규칙
+   - 비즈니스 제약조건 검증
+
+3. **안전한 거래 보장**
+   - 에스크로 패턴 구현
+   - 조건부 정산 처리
+   - 분쟁 처리 메커니즘
+
+4. **이벤트 소싱**
+   - 모든 상태 변경 이력 저장
+   - 감사 로그 자동 생성
+   - 시간 여행 가능
+
+5. **MSA & EDA 적용**
+   - 도메인 주도 설계
+   - 이벤트 기반 통신
+   - 느슨한 결합
