@@ -57,6 +57,62 @@ public class KafkaEventLogConsumer {
         collectEvent("PayoutReady", "stage", message);
     }
     
+    // 에스크로 이벤트
+    @KafkaListener(topics = "EscrowCreated", groupId = "event-log-collector")
+    public void consumeEscrowCreated(String message) {
+        collectEvent("EscrowCreated", "escrow", message);
+    }
+    
+    @KafkaListener(topics = "DepositConfirmed", groupId = "event-log-collector")
+    public void consumeDepositConfirmed(String message) {
+        collectEvent("DepositConfirmed", "escrow", message);
+    }
+    
+    @KafkaListener(topics = "VehicleDelivered", groupId = "event-log-collector")
+    public void consumeVehicleDelivered(String message) {
+        collectEvent("VehicleDelivered", "escrow", message);
+    }
+    
+    @KafkaListener(topics = "VehicleVerified", groupId = "event-log-collector")
+    public void consumeVehicleVerified(String message) {
+        collectEvent("VehicleVerified", "escrow", message);
+    }
+    
+    @KafkaListener(topics = "VerificationFailed", groupId = "event-log-collector")
+    public void consumeVerificationFailed(String message) {
+        collectEvent("VerificationFailed", "escrow", message);
+    }
+    
+    @KafkaListener(topics = "OwnershipTransferred", groupId = "event-log-collector")
+    public void consumeOwnershipTransferred(String message) {
+        collectEvent("OwnershipTransferred", "escrow", message);
+    }
+    
+    @KafkaListener(topics = "EscrowCompleted", groupId = "event-log-collector")
+    public void consumeEscrowCompleted(String message) {
+        collectEvent("EscrowCompleted", "escrow", message);
+    }
+    
+    @KafkaListener(topics = "EscrowCancelled", groupId = "event-log-collector")
+    public void consumeEscrowCancelled(String message) {
+        collectEvent("EscrowCancelled", "escrow", message);
+    }
+    
+    @KafkaListener(topics = "SettlementFailed", groupId = "event-log-collector")
+    public void consumeSettlementFailed(String message) {
+        collectEvent("SettlementFailed", "escrow", message);
+    }
+    
+    @KafkaListener(topics = "DisputeRaised", groupId = "event-log-collector")
+    public void consumeDisputeRaised(String message) {
+        collectEvent("DisputeRaised", "escrow", message);
+    }
+    
+    @KafkaListener(topics = "DisputeResolved", groupId = "event-log-collector")
+    public void consumeDisputeResolved(String message) {
+        collectEvent("DisputeResolved", "escrow", message);
+    }
+    
     private void collectEvent(String eventType, String serviceName, String message) {
         try {
             JsonNode jsonNode = objectMapper.readTree(message);
@@ -93,6 +149,9 @@ public class KafkaEventLogConsumer {
         if (jsonNode.has("paymentId")) {
             return jsonNode.get("paymentId").asText();
         }
+        if (jsonNode.has("transactionId")) {
+            return jsonNode.get("transactionId").asText();
+        }
         return null;
     }
     
@@ -102,6 +161,12 @@ public class KafkaEventLogConsumer {
         }
         if (jsonNode.has("username")) {
             return jsonNode.get("username").asText();
+        }
+        if (jsonNode.has("buyerId")) {
+            return jsonNode.get("buyerId").asText();
+        }
+        if (jsonNode.has("sellerId")) {
+            return jsonNode.get("sellerId").asText();
         }
         return null;
     }
