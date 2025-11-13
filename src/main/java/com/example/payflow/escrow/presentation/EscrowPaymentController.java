@@ -162,7 +162,7 @@ public class EscrowPaymentController {
     @PostMapping("/api/escrow/webhook/virtual-account")
     @ResponseBody
     public ResponseEntity<String> virtualAccountWebhook(@RequestBody TossWebhookRequest request) {
-        log.info("가상계좌 웹훅 수신: eventType={}, orderId={}", 
+        log.info("가상계좌 웹훅 수신 (POST): eventType={}, orderId={}", 
             request.getEventType(), request.getData().getOrderId());
         
         try {
@@ -173,26 +173,41 @@ public class EscrowPaymentController {
                 String status = request.getData().getStatus();
                 if ("DONE".equals(status)) {
                     // 입금 완료 처리
+                    log.info("가상계좌 입금 완료 처리 시작: orderId={}", request.getData().getOrderId());
                     virtualAccountService.completeVirtualAccountDeposit(
                         request.getData().getOrderId(),
                         request.getData().getVirtualAccount() != null ? 
                             request.getData().getVirtualAccount().getCustomerName() : "Unknown"
                     );
+                    log.info("가상계좌 입금 완료 처리 성공: orderId={}", request.getData().getOrderId());
                 } else if ("CANCELED".equals(status)) {
                     // 취소 처리
+                    log.info("가상계좌 취소 처리 시작: orderId={}", request.getData().getOrderId());
                     virtualAccountService.cancelVirtualAccount(
                         request.getData().getOrderId(),
                         request.getData().getCancels() != null && !request.getData().getCancels().isEmpty() ?
                             request.getData().getCancels().get(0).getCancelReason() : "Unknown"
                     );
+                    log.info("가상계좌 취소 처리 성공: orderId={}", request.getData().getOrderId());
                 }
             }
             
             return ResponseEntity.ok("SUCCESS");
         } catch (Exception e) {
-            log.error("웹훅 처리 실패", e);
-            return ResponseEntity.internalServerError().body("FAILED");
+            log.error("웹훅 처리 실패: orderId={}", 
+                request.getData() != null ? request.getData().getOrderId() : "unknown", e);
+            return ResponseEntity.internalServerError().body("FAILED: " + e.getMessage());
         }
+    }
+    
+    /**
+     * 토스페이먼츠 웹훅 - GET 요청 처리 (개발자센터 테스트용)
+     */
+    @GetMapping("/api/escrow/webhook/virtual-account")
+    @ResponseBody
+    public ResponseEntity<String> virtualAccountWebhookTest() {
+        log.info("가상계좌 웹훅 테스트 요청 (GET)");
+        return ResponseEntity.ok("Webhook endpoint is ready. Please use POST method for actual webhook.");
     }
     
     @lombok.Data
