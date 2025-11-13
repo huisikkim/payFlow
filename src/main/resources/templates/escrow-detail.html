@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>에스크로 거래 상세 - PayFlow</title>
+    <link rel="stylesheet" href="/css/escrow.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚗 에스크로 거래 상세</h1>
+            <a href="/escrow" class="btn btn-secondary">목록으로</a>
+        </header>
+
+        <div class="escrow-detail">
+            <!-- 거래 정보 -->
+            <section class="info-section">
+                <h2>거래 정보</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label>거래 ID</label>
+                        <span th:text="${escrow.transactionId}">TXN-001</span>
+                    </div>
+                    <div class="info-item">
+                        <label>상태</label>
+                        <span class="status-badge" th:classappend="${'status-' + escrow.status.name().toLowerCase()}" 
+                              th:text="${escrow.status}">INITIATED</span>
+                    </div>
+                    <div class="info-item">
+                        <label>거래 금액</label>
+                        <span th:text="${#numbers.formatDecimal(escrow.amount, 0, 'COMMA', 0, 'POINT')} + '원'">50,000,000원</span>
+                    </div>
+                    <div class="info-item">
+                        <label>수수료율</label>
+                        <span th:text="${escrow.feeRate * 100} + '%'">3%</span>
+                    </div>
+                    <div class="info-item">
+                        <label>수수료</label>
+                        <span th:text="${#numbers.formatDecimal(escrow.feeAmount, 0, 'COMMA', 0, 'POINT')} + '원'">1,500,000원</span>
+                    </div>
+                    <div class="info-item">
+                        <label>판매자 수령액</label>
+                        <span th:text="${#numbers.formatDecimal(escrow.sellerAmount, 0, 'COMMA', 0, 'POINT')} + '원'">48,500,000원</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 참여자 정보 -->
+            <section class="info-section">
+                <h2>참여자 정보</h2>
+                <div class="participants">
+                    <div class="participant">
+                        <h3>구매자</h3>
+                        <p><strong>이름:</strong> <span th:text="${escrow.buyer.name}">홍길동</span></p>
+                        <p><strong>이메일:</strong> <span th:text="${escrow.buyer.email}">buyer@test.com</span></p>
+                        <p><strong>전화번호:</strong> <span th:text="${escrow.buyer.phone}">010-1234-5678</span></p>
+                    </div>
+                    <div class="participant">
+                        <h3>판매자</h3>
+                        <p><strong>이름:</strong> <span th:text="${escrow.seller.name}">김판매</span></p>
+                        <p><strong>이메일:</strong> <span th:text="${escrow.seller.email}">seller@test.com</span></p>
+                        <p><strong>전화번호:</strong> <span th:text="${escrow.seller.phone}">010-9876-5432</span></p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 차량 정보 -->
+            <section class="info-section">
+                <h2>차량 정보</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label>제조사</label>
+                        <span th:text="${escrow.vehicle.manufacturer}">현대</span>
+                    </div>
+                    <div class="info-item">
+                        <label>모델</label>
+                        <span th:text="${escrow.vehicle.model}">그랜저</span>
+                    </div>
+                    <div class="info-item">
+                        <label>연식</label>
+                        <span th:text="${escrow.vehicle.year}">2023</span>
+                    </div>
+                    <div class="info-item">
+                        <label>차대번호</label>
+                        <span th:text="${escrow.vehicle.vin}">VIN123456</span>
+                    </div>
+                    <div class="info-item">
+                        <label>차량번호</label>
+                        <span th:text="${escrow.vehicle.registrationNumber}">12가3456</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 타임라인 -->
+            <section class="info-section">
+                <h2>거래 타임라인</h2>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <span class="timeline-date" th:text="${#temporals.format(escrow.createdAt, 'yyyy-MM-dd HH:mm')}">2024-01-01 10:00</span>
+                        <span class="timeline-event">거래 생성</span>
+                    </div>
+                    <div class="timeline-item" th:if="${escrow.updatedAt != null}">
+                        <span class="timeline-date" th:text="${#temporals.format(escrow.updatedAt, 'yyyy-MM-dd HH:mm')}">2024-01-02 14:30</span>
+                        <span class="timeline-event">마지막 업데이트</span>
+                    </div>
+                    <div class="timeline-item" th:if="${escrow.completedAt != null}">
+                        <span class="timeline-date" th:text="${#temporals.format(escrow.completedAt, 'yyyy-MM-dd HH:mm')}">2024-01-15 16:00</span>
+                        <span class="timeline-event">거래 완료</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 액션 버튼 -->
+            <section class="actions">
+                <button class="btn btn-primary" onclick="viewEvents()">이벤트 히스토리</button>
+                <button class="btn btn-secondary" onclick="viewDeposits()">입금 내역</button>
+                <button class="btn btn-secondary" onclick="viewVerifications()">검증 내역</button>
+            </section>
+        </div>
+
+        <footer>
+            <a href="/escrow">목록으로 돌아가기</a>
+        </footer>
+    </div>
+
+    <script src="/js/escrow.js"></script>
+</body>
+</html>

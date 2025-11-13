@@ -62,7 +62,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/session-replay/events").permitAll()  // 이벤트 수집 API 허용
                         .requestMatchers("/session-replay/**", "/api/session-replay/**").permitAll()  // 세션 재생 (개발용: 모두 허용)
                         .requestMatchers("/sourcing", "/api/sourcing/**").permitAll()  // 토탈소싱기 허용
-                        // TODO: 프로덕션에서는 .hasRole("ADMIN")으로 변경
+                        .requestMatchers("/escrow/**").permitAll()  // 에스크로 웹 페이지 허용 (API보다 먼저)
+                        .requestMatchers("/api/escrow/**").permitAll()  // 에스크로 API 허용 (개발용)
+                        // TODO: 프로덕션에서는 .requestMatchers("/api/escrow/**").hasAnyRole("USER", "ADMIN")으로 변경
                         .requestMatchers("/api/orders/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/api/payments/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/api/stages/**").hasAnyRole("USER", "ADMIN")

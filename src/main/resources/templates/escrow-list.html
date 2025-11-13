@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>에스크로 거래 목록 - PayFlow</title>
+    <link rel="stylesheet" href="/css/escrow.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚗 에스크로 거래 목록</h1>
+            <a href="/escrow/create" class="btn btn-primary">새 거래 생성</a>
+        </header>
+
+        <div class="escrow-list">
+            <table>
+                <thead>
+                    <tr>
+                        <th>거래 ID</th>
+                        <th>구매자</th>
+                        <th>판매자</th>
+                        <th>차량</th>
+                        <th>금액</th>
+                        <th>상태</th>
+                        <th>생성일</th>
+                        <th>액션</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="escrow : ${escrows}">
+                        <td th:text="${escrow.transactionId}">TXN-001</td>
+                        <td th:text="${escrow.buyer.name}">홍길동</td>
+                        <td th:text="${escrow.seller.name}">김판매</td>
+                        <td th:text="${escrow.vehicle.manufacturer + ' ' + escrow.vehicle.model}">현대 그랜저</td>
+                        <td th:text="${#numbers.formatDecimal(escrow.amount, 0, 'COMMA', 0, 'POINT')} + '원'">50,000,000원</td>
+                        <td>
+                            <span class="status-badge" th:classappend="${'status-' + escrow.status.name().toLowerCase()}" 
+                                  th:text="${escrow.status}">INITIATED</span>
+                        </td>
+                        <td th:text="${#temporals.format(escrow.createdAt, 'yyyy-MM-dd HH:mm')}">2024-01-01 10:00</td>
+                        <td>
+                            <a th:href="@{/escrow/{id}(id=${escrow.transactionId})}" class="btn btn-sm">상세보기</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div th:if="${#lists.isEmpty(escrows)}" class="empty-state">
+                <p>등록된 에스크로 거래가 없습니다.</p>
+                <a href="/escrow/create" class="btn btn-primary">첫 거래 생성하기</a>
+            </div>
+        </div>
+
+        <footer>
+            <a href="/">홈으로 돌아가기</a>
+        </footer>
+    </div>
+</body>
+</html>
