@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>가상계좌 내역 - PayFlow</title>
+    <link rel="stylesheet" href="/css/escrow.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #f5f7fa;
+        }
+        
+        header.main-header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
+        
+        .logo {
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #e0e7ff 0%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        
+        .page-header {
+            background: white;
+            padding: 32px;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .page-header h1 {
+            margin: 0;
+            font-size: 28px;
+            color: #212529;
+        }
+        
+        .back-button {
+            padding: 10px 20px;
+            background: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .back-button:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+        
+        .virtual-account-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-left: 4px solid #667eea;
+        }
+        
+        .virtual-account-card.completed {
+            border-left-color: #28a745;
+        }
+        
+        .virtual-account-card.canceled {
+            border-left-color: #dc3545;
+        }
+        
+        .virtual-account-card.expired {
+            border-left-color: #ffc107;
+        }
+        
+        .account-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .account-number {
+            font-size: 20px;
+            font-weight: 700;
+            color: #212529;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-waiting {
+            background: #e7f3ff;
+            color: #0c5ba0;
+        }
+        
+        .status-done {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-canceled {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status-expired {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .account-info {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 16px;
+        }
+        
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .info-label {
+            font-size: 12px;
+            color: #6c757d;
+            margin-bottom: 4px;
+        }
+        
+        .info-value {
+            font-size: 14px;
+            color: #212529;
+            font-weight: 600;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+        
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+    <header class="main-header">
+        <nav>
+            <a href="/" class="logo">Legacy-Free Commerce</a>
+        </nav>
+    </header>
+    
+    <div class="container">
+        <div class="page-header">
+            <h1>🏦 가상계좌 내역</h1>
+            <a th:href="@{/escrow/{id}(id=${escrow.transactionId})}" class="back-button">← 거래 상세로</a>
+        </div>
+        
+        <div th:if="${virtualAccounts.isEmpty()}" class="virtual-account-card">
+            <div class="empty-state">
+                <div class="empty-state-icon">🏦</div>
+                <p>발급된 가상계좌가 없습니다.</p>
+            </div>
+        </div>
+        
+        <div th:each="va : ${virtualAccounts}" 
+             class="virtual-account-card"
+             th:classappend="${va.status.name() == 'DONE' ? 'completed' : 
+                             va.status.name() == 'CANCELED' ? 'canceled' : 
+                             va.status.name() == 'EXPIRED' ? 'expired' : ''}">
+            <div class="account-header">
+                <div class="account-number" th:text="${va.virtualAccountNumber}">1234567890123456</div>
+                <span class="status-badge"
+                      th:classappend="${'status-' + va.status.name().toLowerCase().replace('_', '-')}"
+                      th:text="${va.status == T(com.example.payflow.escrow.domain.VirtualAccountStatus).WAITING_FOR_DEPOSIT ? '입금 대기' :
+                               va.status == T(com.example.payflow.escrow.domain.VirtualAccountStatus).DONE ? '입금 완료' :
+                               va.status == T(com.example.payflow.escrow.domain.VirtualAccountStatus).CANCELED ? '취소됨' : '기한 만료'}">
+                    입금 대기
+                </span>
+            </div>
+            
+            <div class="account-info">
+                <div class="info-item">
+                    <span class="info-label">은행</span>
+                    <span class="info-value" th:text="${va.bankName}">국민은행</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">입금 금액</span>
+                    <span class="info-value" th:text="${#numbers.formatDecimal(va.amount, 0, 'COMMA', 0, 'POINT')} + '원'">50,000,000원</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">발급 시각</span>
+                    <span class="info-value" th:text="${#temporals.format(va.createdAt, 'yyyy-MM-dd HH:mm')}">2024-01-01 10:00</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">입금 기한</span>
+                    <span class="info-value" th:text="${#temporals.format(va.dueDate, 'yyyy-MM-dd HH:mm')}">2024-01-02 10:00</span>
+                </div>
+                <div class="info-item" th:if="${va.depositedAt != null}">
+                    <span class="info-label">입금 시각</span>
+                    <span class="info-value" th:text="${#temporals.format(va.depositedAt, 'yyyy-MM-dd HH:mm')}">2024-01-01 15:00</span>
+                </div>
+                <div class="info-item" th:if="${va.depositorName != null}">
+                    <span class="info-label">입금자명</span>
+                    <span class="info-value" th:text="${va.depositorName}">홍길동</span>
+                </div>
+                <div class="info-item" th:if="${va.canceledAt != null}">
+                    <span class="info-label">취소 시각</span>
+                    <span class="info-value" th:text="${#temporals.format(va.canceledAt, 'yyyy-MM-dd HH:mm')}">2024-01-01 20:00</span>
+                </div>
+                <div class="info-item" th:if="${va.cancelReason != null}">
+                    <span class="info-label">취소 사유</span>
+                    <span class="info-value" th:text="${va.cancelReason}">사용자 요청</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

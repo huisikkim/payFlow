@@ -306,15 +306,31 @@
                    th:href="@{/escrow/{id}/payment(id=${escrow.transactionId})}" 
                    class="btn btn-primary" 
                    style="text-decoration: none; display: inline-block; text-align: center;">
-                    💳 입금하기 (토스페이먼츠)
+                    💳 카드 입금하기
+                </a>
+                
+                <!-- 가상계좌 입금 버튼 (INITIATED 상태일 때만 표시) -->
+                <a th:if="${escrow.status.name() == 'INITIATED'}" 
+                   th:href="@{/escrow/{id}/payment/virtual-account(id=${escrow.transactionId})}" 
+                   class="btn btn-primary" 
+                   style="text-decoration: none; display: inline-block; text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    🏦 가상계좌 입금하기
                 </a>
                 
                 <!-- 프로세스 실행 버튼 (DEPOSITED 상태일 때 표시) -->
                 <a th:if="${escrow.status.name() == 'DEPOSITED'}" 
                    th:href="@{/escrow/{id}/process(id=${escrow.transactionId})}" 
                    class="btn btn-primary" 
+                   style="text-decoration: none; display: inline-block; text-align: center;">
+                    🔄 프로세스 실행 (카드)
+                </a>
+                
+                <!-- 가상계좌 프로세스 실행 버튼 (DEPOSITED 상태일 때 표시) -->
+                <a th:if="${escrow.status.name() == 'DEPOSITED'}" 
+                   th:href="@{/escrow/{id}/process/virtual-account(id=${escrow.transactionId})}" 
+                   class="btn btn-primary" 
                    style="text-decoration: none; display: inline-block; text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                    🔄 프로세스 실행
+                    🏦 프로세스 실행 (가상계좌)
                 </a>
                 
                 <!-- 정산 버튼 (SETTLING, COMPLETED 상태일 때 표시) -->
@@ -326,6 +342,7 @@
                 </a>
                 
                 <button class="btn btn-secondary" onclick="viewDeposits()">💳 입금 내역</button>
+                <button class="btn btn-secondary" onclick="viewVirtualAccounts()">🏦 가상계좌 내역</button>
                 <button class="btn btn-secondary" onclick="viewVerifications()">✅ 검증 내역</button>
                 <button class="btn btn-secondary" onclick="viewEvents()">📋 이벤트 히스토리</button>
             </section>

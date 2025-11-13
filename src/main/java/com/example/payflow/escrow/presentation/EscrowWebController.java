@@ -1,14 +1,7 @@
 package com.example.payflow.escrow.presentation;
 
-import com.example.payflow.escrow.application.DepositService;
-import com.example.payflow.escrow.application.EscrowEventSourcingService;
-import com.example.payflow.escrow.application.EscrowService;
-import com.example.payflow.escrow.application.SettlementService;
-import com.example.payflow.escrow.application.VerificationService;
-import com.example.payflow.escrow.application.dto.DepositResponse;
-import com.example.payflow.escrow.application.dto.EscrowResponse;
-import com.example.payflow.escrow.application.dto.SettlementResponse;
-import com.example.payflow.escrow.application.dto.VerificationResponse;
+import com.example.payflow.escrow.application.*;
+import com.example.payflow.escrow.application.dto.*;
 import com.example.payflow.escrow.domain.EscrowEventStore;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -32,6 +25,7 @@ public class EscrowWebController {
     private final VerificationService verificationService;
     private final SettlementService settlementService;
     private final EscrowEventSourcingService eventSourcingService;
+    private final VirtualAccountService virtualAccountService;
     
     /**
      * 에스크로 거래 목록 페이지
@@ -77,6 +71,23 @@ public class EscrowWebController {
             model.addAttribute("escrow", escrow);
             model.addAttribute("deposits", deposits);
             return "escrow-deposits";
+        } catch (Exception e) {
+            model.addAttribute("error", e.getMessage());
+            return "error";
+        }
+    }
+    
+    /**
+     * 가상계좌 내역 페이지
+     */
+    @GetMapping("/{transactionId}/virtual-accounts")
+    public String virtualAccountList(@PathVariable String transactionId, Model model) {
+        try {
+            EscrowResponse escrow = escrowService.getEscrow(transactionId);
+            List<VirtualAccountDepositResponse> virtualAccounts = virtualAccountService.getVirtualAccountsByTransaction(transactionId);
+            model.addAttribute("escrow", escrow);
+            model.addAttribute("virtualAccounts", virtualAccounts);
+            return "escrow-virtual-accounts";
         } catch (Exception e) {
             model.addAttribute("error", e.getMessage());
             return "error";
@@ -135,7 +146,7 @@ public class EscrowWebController {
     }
     
     /**
-     * 에스크로 프로세스 실행 페이지
+     * 에스크로 프로세스 실행 페이지 (카드 결제)
      */
     @GetMapping("/{transactionId}/process")
     public String escrowProcess(@PathVariable String transactionId, Model model) {
@@ -143,6 +154,21 @@ public class EscrowWebController {
             EscrowResponse escrow = escrowService.getEscrow(transactionId);
             model.addAttribute("escrow", escrow);
             return "escrow-process";
+        } catch (Exception e) {
+            model.addAttribute("error", e.getMessage());
+            return "error";
+        }
+    }
+    
+    /**
+     * 에스크로 프로세스 실행 페이지 (가상계좌)
+     */
+    @GetMapping("/{transactionId}/process/virtual-account")
+    public String escrowProcessVirtualAccount(@PathVariable String transactionId, Model model) {
+        try {
+            EscrowResponse escrow = escrowService.getEscrow(transactionId);
+            model.addAttribute("escrow", escrow);
+            return "escrow-process-virtual-account";
         } catch (Exception e) {
             model.addAttribute("error", e.getMessage());
             return "error";

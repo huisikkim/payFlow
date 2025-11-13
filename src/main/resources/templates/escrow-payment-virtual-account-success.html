@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>가상계좌 발급 완료 - PayFlow</title>
+    <link rel="stylesheet" href="/css/escrow.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #f8f9fa;
+        }
+        
+        header.main-header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
+        
+        .logo {
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #e0e7ff 0%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        
+        .success-card {
+            background: white;
+            border-radius: 16px;
+            padding: 40px 32px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+        
+        .icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            color: #212529;
+            margin-bottom: 12px;
+            font-size: 24px;
+            font-weight: 700;
+        }
+        
+        .message {
+            color: #6c757d;
+            margin-bottom: 32px;
+            line-height: 1.6;
+            font-size: 15px;
+        }
+        
+        .account-info {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 2px solid #667eea;
+        }
+        
+        .account-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .account-row:last-child {
+            border-bottom: none;
+        }
+        
+        .account-label {
+            color: #6c757d;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .account-value {
+            color: #212529;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        .account-number {
+            font-size: 20px;
+            color: #667eea;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .amount-highlight {
+            font-size: 28px;
+            color: #0f3460;
+            font-weight: 700;
+        }
+        
+        .alert {
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            text-align: left;
+        }
+        
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .alert-info {
+            background: #e7f3ff;
+            color: #0c5ba0;
+            border: 1px solid #b3d9ff;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 28px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 15px;
+            transition: all 0.2s;
+            margin: 8px;
+        }
+        
+        .btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #6c757d;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+        
+        .copy-btn {
+            padding: 6px 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-left: 8px;
+        }
+        
+        .copy-btn:hover {
+            background: #5568d3;
+        }
+    </style>
+</head>
+<body>
+    <header class="main-header">
+        <nav>
+            <a href="/" class="logo">Legacy-Free Commerce</a>
+        </nav>
+    </header>
+    
+    <div class="container">
+        <div class="loading" id="loading">가상계좌 정보를 불러오는 중...</div>
+        
+        <div id="result" style="display: none;">
+            <div class="success-card">
+                <div class="icon">🏦</div>
+                <h1>가상계좌가 발급되었습니다</h1>
+                <p class="message">아래 계좌로 입금하시면 자동으로 처리됩니다.</p>
+                
+                <div class="alert alert-warning">
+                    ⏰ <strong>입금 기한:</strong> <span id="due-date"></span><br>
+                    기한 내에 입금하지 않으면 자동으로 취소됩니다.
+                </div>
+                
+                <div class="account-info">
+                    <div class="account-row">
+                        <span class="account-label">은행</span>
+                        <span class="account-value" id="bank-name"></span>
+                    </div>
+                    <div class="account-row">
+                        <span class="account-label">계좌번호</span>
+                        <div>
+                            <span class="account-number" id="account-number"></span>
+                            <button class="copy-btn" onclick="copyAccountNumber()">복사</button>
+                        </div>
+                    </div>
+                    <div class="account-row">
+                        <span class="account-label">입금 금액</span>
+                        <span class="amount-highlight" id="amount"></span>
+                    </div>
+                    <div class="account-row">
+                        <span class="account-label">예금주</span>
+                        <span class="account-value">토스페이먼츠</span>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info">
+                    💡 입금이 확인되면 자동으로 에스크로 거래가 진행됩니다.<br>
+                    입금 후 거래 상세 페이지에서 프로세스를 진행하세요.
+                </div>
+                
+                <div>
+                    <a id="detail-link" href="#" class="btn">거래 상세 보기</a>
+                    <a href="/escrow" class="btn btn-secondary">에스크로 목록</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script th:inline="javascript">
+        const urlParams = new URLSearchParams(window.location.search);
+        const transactionId = urlParams.get('transactionId');
+        const paymentKey = urlParams.get('paymentKey');
+        const orderId = urlParams.get('orderId');
+        const amount = urlParams.get('amount');
+        
+        async function issueVirtualAccount() {
+            try {
+                // 가상계좌 발급 API 호출
+                const response = await fetch(`/api/escrow/${transactionId}/payment/virtual-account/issue`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        paymentKey: paymentKey,
+                        orderId: orderId,
+                        amount: parseInt(amount)
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('가상계좌 발급 실패');
+                }
+                
+                const data = await response.json();
+                console.log('가상계좌 발급 완료:', data);
+                
+                // 가상계좌 정보 표시
+                document.getElementById('bank-name').textContent = data.bankName;
+                document.getElementById('account-number').textContent = data.virtualAccountNumber;
+                document.getElementById('amount').textContent = data.amount.toLocaleString() + '원';
+                
+                // 입금 기한 표시
+                const dueDate = new Date(data.dueDate);
+                document.getElementById('due-date').textContent = 
+                    dueDate.toLocaleString('ko-KR', { 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric', 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                    });
+                
+                // 거래 상세 링크
+                document.getElementById('detail-link').href = `/escrow/${transactionId}`;
+                
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('result').style.display = 'block';
+                
+            } catch (error) {
+                console.error('가상계좌 발급 실패:', error);
+                document.getElementById('loading').innerHTML = 
+                    '<div style="color: #dc3545;">❌ 가상계좌 발급에 실패했습니다.<br>' + 
+                    error.message + '<br><br>' +
+                    '<a href="/escrow/' + transactionId + '" class="btn">거래 상세로 돌아가기</a></div>';
+            }
+        }
+        
+        function copyAccountNumber() {
+            const accountNumber = document.getElementById('account-number').textContent;
+            navigator.clipboard.writeText(accountNumber).then(() => {
+                alert('계좌번호가 복사되었습니다: ' + accountNumber);
+            }).catch(err => {
+                console.error('복사 실패:', err);
+            });
+        }
+        
+        // 페이지 로드 시 자동으로 가상계좌 발급
+        issueVirtualAccount();
+    </script>
+</body>
+</html>

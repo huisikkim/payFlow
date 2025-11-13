@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>가상계좌 입금 - 레거시 없이 시작하는 커머스</title>
+    <link rel="stylesheet" href="/css/escrow.css">
+    <script src="https://js.tosspayments.com/v1/payment"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #f8f9fa;
+        }
+        
+        header.main-header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
+        
+        .logo {
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #e0e7ff 0%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+        
+        .payment-container {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        
+        .payment-card {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+        }
+        
+        .payment-card h2 {
+            margin: 0 0 24px 0;
+            font-size: 24px;
+            color: #212529;
+        }
+        
+        .payment-info {
+            margin-bottom: 24px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f3f5;
+        }
+        
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            color: #6c757d;
+            font-size: 14px;
+        }
+        
+        .info-value {
+            color: #212529;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .amount-highlight {
+            font-size: 28px;
+            color: #0f3460;
+            font-weight: 700;
+        }
+        
+        .btn-payment {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-payment:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-payment:disabled {
+            background: #adb5bd;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .loading-text {
+            text-align: center;
+            color: #6c757d;
+            margin-top: 16px;
+            display: none;
+        }
+        
+        .alert {
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .alert-info {
+            background: #e7f3ff;
+            color: #0c5ba0;
+            border: 1px solid #b3d9ff;
+        }
+        
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+    </style>
+</head>
+<body>
+    <header class="main-header">
+        <nav>
+            <a href="/" class="logo">Legacy-Free Commerce</a>
+        </nav>
+    </header>
+    
+    <div class="payment-container">
+        <div class="alert alert-info">
+            🏦 가상계좌로 안전하게 입금하세요. 발급된 계좌번호로 입금하시면 자동으로 처리됩니다.
+        </div>
+        
+        <div class="alert alert-warning">
+            ⏰ 가상계좌는 발급 후 24시간 이내에 입금해주세요. 기한이 지나면 자동으로 취소됩니다.
+        </div>
+        
+        <div class="payment-card">
+            <h2>🏦 가상계좌 입금</h2>
+            
+            <div class="payment-info">
+                <div class="info-row">
+                    <span class="info-label">거래 ID</span>
+                    <span class="info-value" th:text="${paymentInfo.transactionId}">TXN-001</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">상품명</span>
+                    <span class="info-value" th:text="${paymentInfo.orderName}">에스크로 입금 - 현대 그랜저</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">구매자</span>
+                    <span class="info-value" th:text="${paymentInfo.customerName}">홍길동</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">이메일</span>
+                    <span class="info-value" th:text="${paymentInfo.customerEmail}">buyer@example.com</span>
+                </div>
+                <div class="info-row" style="margin-top: 16px; padding-top: 16px; border-top: 2px solid #dee2e6;">
+                    <span class="info-label" style="font-size: 16px;">입금 금액</span>
+                    <span class="amount-highlight" th:text="${#numbers.formatDecimal(paymentInfo.amount, 0, 'COMMA', 0, 'POINT')} + '원'">50,000,000원</span>
+                </div>
+            </div>
+            
+            <button id="payment-button" class="btn-payment">가상계좌 발급받기</button>
+            <div class="loading-text" id="loading">가상계좌 발급 중...</div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 20px;">
+            <a th:href="@{/escrow/{id}(id=${paymentInfo.transactionId})}" style="color: #6c757d; text-decoration: none;">
+                ← 거래 상세로 돌아가기
+            </a>
+        </div>
+    </div>
+    
+    <script th:inline="javascript">
+        const clientKey = /*[[${clientKey}]]*/ 'test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq';
+        const paymentInfo = {
+            transactionId: /*[[${paymentInfo.transactionId}]]*/ 'TXN-001',
+            orderId: /*[[${paymentInfo.orderId}]]*/ 'ESCROW-TXN-001',
+            orderName: /*[[${paymentInfo.orderName}]]*/ '에스크로 입금',
+            amount: /*[[${paymentInfo.amount}]]*/ 50000000,
+            customerEmail: /*[[${paymentInfo.customerEmail}]]*/ 'buyer@example.com',
+            customerName: /*[[${paymentInfo.customerName}]]*/ '홍길동'
+        };
+        
+        const tossPayments = TossPayments(clientKey);
+        
+        document.getElementById('payment-button').addEventListener('click', async function() {
+            const button = this;
+            const loading = document.getElementById('loading');
+            
+            button.disabled = true;
+            loading.style.display = 'block';
+            
+            try {
+                await tossPayments.requestPayment('가상계좌', {
+                    amount: paymentInfo.amount,
+                    orderId: paymentInfo.orderId,
+                    orderName: paymentInfo.orderName,
+                    customerName: paymentInfo.customerName,
+                    customerEmail: paymentInfo.customerEmail,
+                    validHours: 24,  // 24시간 유효
+                    successUrl: window.location.origin + '/escrow/payment/virtual-account/success?transactionId=' + paymentInfo.transactionId,
+                    failUrl: window.location.origin + '/escrow/payment/fail?transactionId=' + paymentInfo.transactionId,
+                });
+            } catch (error) {
+                console.error('가상계좌 발급 요청 실패:', error);
+                alert('가상계좌 발급 요청에 실패했습니다: ' + error.message);
+                button.disabled = false;
+                loading.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
