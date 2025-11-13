@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>에스크로 프로세스 실행 - Legacy-Free Commerce</title>
+    <link rel="stylesheet" href="/css/escrow.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #f5f7fa;
+        }
+        
+        header.main-header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
+        
+        .logo {
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #e0e7ff 0%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 8px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: rgba(224, 231, 255, 0.85);
+            font-size: 14px;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-links a:hover {
+            color: #e0e7ff;
+            background: rgba(165, 180, 252, 0.1);
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        
+        .page-header {
+            background: white;
+            padding: 32px;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 24px;
+        }
+        
+        .page-header h1 {
+            margin: 0 0 16px 0;
+            font-size: 28px;
+            color: #212529;
+        }
+        
+        .transaction-info {
+            background: #f8f9fa;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 16px;
+        }
+        
+        .transaction-info p {
+            margin: 8px 0;
+            font-size: 14px;
+            color: #495057;
+        }
+        
+        .process-container {
+            background: white;
+            padding: 32px;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .process-step {
+            margin-bottom: 24px;
+            padding: 24px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .process-step.completed {
+            border-color: #28a745;
+            background: #f0fff4;
+        }
+        
+        .process-step.active {
+            border-color: #007bff;
+            background: #f0f8ff;
+        }
+        
+        .step-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .step-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #212529;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background: #6c757d;
+            color: white;
+            border-radius: 50%;
+            font-size: 14px;
+            font-weight: 700;
+        }
+        
+        .process-step.completed .step-number {
+            background: #28a745;
+        }
+        
+        .process-step.active .step-number {
+            background: #007bff;
+        }
+        
+        .step-description {
+            color: #6c757d;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+        
+        .step-button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .step-button:disabled {
+            background: #e9ecef;
+            color: #adb5bd;
+            cursor: not-allowed;
+        }
+        
+        .step-button.btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .step-button.btn-primary:hover:not(:disabled) {
+            background: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+        }
+        
+        .step-button.btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .step-result {
+            margin-top: 16px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            display: none;
+        }
+        
+        .step-result.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .step-result.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 8px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .back-button {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .back-button:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <header class="main-header">
+        <nav>
+            <a href="/" class="logo">Legacy-Free Commerce</a>
+            <ul class="nav-links">
+                <li><a href="/">홈</a></li>
+                <li><a href="/#products">상품</a></li>
+                <li><a href="/escrow">🚗 에스크로</a></li>
+                <li><a href="/logs/dashboard">이벤트 대시보드</a></li>
+                <li><a href="/session-replay/dashboard">🎬 세션 재생</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <div class="container">
+        <div class="page-header">
+            <h1>🔄 에스크로 프로세스 실행</h1>
+            <div class="transaction-info">
+                <p><strong>거래 ID:</strong> <span th:text="${escrow.transactionId}"></span></p>
+                <p><strong>현재 상태:</strong> <span th:text="${escrow.status}"></span></p>
+                <p><strong>거래 금액:</strong> <span th:text="${#numbers.formatDecimal(escrow.amount, 0, 'COMMA', 0, 'POINT')} + '원'"></span></p>
+            </div>
+            <div style="margin-top: 16px;">
+                <a th:href="@{/escrow/{id}(id=${escrow.transactionId})}" class="back-button">← 상세 페이지로</a>
+            </div>
+        </div>
+
+        <div class="process-container">
+            <!-- Step 1: 차량 인도 -->
+            <div class="process-step" id="step-delivery">
+                <div class="step-header">
+                    <div class="step-title">
+                        <span class="step-number">1</span>
+                        🚗 차량 인도
+                    </div>
+                </div>
+                <div class="step-description">
+                    판매자가 구매자에게 차량을 인도합니다.
+                </div>
+                <button class="step-button btn-primary" onclick="executeDelivery()">
+                    차량 인도 실행
+                </button>
+                <div class="step-result" id="result-delivery"></div>
+            </div>
+
+            <!-- Step 2: 차량 검증 -->
+            <div class="process-step" id="step-verification">
+                <div class="step-header">
+                    <div class="step-title">
+                        <span class="step-number">2</span>
+                        ✅ 차량 검증
+                    </div>
+                </div>
+                <div class="step-description">
+                    검수자가 차량 상태와 서류를 확인합니다.
+                </div>
+                <button class="step-button btn-primary" onclick="executeVerification()" disabled>
+                    차량 검증 실행
+                </button>
+                <div class="step-result" id="result-verification"></div>
+            </div>
+
+            <!-- Step 3: 명의 이전 -->
+            <div class="process-step" id="step-ownership">
+                <div class="step-header">
+                    <div class="step-title">
+                        <span class="step-number">3</span>
+                        📄 명의 이전
+                    </div>
+                </div>
+                <div class="step-description">
+                    차량 명의를 구매자로 이전합니다.
+                </div>
+                <button class="step-button btn-primary" onclick="executeOwnershipTransfer()" disabled>
+                    명의 이전 실행
+                </button>
+                <div class="step-result" id="result-ownership"></div>
+            </div>
+
+            <!-- Step 4: 정산 시작 -->
+            <div class="process-step" id="step-settlement-start">
+                <div class="step-header">
+                    <div class="step-title">
+                        <span class="step-number">4</span>
+                        💰 정산 시작
+                    </div>
+                </div>
+                <div class="step-description">
+                    판매자에게 지급할 금액을 계산하고 정산을 시작합니다.
+                </div>
+                <button class="step-button btn-primary" onclick="executeSettlementStart()" disabled>
+                    정산 시작 실행
+                </button>
+                <div class="step-result" id="result-settlement-start"></div>
+            </div>
+
+            <!-- Step 5: 정산 완료 -->
+            <div class="process-step" id="step-settlement-complete">
+                <div class="step-header">
+                    <div class="step-title">
+                        <span class="step-number">5</span>
+                        ✨ 정산 완료
+                    </div>
+                </div>
+                <div class="step-description">
+                    판매자에게 금액을 지급하고 거래를 완료합니다.
+                </div>
+                <button class="step-button btn-success" onclick="executeSettlementComplete()" disabled>
+                    정산 완료 실행
+                </button>
+                <div class="step-result" id="result-settlement-complete"></div>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        const transactionId = /*[[${escrow.transactionId}]]*/ '';
+        
+        // Step 1: 차량 인도
+        async function executeDelivery() {
+            const button = document.querySelector('#step-delivery .step-button');
+            const result = document.getElementById('result-delivery');
+            
+            button.disabled = true;
+            button.innerHTML = '실행 중... <span class="loading"></span>';
+            result.style.display = 'none';
+            
+            try {
+                const response = await fetch(`/api/escrow/${transactionId}/delivery`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        transactionId: transactionId,
+                        confirmedBy: 'seller001',
+                        deliveredAt: new Date().toISOString(),
+                        deliveryLocation: '서울시 강남구',
+                        deliveryNotes: '차량 인도 완료'
+                    })
+                });
+                
+                if (!response.ok) throw new Error('차량 인도 실패');
+                
+                const data = await response.json();
+                result.className = 'step-result success';
+                result.textContent = '✓ 차량 인도가 완료되었습니다.';
+                result.style.display = 'block';
+                
+                document.getElementById('step-delivery').classList.add('completed');
+                document.querySelector('#step-verification .step-button').disabled = false;
+                document.getElementById('step-verification').classList.add('active');
+                
+            } catch (error) {
+                result.className = 'step-result error';
+                result.textContent = '✗ ' + error.message;
+                result.style.display = 'block';
+                button.disabled = false;
+                button.textContent = '차량 인도 실행';
+            }
+        }
+        
+        // Step 2: 차량 검증
+        async function executeVerification() {
+            const button = document.querySelector('#step-verification .step-button');
+            const result = document.getElementById('result-verification');
+            
+            button.disabled = true;
+            button.innerHTML = '실행 중... <span class="loading"></span>';
+            result.style.display = 'none';
+            
+            try {
+                const response = await fetch(`/api/escrow/${transactionId}/verification`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        transactionId: transactionId,
+                        type: 'VEHICLE_CONDITION',
+                        result: 'PASSED',
+                        verifiedBy: 'inspector001',
+                        notes: '차량 상태 양호, 서류 확인 완료',
+                        documentId: 'DOC-001'
+                    })
+                });
+                
+                if (!response.ok) throw new Error('차량 검증 실패');
+                
+                const data = await response.json();
+                result.className = 'step-result success';
+                result.textContent = '✓ 차량 검증이 완료되었습니다.';
+                result.style.display = 'block';
+                
+                document.getElementById('step-verification').classList.add('completed');
+                document.getElementById('step-verification').classList.remove('active');
+                document.querySelector('#step-ownership .step-button').disabled = false;
+                document.getElementById('step-ownership').classList.add('active');
+                
+            } catch (error) {
+                result.className = 'step-result error';
+                result.textContent = '✗ ' + error.message;
+                result.style.display = 'block';
+                button.disabled = false;
+                button.textContent = '차량 검증 실행';
+            }
+        }
+        
+        // Step 3: 명의 이전
+        async function executeOwnershipTransfer() {
+            const button = document.querySelector('#step-ownership .step-button');
+            const result = document.getElementById('result-ownership');
+            
+            button.disabled = true;
+            button.innerHTML = '실행 중... <span class="loading"></span>';
+            result.style.display = 'none';
+            
+            try {
+                const response = await fetch(`/api/escrow/${transactionId}/ownership-transfer`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        transactionId: transactionId,
+                        verifiedBy: 'inspector001',
+                        documentId: 'TRANSFER-DOC-001',
+                        notes: '명의 이전 완료',
+                        newOwnerId: 'buyer001',
+                        transferDate: new Date().toISOString().split('T')[0],
+                        registrationOffice: '서울시청'
+                    })
+                });
+                
+                if (!response.ok) throw new Error('명의 이전 실패');
+                
+                const data = await response.json();
+                result.className = 'step-result success';
+                result.textContent = '✓ 명의 이전이 완료되었습니다.';
+                result.style.display = 'block';
+                
+                document.getElementById('step-ownership').classList.add('completed');
+                document.getElementById('step-ownership').classList.remove('active');
+                document.querySelector('#step-settlement-start .step-button').disabled = false;
+                document.getElementById('step-settlement-start').classList.add('active');
+                
+            } catch (error) {
+                result.className = 'step-result error';
+                result.textContent = '✗ ' + error.message;
+                result.style.display = 'block';
+                button.disabled = false;
+                button.textContent = '명의 이전 실행';
+            }
+        }
+        
+        // Step 4: 정산 시작
+        async function executeSettlementStart() {
+            const button = document.querySelector('#step-settlement-start .step-button');
+            const result = document.getElementById('result-settlement-start');
+            
+            button.disabled = true;
+            button.innerHTML = '실행 중... <span class="loading"></span>';
+            result.style.display = 'none';
+            
+            try {
+                const response = await fetch(`/api/escrow/${transactionId}/settlement/start`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                if (!response.ok) throw new Error('정산 시작 실패');
+                
+                const data = await response.json();
+                result.className = 'step-result success';
+                result.textContent = '✓ 정산이 시작되었습니다.';
+                result.style.display = 'block';
+                
+                document.getElementById('step-settlement-start').classList.add('completed');
+                document.getElementById('step-settlement-start').classList.remove('active');
+                document.querySelector('#step-settlement-complete .step-button').disabled = false;
+                document.getElementById('step-settlement-complete').classList.add('active');
+                
+            } catch (error) {
+                result.className = 'step-result error';
+                result.textContent = '✗ ' + error.message;
+                result.style.display = 'block';
+                button.disabled = false;
+                button.textContent = '정산 시작 실행';
+            }
+        }
+        
+        // Step 5: 정산 완료
+        async function executeSettlementComplete() {
+            const button = document.querySelector('#step-settlement-complete .step-button');
+            const result = document.getElementById('result-settlement-complete');
+            
+            button.disabled = true;
+            button.innerHTML = '실행 중... <span class="loading"></span>';
+            result.style.display = 'none';
+            
+            try {
+                const response = await fetch(`/api/escrow/${transactionId}/settlement/complete?paymentMethod=BANK_TRANSFER&paymentReference=SETTLE-001`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                if (!response.ok) throw new Error('정산 완료 실패');
+                
+                const data = await response.json();
+                result.className = 'step-result success';
+                result.textContent = '✓ 정산이 완료되었습니다! 모든 프로세스가 종료되었습니다.';
+                result.style.display = 'block';
+                
+                document.getElementById('step-settlement-complete').classList.add('completed');
+                document.getElementById('step-settlement-complete').classList.remove('active');
+                
+                // 3초 후 상세 페이지로 이동
+                setTimeout(() => {
+                    window.location.href = `/escrow/${transactionId}`;
+                }, 3000);
+                
+            } catch (error) {
+                result.className = 'step-result error';
+                result.textContent = '✗ ' + error.message;
+                result.style.display = 'block';
+                button.disabled = false;
+                button.textContent = '정산 완료 실행';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -133,4 +133,19 @@ public class EscrowWebController {
             return "error";
         }
     }
+    
+    /**
+     * 에스크로 프로세스 실행 페이지
+     */
+    @GetMapping("/{transactionId}/process")
+    public String escrowProcess(@PathVariable String transactionId, Model model) {
+        try {
+            EscrowResponse escrow = escrowService.getEscrow(transactionId);
+            model.addAttribute("escrow", escrow);
+            return "escrow-process";
+        } catch (Exception e) {
+            model.addAttribute("error", e.getMessage());
+            return "error";
+        }
+    }
 }
