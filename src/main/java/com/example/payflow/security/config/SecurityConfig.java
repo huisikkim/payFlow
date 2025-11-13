@@ -65,8 +65,9 @@ public class SecurityConfig {
                         .requestMatchers("/escrow/**").permitAll()  // 에스크로 웹 페이지 허용 (API보다 먼저)
                         .requestMatchers("/api/escrow/**").permitAll()  // 에스크로 API 허용 (개발용)
                         // TODO: 프로덕션에서는 .requestMatchers("/api/escrow/**").hasAnyRole("USER", "ADMIN")으로 변경
-                        .requestMatchers("/api/orders/**").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers("/api/payments/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/api/orders/**").permitAll()  // 주문 API 허용 (개발용)
+                        .requestMatchers("/api/payments/**").permitAll()  // 결제 API 허용 (개발용)
+                        // TODO: 프로덕션에서는 .requestMatchers("/api/orders/**", "/api/payments/**").hasAnyRole("USER", "ADMIN")으로 변경
                         .requestMatchers("/api/stages/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()

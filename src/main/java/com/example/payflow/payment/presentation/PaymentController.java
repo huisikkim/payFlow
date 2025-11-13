@@ -16,14 +16,12 @@ public class PaymentController {
     private final PaymentService paymentService;
     
     @PostMapping("/confirm")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<PaymentResponse> confirmPayment(@RequestBody PaymentConfirmRequest request) {
         PaymentResponse response = paymentService.confirmPayment(request);
         return ResponseEntity.ok(response);
     }
     
     @GetMapping("/{orderId}")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<PaymentResponse> getPayment(@PathVariable String orderId) {
         PaymentResponse response = paymentService.getPayment(orderId);
         return ResponseEntity.ok(response);
