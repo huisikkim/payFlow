@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>검증 내역 - PayFlow</title>
+    <link rel="stylesheet" href="/css/escrow.css">
+    <style>
+        /* 헤더 스타일 - home.css와 동일 */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+        }
+        
+        header.main-header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
+        
+        .logo {
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #e0e7ff 0%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            filter: drop-shadow(0 2px 8px rgba(165, 180, 252, 0.3));
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        
+        .logo:hover {
+            transform: scale(1.05);
+            filter: drop-shadow(0 4px 12px rgba(165, 180, 252, 0.5));
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 8px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: rgba(224, 231, 255, 0.85);
+            font-size: 14px;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .nav-links a:hover {
+            color: #e0e7ff;
+            background: rgba(165, 180, 252, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(165, 180, 252, 0.15);
+        }
+        
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%) scaleX(0);
+            width: 60%;
+            height: 2px;
+            background: linear-gradient(90deg, #a5b4fc, #e0e7ff);
+            border-radius: 2px;
+            transition: transform 0.3s ease;
+            box-shadow: 0 0 8px rgba(165, 180, 252, 0.6);
+        }
+        
+        .nav-links a:hover::after {
+            transform: translateX(-50%) scaleX(1);
+        }
+        
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        #user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .btn-login, .btn-logout {
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-login {
+            background: linear-gradient(135deg, #a5b4fc 0%, #818cf8 100%);
+            color: #1a1a2e;
+            box-shadow: 0 4px 16px rgba(165, 180, 252, 0.4);
+            font-weight: 700;
+        }
+        
+        .btn-login:hover {
+            background: linear-gradient(135deg, #c7d2fe 0%, #a5b4fc 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(165, 180, 252, 0.6);
+        }
+        
+        .btn-logout {
+            background: rgba(165, 180, 252, 0.15);
+            color: #e0e7ff;
+            border: 1px solid rgba(165, 180, 252, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        .btn-logout:hover {
+            background: rgba(165, 180, 252, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(165, 180, 252, 0.3);
+            border-color: rgba(165, 180, 252, 0.5);
+        }
+        
+        .username {
+            font-weight: 600;
+            color: #e0e7ff;
+            font-size: 14px;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* 컨테이너 */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        
+        .page-header {
+            background: white;
+            padding: 32px;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .page-header h1 {
+            margin: 0;
+            font-size: 28px;
+            color: #212529;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: #2d2d2d;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #1a1a1a;
+        }
+        
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #212529;
+            border: 1px solid #dee2e6;
+        }
+        
+        .btn-secondary:hover {
+            background: #e9ecef;
+        }
+        
+        /* 거래 정보 카드 */
+        .escrow-info {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 24px;
+        }
+        
+        .escrow-info h2 {
+            font-size: 20px;
+            margin-bottom: 16px;
+            color: #212529;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .info-item label {
+            font-size: 13px;
+            color: #6c757d;
+            font-weight: 500;
+        }
+        
+        .info-item span {
+            font-size: 15px;
+            color: #212529;
+            font-weight: 600;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        
+        .status-initiated { background: #e3f2fd; color: #1976d2; }
+        .status-deposited { background: #e8f5e9; color: #388e3c; }
+        .status-delivered { background: #fff3e0; color: #f57c00; }
+        .status-verified { background: #f3e5f5; color: #7b1fa2; }
+        .status-ownership_transferred { background: #e0f2f1; color: #00796b; }
+        .status-completed { background: #c8e6c9; color: #2e7d32; }
+        
+        /* 검증 내역 섹션 */
+        .verifications-section {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .verifications-section h2 {
+            font-size: 20px;
+            margin-bottom: 16px;
+            color: #212529;
+        }
+        
+        .verification-cards {
+            display: grid;
+            gap: 16px;
+        }
+        
+        .verification-card {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.2s;
+        }
+        
+        .verification-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transform: translateY(-2px);
+        }
+        
+        .verification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #dee2e6;
+        }
+        
+        .verification-type {
+            font-size: 18px;
+            font-weight: 700;
+            color: #212529;
+        }
+        
+        .verification-result {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+        
+        .result-passed {
+            background: #c8e6c9;
+            color: #2e7d32;
+        }
+        
+        .result-failed {
+            background: #ffcdd2;
+            color: #c62828;
+        }
+        
+        .verification-body {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+        
+        .verification-field {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .verification-field label {
+            font-size: 12px;
+            color: #6c757d;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        
+        .verification-field span {
+            font-size: 14px;
+            color: #212529;
+            font-weight: 600;
+        }
+        
+        .verification-notes {
+            grid-column: 1 / -1;
+            margin-top: 8px;
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .verification-notes label {
+            display: block;
+            font-size: 12px;
+            color: #6c757d;
+            font-weight: 500;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+        
+        .verification-notes p {
+            margin: 0;
+            font-size: 14px;
+            color: #495057;
+            line-height: 1.5;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+        
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+        
+        .empty-state h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: #495057;
+        }
+        
+        .empty-state p {
+            font-size: 14px;
+        }
+        
+        /* 푸터 */
+        footer {
+            background: white;
+            color: #6c757d;
+            padding: 40px 24px;
+            text-align: center;
+            margin-top: 60px;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        footer a {
+            color: #2d2d2d;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        footer a:hover {
+            text-decoration: underline;
+        }
+        
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                gap: 16px;
+                align-items: flex-start;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .verification-body {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 헤더 -->
+    <header class="main-header">
+        <nav>
+            <a href="/" class="logo">Legacy-Free Commerce</a>
+            <ul class="nav-links">
+                <li><a href="/">홈</a></li>
+                <li><a href="/#products">상품</a></li>
+                <li><a href="/escrow">🚗 에스크로</a></li>
+                <li><a href="/logs/dashboard">이벤트 대시보드</a></li>
+                <li><a href="/session-replay/dashboard">🎬 세션 재생</a></li>
+            </ul>
+            <div class="user-section">
+                <div id="user-info" style="display: none;">
+                    <span class="username" id="username-display"></span>
+                    <button class="btn-logout" onclick="logout()">로그아웃</button>
+                </div>
+                <button class="btn-login" id="login-btn" onclick="goToHome()" style="display: none;">
+                    로그인
+                </button>
+            </div>
+        </nav>
+    </header>
+    
+    <div class="container">
+        <!-- 페이지 헤더 -->
+        <div class="page-header">
+            <h1>✅ 검증 내역</h1>
+            <a th:href="@{/escrow/{id}(id=${escrow.transactionId})}" class="btn btn-secondary">거래 상세로</a>
+        </div>
+
+        <!-- 거래 정보 -->
+        <div class="escrow-info">
+            <h2>거래 정보</h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <label>거래 ID</label>
+                    <span th:text="${escrow.transactionId}">TXN-001</span>
+                </div>
+                <div class="info-item">
+                    <label>상태</label>
+                    <span class="status-badge" th:classappend="${'status-' + escrow.status.name().toLowerCase()}" 
+                          th:text="${escrow.status}">INITIATED</span>
+                </div>
+                <div class="info-item">
+                    <label>거래 금액</label>
+                    <span th:text="${#numbers.formatDecimal(escrow.amount, 0, 'COMMA', 0, 'POINT')} + '원'">50,000,000원</span>
+                </div>
+                <div class="info-item">
+                    <label>구매자</label>
+                    <span th:text="${escrow.buyer.name}">홍길동</span>
+                </div>
+                <div class="info-item">
+                    <label>판매자</label>
+                    <span th:text="${escrow.seller.name}">김판매</span>
+                </div>
+                <div class="info-item">
+                    <label>차량</label>
+                    <span th:text="${escrow.vehicle.manufacturer + ' ' + escrow.vehicle.model + ' (' + escrow.vehicle.year + '년)'}">현대 그랜저 (2023년)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 검증 내역 -->
+        <div class="verifications-section">
+            <h2>검증 내역 목록</h2>
+            
+            <!-- 검증 내역이 있을 때 -->
+            <div th:if="${!verifications.isEmpty()}" class="verification-cards">
+                <div th:each="verification : ${verifications}" class="verification-card">
+                    <div class="verification-header">
+                        <span class="verification-type" th:text="${verification.type == T(com.example.payflow.escrow.domain.VerificationType).VEHICLE_CONDITION ? '🚗 차량 상태 검증' : '📋 명의 이전 검증'}">
+                            🚗 차량 상태 검증
+                        </span>
+                        <span class="verification-result" 
+                              th:classappend="${verification.result == T(com.example.payflow.escrow.domain.VerificationResult).PASSED ? 'result-passed' : 'result-failed'}"
+                              th:text="${verification.result == T(com.example.payflow.escrow.domain.VerificationResult).PASSED ? '✓ 합격' : '✗ 불합격'}">
+                            ✓ 합격
+                        </span>
+                    </div>
+                    
+                    <div class="verification-body">
+                        <div class="verification-field">
+                            <label>검증 ID</label>
+                            <span th:text="${verification.id}">#1</span>
+                        </div>
+                        <div class="verification-field">
+                            <label>검증자</label>
+                            <span th:text="${verification.verifiedBy}">inspector001</span>
+                        </div>
+                        <div class="verification-field">
+                            <label>검증 일시</label>
+                            <span th:text="${#temporals.format(verification.verifiedAt, 'yyyy-MM-dd HH:mm:ss')}">2024-01-01 10:00:00</span>
+                        </div>
+                        <div class="verification-field" th:if="${verification.documentId != null}">
+                            <label>문서 ID</label>
+                            <span th:text="${verification.documentId}">DOC-001</span>
+                        </div>
+                        
+                        <div class="verification-notes" th:if="${verification.notes != null}">
+                            <label>검증 메모</label>
+                            <p th:text="${verification.notes}">차량 상태 양호</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 검증 내역이 없을 때 -->
+            <div th:if="${verifications.isEmpty()}" class="empty-state">
+                <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="32" cy="32" r="20"/>
+                    <path d="M 22 32 L 28 38 L 42 24" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <h3>검증 내역이 없습니다</h3>
+                <p>아직 차량 검증이 진행되지 않았습니다.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 푸터 -->
+    <footer>
+        <a th:href="@{/escrow/{id}(id=${escrow.transactionId})}">거래 상세로 돌아가기</a>
+    </footer>
+
+    <script>
+        // 토큰 관리
+        function getToken() {
+            return localStorage.getItem('accessToken');
+        }
+        
+        function getUsername() {
+            return localStorage.getItem('username');
+        }
+        
+        function removeToken() {
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('username');
+        }
+        
+        // 페이지 로드 시 로그인 상태 확인
+        window.addEventListener('load', () => {
+            const token = getToken();
+            const username = getUsername();
+            
+            if (token && username) {
+                document.getElementById('user-info').style.display = 'flex';
+                document.getElementById('username-display').textContent = '👤 ' + username;
+                document.getElementById('login-btn').style.display = 'none';
+            } else {
+                document.getElementById('user-info').style.display = 'none';
+                document.getElementById('login-btn').style.display = 'block';
+            }
+        });
+        
+        // 로그아웃
+        function logout() {
+            removeToken();
+            location.href = '/';
+        }
+        
+        // 홈으로 이동
+        function goToHome() {
+            location.href = '/';
+        }
+    </script>
+</body>
+</html>

@@ -309,9 +309,17 @@
                     💳 입금하기 (토스페이먼츠)
                 </a>
                 
-                <button class="btn btn-primary" onclick="viewEvents()">이벤트 히스토리</button>
-                <button class="btn btn-secondary" onclick="viewDeposits()">입금 내역</button>
-                <button class="btn btn-secondary" onclick="viewVerifications()">검증 내역</button>
+                <!-- 정산 버튼 (SETTLING, COMPLETED 상태일 때 표시) -->
+                <a th:if="${escrow.status.name() == 'SETTLING' || escrow.status.name() == 'COMPLETED'}" 
+                   th:href="@{/escrow/{id}/settlement(id=${escrow.transactionId})}" 
+                   class="btn btn-primary" 
+                   style="text-decoration: none; display: inline-block; text-align: center;">
+                    💰 정산 내역
+                </a>
+                
+                <button class="btn btn-secondary" onclick="viewDeposits()">💳 입금 내역</button>
+                <button class="btn btn-secondary" onclick="viewVerifications()">✅ 검증 내역</button>
+                <button class="btn btn-secondary" onclick="viewEvents()">📋 이벤트 히스토리</button>
             </section>
         </div>
 

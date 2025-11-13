@@ -54,19 +54,25 @@ document.getElementById('createEscrowForm')?.addEventListener('submit', async (e
 // 이벤트 히스토리 보기
 function viewEvents() {
     const transactionId = getTransactionIdFromUrl();
-    window.location.href = `/api/escrow/${transactionId}/events`;
+    window.location.href = `/escrow/${transactionId}/events`;
 }
 
 // 입금 내역 보기
 function viewDeposits() {
     const transactionId = getTransactionIdFromUrl();
-    window.location.href = `/api/escrow/${transactionId}/deposits`;
+    window.location.href = `/escrow/${transactionId}/deposits`;
 }
 
 // 검증 내역 보기
 function viewVerifications() {
     const transactionId = getTransactionIdFromUrl();
-    window.location.href = `/api/escrow/${transactionId}/verifications`;
+    window.location.href = `/escrow/${transactionId}/verifications`;
+}
+
+// 정산 내역 보기
+function viewSettlement() {
+    const transactionId = getTransactionIdFromUrl();
+    window.location.href = `/escrow/${transactionId}/settlement`;
 }
 
 // URL에서 거래 ID 추출

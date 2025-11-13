@@ -569,8 +569,11 @@ GET /escrow/{transactionId}/payment
 # 결제 승인 및 입금 처리
 POST /api/escrow/{transactionId}/payment/confirm
 
-# 입금 내역 조회
+# 입금 내역 조회 (API)
 GET /api/escrow/{transactionId}/deposits
+
+# 입금 내역 조회 (웹 UI)
+GET /escrow/{transactionId}/deposits
 ```
 
 #### 차량 인도 & 검증
@@ -596,8 +599,11 @@ POST /api/escrow/{transactionId}/settlement/start
 # 정산 완료
 POST /api/escrow/{transactionId}/settlement/complete
 
-# 정산 조회
+# 정산 조회 (API)
 GET /api/escrow/{transactionId}/settlement
+
+# 정산 조회 (웹 UI)
+GET /escrow/{transactionId}/settlement
 
 # 분쟁 제기
 POST /api/escrow/{transactionId}/dispute
@@ -632,6 +638,18 @@ http://localhost:8080/escrow/{transactionId}
 
 # 입금 결제 페이지
 http://localhost:8080/escrow/{transactionId}/payment
+
+# 입금 내역 페이지
+http://localhost:8080/escrow/{transactionId}/deposits
+
+# 검증 내역 페이지
+http://localhost:8080/escrow/{transactionId}/verifications
+
+# 정산 내역 페이지
+http://localhost:8080/escrow/{transactionId}/settlement
+
+# 이벤트 히스토리 페이지
+http://localhost:8080/escrow/{transactionId}/events
 ```
 
 ### 에스크로 테스트
