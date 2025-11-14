@@ -486,16 +486,17 @@ http://localhost:8080/logs/dashboard
    - 장애 추적 및 디버깅
    - SLA 모니터링
 
-## 🚗 에스크로 결제 시스템
+## 🚛 에스크로 결제 시스템
 
 PayFlow는 **중고차 거래를 위한 안전한 에스크로 시스템**을 구현합니다.
 
 ### 주요 특징
 
 #### 1. 토스 페이먼츠 통합
-- ✅ 실제 결제 시스템과 연동된 에스크로 입금
+- ✅ **카드 결제**: 실시간 카드 결제 및 즉시 입금 처리
+- ✅ **가상계좌 입금**: 가상계좌 발급 및 입금 대기
+- ✅ **웹훅 자동 처리**: 입금 완료 시 자동으로 거래 진행
 - ✅ 토스 결제 위젯을 통한 안전한 결제
-- ✅ 결제 승인 후 자동 입금 처리
 - ✅ 테스트 환경에서 전체 플로우 검증 가능
 
 #### 2. 완전한 거래 생명주기 관리
@@ -562,8 +563,10 @@ DELETE /api/escrow/{transactionId}?reason=취소사유
 ```
 
 #### 입금 처리
+
+**카드 결제:**
 ```bash
-# 토스 결제 페이지
+# 토스 결제 페이지 (카드)
 GET /escrow/{transactionId}/payment
 
 # 결제 승인 및 입금 처리
@@ -574,6 +577,27 @@ GET /api/escrow/{transactionId}/deposits
 
 # 입금 내역 조회 (웹 UI)
 GET /escrow/{transactionId}/deposits
+```
+
+**가상계좌 입금:**
+```bash
+# 가상계좌 발급 페이지
+GET /escrow/{transactionId}/payment/virtual-account
+
+# 가상계좌 발급 API
+POST /api/escrow/{transactionId}/payment/virtual-account/issue
+
+# 가상계좌 입금 완료 (웹훅)
+POST /api/escrow/webhook/virtual-account
+
+# 가상계좌 내역 조회 (API)
+GET /api/escrow/{transactionId}/virtual-accounts
+
+# 가상계좌 내역 조회 (웹 UI)
+GET /escrow/{transactionId}/virtual-accounts
+
+# 웹훅 테스트 페이지 (개발용)
+GET /escrow/{transactionId}/webhook-test
 ```
 
 #### 차량 인도 & 검증
@@ -636,11 +660,17 @@ http://localhost:8080/escrow/create
 # 거래 상세
 http://localhost:8080/escrow/{transactionId}
 
-# 입금 결제 페이지
+# 카드 입금 결제 페이지
 http://localhost:8080/escrow/{transactionId}/payment
+
+# 가상계좌 입금 페이지
+http://localhost:8080/escrow/{transactionId}/payment/virtual-account
 
 # 입금 내역 페이지
 http://localhost:8080/escrow/{transactionId}/deposits
+
+# 가상계좌 내역 페이지
+http://localhost:8080/escrow/{transactionId}/virtual-accounts
 
 # 검증 내역 페이지
 http://localhost:8080/escrow/{transactionId}/verifications
@@ -650,7 +680,89 @@ http://localhost:8080/escrow/{transactionId}/settlement
 
 # 이벤트 히스토리 페이지
 http://localhost:8080/escrow/{transactionId}/events
+
+# 웹훅 테스트 페이지 (개발용)
+http://localhost:8080/escrow/{transactionId}/webhook-test
 ```
+
+### 가상계좌 입금 시스템
+
+#### 주요 기능
+- ✅ **가상계좌 발급**: 토스페이먼츠 API를 통한 가상계좌 생성
+- ✅ **입금 대기**: 발급된 계좌로 입금 시까지 대기
+- ✅ **웹훅 자동 처리**: 입금 완료 시 토스페이먼츠가 웹훅 호출
+- ✅ **자동 입금 처리**: 웹훅 수신 시 자동으로 에스크로 입금 처리
+- ✅ **입금 기한 관리**: 24시간 입금 기한 설정
+- ✅ **취소 처리**: 기한 만료 또는 사용자 취소 시 자동 처리
+
+#### 가상계좌 프로세스
+```
+1. 사용자가 가상계좌 발급 요청
+   ↓
+2. 토스페이먼츠 API 호출 → 가상계좌 생성
+   (예: 국민은행 12345678901234)
+   ↓
+3. 가상계좌 정보 DB 저장 (상태: WAITING_FOR_DEPOSIT)
+   ↓
+4. 사용자가 은행 앱/ATM에서 입금
+   ↓
+5. 토스페이먼츠가 입금 확인
+   ↓
+6. 토스페이먼츠가 웹훅 호출 ⭐
+   POST /api/escrow/webhook/virtual-account
+   {
+     "status": "DONE",
+     "orderId": "ESCROW-xxx",
+     "virtualAccount": {
+       "customerName": "홍길동"
+     }
+   }
+   ↓
+7. 웹훅 핸들러가 자동 실행
+   - 가상계좌 상태 → DONE
+   - 에스크로 입금 처리 (Deposit 생성)
+   - 에스크로 거래 상태 → DEPOSITED
+   ↓
+8. 사용자가 프로세스 실행 페이지에서 다음 단계 진행
+```
+
+#### 토스페이먼츠 웹훅 설정
+
+**1. 개발자센터 설정:**
+```
+1. https://developers.tosspayments.com/ 로그인
+2. 내 개발 정보 > 웹훅 메뉴
+3. 웹훅 URL 추가:
+   https://your-domain.com/api/escrow/webhook/virtual-account
+4. 이벤트 선택:
+   ☑ 결제 상태 변경 (PAYMENT_STATUS_CHANGED)
+5. 저장
+```
+
+**2. 로컬 테스트 (ngrok 사용):**
+```bash
+# ngrok 설치 및 실행
+brew install ngrok  # Mac
+ngrok http 8080
+
+# 생성된 URL을 토스페이먼츠에 등록
+# 예: https://abc123.ngrok-free.app/api/escrow/webhook/virtual-account
+```
+
+**3. 웹훅 테스트 (개발용):**
+```bash
+# 브라우저에서 GET 요청 (자동 입금 처리)
+https://your-domain.com/api/escrow/webhook/virtual-account
+
+# 또는 웹 UI에서 테스트
+http://localhost:8080/escrow/{transactionId}/webhook-test
+```
+
+#### 가상계좌 상태
+- `WAITING_FOR_DEPOSIT` - 입금 대기 중
+- `DONE` - 입금 완료
+- `CANCELED` - 취소됨
+- `EXPIRED` - 기한 만료
 
 ### 에스크로 테스트
 
@@ -683,9 +795,13 @@ curl -X POST http://localhost:8080/api/escrow \
     "feeRate": 0.03
   }'
 
-# 2. 웹 브라우저에서 입금 진행
+# 2-A. 카드 입금 (즉시 처리)
 # http://localhost:8080/escrow/{transactionId}/payment
 # 토스 테스트 카드: 4330123412341234
+
+# 2-B. 가상계좌 입금 (발급 후 입금 대기)
+# http://localhost:8080/escrow/{transactionId}/payment/virtual-account
+# 가상계좌 발급 후 입금하면 웹훅으로 자동 처리
 
 # 3. 차량 인도
 curl -X POST http://localhost:8080/api/escrow/{transactionId}/delivery \

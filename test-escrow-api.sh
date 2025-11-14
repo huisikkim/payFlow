@@ -6,7 +6,7 @@
 BASE_URL="http://localhost:8080"
 TOKEN=""
 
-echo "🚗 에스크로 API 테스트 시작"
+echo "🚛 에스크로 API 테스트 시작"
 echo "================================"
 
 # 색상 정의

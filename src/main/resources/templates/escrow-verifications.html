@@ -448,7 +448,7 @@
             <ul class="nav-links">
                 <li><a href="/">홈</a></li>
                 <li><a href="/#products">상품</a></li>
-                <li><a href="/escrow">🚗 에스크로</a></li>
+                <li><a href="/escrow">🚛 에스크로</a></li>
                 <li><a href="/logs/dashboard">이벤트 대시보드</a></li>
                 <li><a href="/session-replay/dashboard">🎬 세션 재생</a></li>
             </ul>
@@ -511,8 +511,8 @@
             <div th:if="${!verifications.isEmpty()}" class="verification-cards">
                 <div th:each="verification : ${verifications}" class="verification-card">
                     <div class="verification-header">
-                        <span class="verification-type" th:text="${verification.type == T(com.example.payflow.escrow.domain.VerificationType).VEHICLE_CONDITION ? '🚗 차량 상태 검증' : '📋 명의 이전 검증'}">
-                            🚗 차량 상태 검증
+                        <span class="verification-type" th:text="${verification.type == T(com.example.payflow.escrow.domain.VerificationType).VEHICLE_CONDITION ? '🚛 차량 상태 검증' : '📋 명의 이전 검증'}">
+                            🚛 차량 상태 검증
                         </span>
                         <span class="verification-result" 
                               th:classappend="${verification.result == T(com.example.payflow.escrow.domain.VerificationResult).PASSED ? 'result-passed' : 'result-failed'}"
