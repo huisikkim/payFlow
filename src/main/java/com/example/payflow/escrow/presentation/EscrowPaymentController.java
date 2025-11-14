@@ -163,41 +163,62 @@ public class EscrowPaymentController {
      */
     @PostMapping("/api/escrow/webhook/virtual-account")
     @ResponseBody
-    public ResponseEntity<String> virtualAccountWebhook(@RequestBody TossWebhookRequest request) {
-        log.info("가상계좌 웹훅 수신 (POST): eventType={}, orderId={}", 
-            request.getEventType(), request.getData().getOrderId());
+    public ResponseEntity<String> virtualAccountWebhook(@RequestBody String rawBody) {
+        log.info("가상계좌 웹훅 수신 (POST) - Raw Body: {}", rawBody);
         
         try {
-            if ("VIRTUAL_ACCOUNT_ISSUED".equals(request.getEventType())) {
-                log.info("가상계좌 발급 완료 웹훅");
-                // 가상계좌 발급은 이미 처리됨
-            } else if ("PAYMENT_STATUS_CHANGED".equals(request.getEventType())) {
-                String status = request.getData().getStatus();
-                if ("DONE".equals(status)) {
-                    // 입금 완료 처리
-                    log.info("가상계좌 입금 완료 처리 시작: orderId={}", request.getData().getOrderId());
-                    virtualAccountService.completeVirtualAccountDeposit(
-                        request.getData().getOrderId(),
-                        request.getData().getVirtualAccount() != null ? 
-                            request.getData().getVirtualAccount().getCustomerName() : "Unknown"
-                    );
-                    log.info("가상계좌 입금 완료 처리 성공: orderId={}", request.getData().getOrderId());
-                } else if ("CANCELED".equals(status)) {
-                    // 취소 처리
-                    log.info("가상계좌 취소 처리 시작: orderId={}", request.getData().getOrderId());
-                    virtualAccountService.cancelVirtualAccount(
-                        request.getData().getOrderId(),
-                        request.getData().getCancels() != null && !request.getData().getCancels().isEmpty() ?
-                            request.getData().getCancels().get(0).getCancelReason() : "Unknown"
-                    );
-                    log.info("가상계좌 취소 처리 성공: orderId={}", request.getData().getOrderId());
-                }
+            // JSON 파싱
+            com.fasterxml.jackson.databind.ObjectMapper objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            TossWebhookRequest webhook = objectMapper.readValue(rawBody, TossWebhookRequest.class);
+            
+            log.info("파싱된 웹훅 데이터: orderId={}, status={}, paymentKey={}", 
+                webhook.getOrderId(), 
+                webhook.getStatus(),
+                webhook.getPaymentKey());
+            
+            if (webhook.getOrderId() == null) {
+                log.error("orderId가 null입니다. Raw Body를 확인하세요.");
+                return ResponseEntity.badRequest().body("FAILED: orderId is null");
+            }
+            
+            String status = webhook.getStatus();
+            
+            if ("DONE".equals(status)) {
+                // 입금 완료 처리
+                log.info("가상계좌 입금 완료 처리 시작: orderId={}", webhook.getOrderId());
+                
+                String customerName = webhook.getVirtualAccount() != null ? 
+                    webhook.getVirtualAccount().getCustomerName() : "Unknown";
+                
+                virtualAccountService.completeVirtualAccountDeposit(
+                    webhook.getOrderId(),
+                    customerName
+                );
+                
+                log.info("가상계좌 입금 완료 처리 성공: orderId={}, customerName={}", 
+                    webhook.getOrderId(), customerName);
+                    
+            } else if ("CANCELED".equals(status)) {
+                // 취소 처리
+                log.info("가상계좌 취소 처리 시작: orderId={}", webhook.getOrderId());
+                
+                String cancelReason = webhook.getCancels() != null && !webhook.getCancels().isEmpty() ?
+                    webhook.getCancels().get(0).getCancelReason() : "Unknown";
+                
+                virtualAccountService.cancelVirtualAccount(
+                    webhook.getOrderId(),
+                    cancelReason
+                );
+                
+                log.info("가상계좌 취소 처리 성공: orderId={}, reason={}", 
+                    webhook.getOrderId(), cancelReason);
+            } else {
+                log.info("처리하지 않는 상태: status={}", status);
             }
             
             return ResponseEntity.ok("SUCCESS");
         } catch (Exception e) {
-            log.error("웹훅 처리 실패: orderId={}", 
-                request.getData() != null ? request.getData().getOrderId() : "unknown", e);
+            log.error("웹훅 처리 실패", e);
             return ResponseEntity.internalServerError().body("FAILED: " + e.getMessage());
         }
     }
@@ -269,16 +290,14 @@ public class EscrowPaymentController {
     @lombok.Data
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class TossWebhookRequest {
-        private String eventType;
+        // 토스페이먼츠 웹훅은 최상위 레벨에 데이터가 있음
         private String createdAt;
-        private WebhookData data;
-    }
-    
-    @lombok.Data
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class WebhookData {
-        private String orderId;
+        private String secret;
         private String status;
+        private String orderId;
+        private String paymentKey;
+        private String method;
+        private Long totalAmount;
         private WebhookVirtualAccount virtualAccount;
         private java.util.List<WebhookCancel> cancels;
     }
@@ -287,13 +306,22 @@ public class EscrowPaymentController {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class WebhookVirtualAccount {
         private String accountNumber;
-        private String bank;
+        private String bankCode;
         private String customerName;
+        private String dueDate;
+        private String refundStatus;
+        private Boolean expired;
+        private String settlementStatus;
+        private String refundReceiveAccount;
     }
     
     @lombok.Data
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class WebhookCancel {
         private String cancelReason;
+        private Long cancelAmount;
+        private String canceledAt;
+        private String transactionKey;
+        private String receiptKey;
     }
 }
