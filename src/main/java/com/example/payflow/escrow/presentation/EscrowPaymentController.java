@@ -13,6 +13,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * 에스크로 결제 컨트롤러
@@ -201,13 +202,60 @@ public class EscrowPaymentController {
     }
     
     /**
-     * 토스페이먼츠 웹훅 - GET 요청 처리 (개발자센터 테스트용)
+     * 토스페이먼츠 웹훅 - GET 요청 처리 (개발/테스트용 자동 입금 처리)
+     * 가장 최근 입금 대기 중인 가상계좌를 자동으로 입금 완료 처리
      */
     @GetMapping("/api/escrow/webhook/virtual-account")
     @ResponseBody
     public ResponseEntity<String> virtualAccountWebhookTest() {
-        log.info("가상계좌 웹훅 테스트 요청 (GET)");
-        return ResponseEntity.ok("Webhook endpoint is ready. Please use POST method for actual webhook.");
+        log.info("가상계좌 웹훅 테스트 요청 (GET) - 자동 입금 처리 시작");
+        
+        try {
+            // 입금 대기 중인 가상계좌 목록 조회
+            List<VirtualAccountDepositResponse> waitingAccounts = 
+                virtualAccountService.getVirtualAccountsByStatus(
+                    com.example.payflow.escrow.domain.VirtualAccountStatus.WAITING_FOR_DEPOSIT
+                );
+            
+            if (waitingAccounts.isEmpty()) {
+                log.warn("입금 대기 중인 가상계좌가 없습니다");
+                return ResponseEntity.ok("No waiting virtual accounts found. Please issue a virtual account first.");
+            }
+            
+            // 가장 최근 가상계좌 선택 (마지막 항목)
+            VirtualAccountDepositResponse latestAccount = waitingAccounts.get(waitingAccounts.size() - 1);
+            
+            log.info("자동 입금 처리 대상: orderId={}, accountNumber={}, transactionId={}", 
+                latestAccount.getOrderId(), 
+                latestAccount.getVirtualAccountNumber(),
+                latestAccount.getTransactionId());
+            
+            // 입금 완료 처리
+            virtualAccountService.completeVirtualAccountDeposit(
+                latestAccount.getOrderId(),
+                "테스트입금자"
+            );
+            
+            log.info("자동 입금 처리 완료: orderId={}, transactionId={}", 
+                latestAccount.getOrderId(), latestAccount.getTransactionId());
+            
+            return ResponseEntity.ok(String.format(
+                "✅ Auto deposit completed!\n\n" +
+                "OrderId: %s\n" +
+                "Account: %s %s\n" +
+                "TransactionId: %s\n\n" +
+                "You can now proceed to the process execution page.",
+                latestAccount.getOrderId(),
+                latestAccount.getBankName(),
+                latestAccount.getVirtualAccountNumber(),
+                latestAccount.getTransactionId()
+            ));
+            
+        } catch (Exception e) {
+            log.error("자동 입금 처리 실패", e);
+            return ResponseEntity.internalServerError()
+                .body("❌ Auto deposit failed: " + e.getMessage());
+        }
     }
     
     @lombok.Data

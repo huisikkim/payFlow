@@ -345,6 +345,7 @@
                 <button class="btn btn-secondary" onclick="viewVirtualAccounts()">🏦 가상계좌 내역</button>
                 <button class="btn btn-secondary" onclick="viewVerifications()">✅ 검증 내역</button>
                 <button class="btn btn-secondary" onclick="viewEvents()">📋 이벤트 히스토리</button>
+                <button class="btn btn-secondary" onclick="viewWebhookTest()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">🧪 웹훅 테스트</button>
             </section>
         </div>
 
@@ -393,6 +394,32 @@
         // 홈으로 이동
         function goToHome() {
             location.href = '/';
+        }
+        
+        // 내역 페이지 이동 함수들
+        function viewDeposits() {
+            const transactionId = document.querySelector('.info-item span').textContent;
+            location.href = `/escrow/${transactionId}/deposits`;
+        }
+        
+        function viewVirtualAccounts() {
+            const transactionId = document.querySelector('.info-item span').textContent;
+            location.href = `/escrow/${transactionId}/virtual-accounts`;
+        }
+        
+        function viewVerifications() {
+            const transactionId = document.querySelector('.info-item span').textContent;
+            location.href = `/escrow/${transactionId}/verifications`;
+        }
+        
+        function viewEvents() {
+            const transactionId = document.querySelector('.info-item span').textContent;
+            location.href = `/escrow/${transactionId}/events`;
+        }
+        
+        function viewWebhookTest() {
+            const transactionId = document.querySelector('.info-item span').textContent;
+            location.href = `/escrow/${transactionId}/webhook-test`;
         }
     </script>
 </body>

@@ -175,6 +175,16 @@ public class VirtualAccountService {
     }
     
     /**
+     * 상태별 가상계좌 목록 조회
+     */
+    @Transactional(readOnly = true)
+    public List<VirtualAccountDepositResponse> getVirtualAccountsByStatus(VirtualAccountStatus status) {
+        return virtualAccountDepositRepository.findByStatus(status).stream()
+            .map(VirtualAccountDepositResponse::from)
+            .collect(Collectors.toList());
+    }
+    
+    /**
      * 은행 코드로 은행명 매핑
      */
     private String getBankNameFromCode(String bankCode) {

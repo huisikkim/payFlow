@@ -95,6 +95,23 @@ public class EscrowWebController {
     }
     
     /**
+     * 웹훅 테스트 페이지 (개발용)
+     */
+    @GetMapping("/{transactionId}/webhook-test")
+    public String webhookTestPage(@PathVariable String transactionId, Model model) {
+        try {
+            EscrowResponse escrow = escrowService.getEscrow(transactionId);
+            List<VirtualAccountDepositResponse> virtualAccounts = virtualAccountService.getVirtualAccountsByTransaction(transactionId);
+            model.addAttribute("escrow", escrow);
+            model.addAttribute("virtualAccounts", virtualAccounts);
+            return "escrow-webhook-test";
+        } catch (Exception e) {
+            model.addAttribute("error", e.getMessage());
+            return "error";
+        }
+    }
+    
+    /**
      * 검증 내역 페이지
      */
     @GetMapping("/{transactionId}/verifications")
