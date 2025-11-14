@@ -4,6 +4,7 @@ import com.example.payflow.escrow.application.EscrowPaymentService;
 import com.example.payflow.escrow.application.VirtualAccountService;
 import com.example.payflow.escrow.application.dto.DepositResponse;
 import com.example.payflow.escrow.application.dto.VirtualAccountDepositResponse;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -266,6 +267,7 @@ public class EscrowPaymentController {
     }
     
     @lombok.Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class TossWebhookRequest {
         private String eventType;
         private String createdAt;
@@ -273,6 +275,7 @@ public class EscrowPaymentController {
     }
     
     @lombok.Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class WebhookData {
         private String orderId;
         private String status;
@@ -281,6 +284,7 @@ public class EscrowPaymentController {
     }
     
     @lombok.Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class WebhookVirtualAccount {
         private String accountNumber;
         private String bank;
@@ -288,6 +292,7 @@ public class EscrowPaymentController {
     }
     
     @lombok.Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class WebhookCancel {
         private String cancelReason;
     }
