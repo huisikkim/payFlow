@@ -68,6 +68,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/orders/**").permitAll()  // 주문 API 허용 (개발용)
                         .requestMatchers("/api/payments/**").permitAll()  // 결제 API 허용 (개발용)
                         // TODO: 프로덕션에서는 .requestMatchers("/api/orders/**", "/api/payments/**").hasAnyRole("USER", "ADMIN")으로 변경
+                        .requestMatchers("/hr/**").permitAll()  // HR 웹 페이지 허용 (개발용)
+                        .requestMatchers("/api/hr/**").hasAnyRole("USER", "ADMIN")  // HR API (인증 필요)
                         .requestMatchers("/api/stages/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()

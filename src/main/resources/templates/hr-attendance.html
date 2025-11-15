@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>근태관리 - 출퇴근 & 휴가</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f7fa; }
+        
+        header { background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 1rem 2rem; }
+        nav { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; }
+        .logo { font-size: 1.5rem; font-weight: bold; color: #4A90E2; }
+        .nav-links { display: flex; gap: 2rem; list-style: none; }
+        .nav-links a { text-decoration: none; color: #333; font-weight: 500; }
+        .nav-links a:hover { color: #4A90E2; }
+        
+        .container { max-width: 1200px; margin: 2rem auto; padding: 0 2rem; }
+        .tabs { display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 2px solid #e0e0e0; }
+        .tab { padding: 1rem 2rem; cursor: pointer; border: none; background: none; font-size: 1rem; font-weight: 500; color: #666; }
+        .tab.active { color: #4A90E2; border-bottom: 3px solid #4A90E2; margin-bottom: -2px; }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        .card { background: white; border-radius: 8px; padding: 2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem; }
+        .card h2 { margin-bottom: 1.5rem; color: #333; }
+        
+        .attendance-status { display: flex; gap: 2rem; margin-bottom: 2rem; }
+        .status-card { flex: 1; padding: 1.5rem; border-radius: 8px; text-align: center; }
+        .status-card.in { background: #e8f5e9; border: 2px solid #4caf50; }
+        .status-card.out { background: #fff3e0; border: 2px solid #ff9800; }
+        .status-card h3 { font-size: 0.9rem; color: #666; margin-bottom: 0.5rem; }
+        .status-card .time { font-size: 1.8rem; font-weight: bold; color: #333; }
+        
+        .btn-group { display: flex; gap: 1rem; margin-bottom: 2rem; }
+        .btn { padding: 1rem 2rem; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .btn-primary { background: #4A90E2; color: white; }
+        .btn-primary:hover { background: #357ABD; }
+        .btn-success { background: #4caf50; color: white; }
+        .btn-success:hover { background: #45a049; }
+        .btn-danger { background: #f44336; color: white; }
+        .btn-danger:hover { background: #da190b; }
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
+        
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; color: #333; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem; }
+        .form-group textarea { min-height: 100px; resize: vertical; }
+        
+        .leave-list { margin-top: 2rem; }
+        .leave-item { background: #f9f9f9; padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem; border-left: 4px solid #4A90E2; }
+        .leave-item.pending { border-left-color: #ff9800; }
+        .leave-item.approved { border-left-color: #4caf50; }
+        .leave-item.rejected { border-left-color: #f44336; }
+        .leave-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+        .leave-type { font-weight: bold; color: #333; }
+        .leave-status { padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.85rem; font-weight: 600; }
+        .leave-status.pending { background: #fff3e0; color: #f57c00; }
+        .leave-status.approved { background: #e8f5e9; color: #2e7d32; }
+        .leave-status.rejected { background: #ffebee; color: #c62828; }
+        .leave-dates { color: #666; margin-bottom: 0.5rem; }
+        .leave-reason { color: #888; font-size: 0.9rem; }
+        
+        .attendance-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        .attendance-table th, .attendance-table td { padding: 1rem; text-align: left; border-bottom: 1px solid #e0e0e0; }
+        .attendance-table th { background: #f5f5f5; font-weight: 600; color: #333; }
+        .attendance-table tr:hover { background: #f9f9f9; }
+        
+        .badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.85rem; font-weight: 600; }
+        .badge.in { background: #e8f5e9; color: #2e7d32; }
+        .badge.out { background: #fff3e0; color: #f57c00; }
+        
+        .info-box { background: #e3f2fd; border-left: 4px solid #2196f3; padding: 1rem; border-radius: 4px; margin-bottom: 2rem; }
+        .info-box strong { color: #1976d2; }
+        
+        .admin-actions { display: flex; gap: 0.5rem; }
+        .btn-sm { padding: 0.5rem 1rem; font-size: 0.85rem; }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">근태관리 시스템</div>
+            <ul class="nav-links">
+                <li><a href="/">홈</a></li>
+                <li><a href="/hr/attendance">근태관리</a></li>
+                <li><a href="/escrow">에스크로</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <div class="container">
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('attendance')">출퇴근 관리</button>
+            <button class="tab" onclick="switchTab('leave')">휴가 관리</button>
+            <button class="tab" id="admin-tab-btn" onclick="switchTab('admin')" style="display: none;">휴가 승인 (관리자)</button>
+        </div>
+        
+        <!-- 출퇴근 관리 탭 -->
+        <div id="attendance-tab" class="tab-content active">
+            <div class="card">
+                <h2>오늘의 근태</h2>
+                <div class="attendance-status">
+                    <div class="status-card in">
+                        <h3>출근 시간</h3>
+                        <div class="time" id="check-in-time">--:--</div>
+                    </div>
+                    <div class="status-card out">
+                        <h3>퇴근 시간</h3>
+                        <div class="time" id="check-out-time">--:--</div>
+                    </div>
+                </div>
+                
+                <div class="btn-group">
+                    <button class="btn btn-success" id="btn-check-in" onclick="checkIn()">출근하기</button>
+                    <button class="btn btn-danger" id="btn-check-out" onclick="checkOut()" disabled>퇴근하기</button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>이번 달 근태 기록</h2>
+                <table class="attendance-table">
+                    <thead>
+                        <tr>
+                            <th>날짜</th>
+                            <th>출근 시간</th>
+                            <th>퇴근 시간</th>
+                            <th>근무 시간</th>
+                            <th>상태</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attendance-list">
+                        <tr><td colspan="5" style="text-align: center; color: #999;">근태 기록을 불러오는 중...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- 휴가 관리 탭 -->
+        <div id="leave-tab" class="tab-content">
+            <div class="card">
+                <h2>휴가 신청</h2>
+                <div class="info-box">
+                    <strong>잔여 연차:</strong> <span id="remaining-days">--</span>일
+                </div>
+                
+                <form id="leave-form" onsubmit="applyLeave(event)">
+                    <div class="form-group">
+                        <label>휴가 종류</label>
+                        <select name="type" required>
+                            <option value="ANNUAL">연차</option>
+                            <option value="SICK">병가</option>
+                            <option value="PERSONAL">개인 사유</option>
+                            <option value="MATERNITY">출산 휴가</option>
+                            <option value="PATERNITY">육아 휴가</option>
+                            <option value="UNPAID">무급 휴가</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>시작일</label>
+                        <input type="date" name="startDate" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>종료일</label>
+                        <input type="date" name="endDate" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>일수</label>
+                        <input type="number" name="days" min="0.5" step="0.5" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>사유</label>
+                        <textarea name="reason" required placeholder="휴가 사유를 입력하세요"></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">휴가 신청</button>
+                </form>
+            </div>
+            
+            <div class="card">
+                <h2>내 휴가 신청 내역</h2>
+                <div class="leave-list" id="leave-list">
+                    <p style="text-align: center; color: #999;">휴가 신청 내역을 불러오는 중...</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 관리자 휴가 승인 탭 -->
+        <div id="admin-tab" class="tab-content">
+            <div class="card">
+                <h2>대기 중인 휴가 신청</h2>
+                <div class="leave-list" id="pending-leave-list">
+                    <p style="text-align: center; color: #999;">대기 중인 휴가 신청을 불러오는 중...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = '/api/hr';
+        
+        function getToken() {
+            return localStorage.getItem('accessToken');
+        }
+        
+        function getHeaders() {
+            return {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + getToken()
+            };
+        }
+        
+        // 탭 전환
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tab + '-tab').classList.add('active');
+            
+            if (tab === 'attendance') {
+                loadTodayAttendance();
+                loadMonthlyAttendances();
+            } else if (tab === 'leave') {
+                loadRemainingDays();
+                loadMyLeaves();
+            } else if (tab === 'admin') {
+                loadPendingLeaves();
+            }
+        }
+        
+        // 출근
+        async function checkIn() {
+            try {
+                const response = await fetch(API_BASE + '/attendance/check-in', {
+                    method: 'POST',
+                    headers: getHeaders()
+                });
+                
+                if (!response.ok) throw new Error('출근 처리 실패');
+                
+                alert('출근 처리되었습니다!');
+                loadTodayAttendance();
+                loadMonthlyAttendances();
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+        
+        // 퇴근
+        async function checkOut() {
+            try {
+                const response = await fetch(API_BASE + '/attendance/check-out', {
+                    method: 'POST',
+                    headers: getHeaders()
+                });
+                
+                if (!response.ok) throw new Error('퇴근 처리 실패');
+                
+                alert('퇴근 처리되었습니다!');
+                loadTodayAttendance();
+                loadMonthlyAttendances();
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+        
+        // 오늘 근태 조회
+        async function loadTodayAttendance() {
+            try {
+                const response = await fetch(API_BASE + '/attendance/today', {
+                    headers: getHeaders()
+                });
+                
+                if (!response.ok) return;
+                
+                const data = await response.json();
+                
+                if (data) {
+                    document.getElementById('check-in-time').textContent = 
+                        new Date(data.checkInTime).toLocaleTimeString('ko-KR', {hour: '2-digit', minute: '2-digit'});
+                    
+                    if (data.checkOutTime) {
+                        document.getElementById('check-out-time').textContent = 
+                            new Date(data.checkOutTime).toLocaleTimeString('ko-KR', {hour: '2-digit', minute: '2-digit'});
+                        document.getElementById('btn-check-in').disabled = true;
+                        document.getElementById('btn-check-out').disabled = true;
+                    } else {
+                        document.getElementById('btn-check-in').disabled = true;
+                        document.getElementById('btn-check-out').disabled = false;
+                    }
+                }
+            } catch (error) {
+                console.error('오늘 근태 조회 실패:', error);
+            }
+        }
+        
+        // 월별 근태 조회
+        async function loadMonthlyAttendances() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth() + 1;
+            
+            try {
+                const response = await fetch(
+                    API_BASE + `/attendance/monthly?year=${year}&month=${month}`,
+                    { headers: getHeaders() }
+                );
+                
+                if (!response.ok) return;
+                
+                const data = await response.json();
+                const tbody = document.getElementById('attendance-list');
+                
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999;">근태 기록이 없습니다.</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = data.map(att => {
+                    const checkIn = new Date(att.checkInTime);
+                    const checkOut = att.checkOutTime ? new Date(att.checkOutTime) : null;
+                    const workHours = checkOut ? 
+                        ((checkOut - checkIn) / (1000 * 60 * 60)).toFixed(1) : '-';
+                    
+                    return `
+                        <tr>
+                            <td>${checkIn.toLocaleDateString('ko-KR')}</td>
+                            <td>${checkIn.toLocaleTimeString('ko-KR', {hour: '2-digit', minute: '2-digit'})}</td>
+                            <td>${checkOut ? checkOut.toLocaleTimeString('ko-KR', {hour: '2-digit', minute: '2-digit'}) : '-'}</td>
+                            <td>${workHours}시간</td>
+                            <td><span class="badge ${att.status === 'CHECKED_OUT' ? 'out' : 'in'}">${att.status === 'CHECKED_OUT' ? '퇴근' : '출근'}</span></td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('월별 근태 조회 실패:', error);
+            }
+        }
+        
+        // 잔여 연차 조회
+        async function loadRemainingDays() {
+            try {
+                const response = await fetch(API_BASE + '/leaves/remaining-days', {
+                    headers: getHeaders()
+                });
+                
+                if (!response.ok) return;
+                
+                const data = await response.json();
+                document.getElementById('remaining-days').textContent = data.remainingDays;
+            } catch (error) {
+                console.error('잔여 연차 조회 실패:', error);
+            }
+        }
+        
+        // 휴가 신청
+        async function applyLeave(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = {
+                type: formData.get('type'),
+                startDate: formData.get('startDate'),
+                endDate: formData.get('endDate'),
+                days: parseFloat(formData.get('days')),
+                reason: formData.get('reason')
+            };
+            
+            try {
+                const response = await fetch(API_BASE + '/leaves', {
+                    method: 'POST',
+                    headers: getHeaders(),
+                    body: JSON.stringify(data)
+                });
+                
+                if (!response.ok) throw new Error('휴가 신청 실패');
+                
+                alert('휴가 신청이 완료되었습니다!');
+                e.target.reset();
+                loadMyLeaves();
+                loadRemainingDays();
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+        
+        // 내 휴가 목록 조회
+        async function loadMyLeaves() {
+            try {
+                const response = await fetch(API_BASE + '/leaves/my', {
+                    headers: getHeaders()
+                });
+                
+                if (!response.ok) return;
+                
+                const data = await response.json();
+                const container = document.getElementById('leave-list');
+                
+                if (data.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #999;">휴가 신청 내역이 없습니다.</p>';
+                    return;
+                }
+                
+                const typeNames = {
+                    ANNUAL: '연차', SICK: '병가', PERSONAL: '개인 사유',
+                    MATERNITY: '출산 휴가', PATERNITY: '육아 휴가', UNPAID: '무급 휴가'
+                };
+                
+                const statusNames = {
+                    PENDING: '대기', APPROVED: '승인', REJECTED: '반려', CANCELLED: '취소'
+                };
+                
+                container.innerHTML = data.map(leave => `
+                    <div class="leave-item ${leave.status.toLowerCase()}">
+                        <div class="leave-header">
+                            <span class="leave-type">${typeNames[leave.type]}</span>
+                            <span class="leave-status ${leave.status.toLowerCase()}">${statusNames[leave.status]}</span>
+                        </div>
+                        <div class="leave-dates">
+                            ${leave.startDate} ~ ${leave.endDate} (${leave.days}일)
+                        </div>
+                        <div class="leave-reason">${leave.reason}</div>
+                        ${leave.rejectionReason ? `<div style="color: #f44336; margin-top: 0.5rem;">반려 사유: ${leave.rejectionReason}</div>` : ''}
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('휴가 목록 조회 실패:', error);
+            }
+        }
+        
+        // 대기 중인 휴가 목록 조회 (관리자)
+        async function loadPendingLeaves() {
+            try {
+                const response = await fetch(API_BASE + '/leaves/pending', {
+                    headers: getHeaders()
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 403) {
+                        alert('관리자 권한이 필요합니다.');
+                        return;
+                    }
+                    throw new Error('대기 중인 휴가 목록 조회 실패');
+                }
+                
+                const data = await response.json();
+                const container = document.getElementById('pending-leave-list');
+                
+                if (data.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #999;">대기 중인 휴가 신청이 없습니다.</p>';
+                    return;
+                }
+                
+                const typeNames = {
+                    ANNUAL: '연차', SICK: '병가', PERSONAL: '개인 사유',
+                    MATERNITY: '출산 휴가', PATERNITY: '육아 휴가', UNPAID: '무급 휴가'
+                };
+                
+                container.innerHTML = data.map(leave => `
+                    <div class="leave-item pending">
+                        <div class="leave-header">
+                            <div>
+                                <span class="leave-type">${typeNames[leave.type]}</span>
+                                <span style="color: #666; margin-left: 1rem;">신청자: ${leave.userId}</span>
+                            </div>
+                            <span class="leave-status pending">대기</span>
+                        </div>
+                        <div class="leave-dates">
+                            ${leave.startDate} ~ ${leave.endDate} (${leave.days}일)
+                        </div>
+                        <div class="leave-reason">${leave.reason}</div>
+                        <div class="admin-actions" style="margin-top: 1rem;">
+                            <button class="btn btn-success btn-sm" onclick="approveLeave(${leave.id})">승인</button>
+                            <button class="btn btn-danger btn-sm" onclick="rejectLeave(${leave.id})">반려</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('대기 중인 휴가 목록 조회 실패:', error);
+            }
+        }
+        
+        // 휴가 승인
+        async function approveLeave(leaveId) {
+            if (!confirm('이 휴가를 승인하시겠습니까?')) return;
+            
+            try {
+                const response = await fetch(API_BASE + `/leaves/${leaveId}/approve`, {
+                    method: 'POST',
+                    headers: getHeaders()
+                });
+                
+                if (!response.ok) throw new Error('휴가 승인 실패');
+                
+                alert('휴가가 승인되었습니다!');
+                loadPendingLeaves();
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+        
+        // 휴가 반려
+        async function rejectLeave(leaveId) {
+            const reason = prompt('반려 사유를 입력하세요:');
+            if (!reason) return;
+            
+            try {
+                const response = await fetch(API_BASE + `/leaves/${leaveId}/reject`, {
+                    method: 'POST',
+                    headers: getHeaders(),
+                    body: JSON.stringify({ reason })
+                });
+                
+                if (!response.ok) throw new Error('휴가 반려 실패');
+                
+                alert('휴가가 반려되었습니다.');
+                loadPendingLeaves();
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+        
+        // 사용자 권한 확인
+        async function checkAdminRole() {
+            try {
+                const response = await fetch(API_BASE + '/leaves/pending', {
+                    headers: getHeaders()
+                });
+                
+                if (response.ok) {
+                    // 관리자 권한이 있으면 관리자 탭 표시
+                    document.getElementById('admin-tab-btn').style.display = 'block';
+                }
+            } catch (error) {
+                console.log('관리자 권한 없음');
+            }
+        }
+        
+        // 페이지 로드 시 초기화
+        window.addEventListener('load', () => {
+            const token = getToken();
+            if (!token) {
+                alert('로그인이 필요합니다.');
+                location.href = '/';
+                return;
+            }
+            
+            loadTodayAttendance();
+            loadMonthlyAttendances();
+            checkAdminRole();
+        });
+    </script>
+</body>
+</html>

@@ -899,3 +899,163 @@ http://localhost:8080/logs/dashboard
    - 도메인 주도 설계
    - 이벤트 기반 통신
    - 느슨한 결합
+
+## 👤
+ 근태관리 시스템 (HR Management)
+
+**인사관리** 기본형 근태관리 기능을 추가했습니다.
+
+### 주요 기능
+
+#### 1. 출퇴근 관리
+- ✅ **출근 체크**: 버튼 클릭으로 간편한 출근 처리
+- ✅ **퇴근 체크**: 출근 후 퇴근 처리 가능
+- ✅ **실시간 근태 현황**: 오늘의 출퇴근 시간 표시
+- ✅ **월별 근태 기록**: 이번 달 전체 근태 내역 조회
+- ✅ **근무 시간 계산**: 출퇴근 시간 기반 자동 계산
+
+#### 2. 휴가 관리
+- ✅ **휴가 신청**: 연차, 병가, 개인 사유 등 다양한 휴가 타입
+- ✅ **휴가 승인/반려**: 관리자의 휴가 승인 프로세스
+- ✅ **잔여 연차 조회**: 실시간 잔여 연차 확인
+- ✅ **휴가 내역 관리**: 신청 내역 및 상태 추적
+- ✅ **휴가 취소**: 승인 전 휴가 신청 취소 가능
+
+### 휴가 종류
+- **연차 (ANNUAL)**: 기본 연차 휴가
+- **병가 (SICK)**: 질병으로 인한 휴가
+- **개인 사유 (PERSONAL)**: 개인적인 사유
+- **출산 휴가 (MATERNITY)**: 출산 관련 휴가
+- **육아 휴가 (PATERNITY)**: 육아 관련 휴가
+- **무급 휴가 (UNPAID)**: 무급 휴가
+
+### DDD 패턴 적용
+
+```
+hr/
+├── domain/
+│   ├── Attendance.java           # 근태 엔티티
+│   ├── AttendanceStatus.java     # 근태 상태 (출근/퇴근)
+│   ├── AttendanceRepository.java
+│   ├── Leave.java                # 휴가 엔티티
+│   ├── LeaveStatus.java          # 휴가 상태 (대기/승인/반려)
+│   ├── LeaveType.java            # 휴가 종류
+│   └── LeaveRepository.java
+├── application/
+│   ├── AttendanceService.java    # 근태 비즈니스 로직
+│   └── LeaveService.java         # 휴가 비즈니스 로직
+└── presentation/
+    ├── AttendanceController.java # 근태 API
+    ├── LeaveController.java      # 휴가 API
+    ├── HrWebController.java      # 웹 페이지 컨트롤러
+    └── dto/
+        ├── AttendanceResponse.java
+        ├── LeaveRequest.java
+        └── LeaveResponse.java
+```
+
+### API 엔드포인트
+
+#### 근태 관리
+```bash
+# 출근
+POST /api/hr/attendance/check-in
+
+# 퇴근
+POST /api/hr/attendance/check-out
+
+# 오늘 근태 조회
+GET /api/hr/attendance/today
+
+# 내 근태 내역
+GET /api/hr/attendance/my
+
+# 월별 근태 조회
+GET /api/hr/attendance/monthly?year=2025&month=11
+```
+
+#### 휴가 관리
+```bash
+# 휴가 신청
+POST /api/hr/leaves
+{
+  "type": "ANNUAL",
+  "startDate": "2025-11-20",
+  "endDate": "2025-11-22",
+  "days": 3,
+  "reason": "개인 사유"
+}
+
+# 내 휴가 목록
+GET /api/hr/leaves/my
+
+# 잔여 연차 조회
+GET /api/hr/leaves/remaining-days
+
+# 휴가 승인 (관리자)
+POST /api/hr/leaves/{leaveId}/approve
+
+# 휴가 반려 (관리자)
+POST /api/hr/leaves/{leaveId}/reject
+{
+  "reason": "반려 사유"
+}
+
+# 대기 중인 휴가 목록 (관리자)
+GET /api/hr/leaves/pending
+
+# 휴가 취소
+DELETE /api/hr/leaves/{leaveId}
+```
+
+### 웹 UI
+
+```
+http://localhost:8080/hr/attendance
+```
+
+**주요 화면:**
+- 출퇴근 관리 탭: 출근/퇴근 버튼, 오늘의 근태, 월별 근태 기록
+- 휴가 관리 탭: 휴가 신청 폼, 잔여 연차, 내 휴가 신청 내역
+
+### 테스트
+
+```bash
+./test-hr-api.sh
+```
+
+이 스크립트는 다음을 테스트합니다:
+- 사용자 로그인
+- 출근/퇴근 처리
+- 근태 조회 (오늘, 월별)
+- 휴가 신청
+- 잔여 연차 조회
+- 관리자 로그인
+- 휴가 승인 (관리자)
+
+### 비즈니스 로직
+
+#### 출퇴근 규칙
+- 하루에 한 번만 출근 가능
+- 출근 후에만 퇴근 가능
+- 출퇴근 시간 자동 기록
+- 근무 시간 자동 계산
+
+#### 휴가 규칙
+- 기본 연차: 15일
+- 휴가 신청 시 잔여 연차 차감
+- 승인 전까지는 취소 가능
+- 관리자만 승인/반려 가능
+- 반려 시 사유 필수
+
+### 권한 체계
+- **일반 사용자 (USER)**: 출퇴근 체크, 휴가 신청, 본인 내역 조회
+- **관리자 (ADMIN)**: 모든 기능 + 휴가 승인/반려, 대기 목록 조회
+
+### 향후 확장 가능 기능
+- 급여 관리
+- 인사 평가
+- 조직도 관리
+- 근태 통계 대시보드
+- 알림 시스템 (휴가 승인 알림 등)
+- 모바일 앱 연동
