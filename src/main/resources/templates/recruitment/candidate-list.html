@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>지원자 목록</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        
+        header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 10px; margin-bottom: 30px; }
+        header h1 { font-size: 32px; margin-bottom: 10px; }
+        
+        .nav { display: flex; gap: 15px; margin-bottom: 20px; }
+        .nav a { padding: 10px 20px; background: white; color: #667eea; text-decoration: none; border-radius: 5px; transition: all 0.3s; }
+        .nav a:hover, .nav a.active { background: #667eea; color: white; }
+        
+        .filters { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; display: flex; gap: 15px; }
+        .filters input, .filters select { padding: 10px; border: 1px solid #ddd; border-radius: 5px; flex: 1; }
+        
+        .candidate-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px; }
+        .candidate-card { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); transition: all 0.3s; cursor: pointer; }
+        .candidate-card:hover { transform: translateY(-5px); box-shadow: 0 5px 20px rgba(0,0,0,0.15); }
+        
+        .candidate-name { font-size: 20px; font-weight: bold; color: #333; margin-bottom: 10px; }
+        .candidate-meta { color: #666; font-size: 14px; margin-bottom: 15px; }
+        .candidate-meta div { margin-bottom: 5px; }
+        
+        .skills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
+        .skill-badge { padding: 5px 12px; background: #e3f2fd; color: #1976d2; border-radius: 20px; font-size: 12px; }
+        
+        .loading { text-align: center; padding: 40px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>👥 지원자 목록</h1>
+            <p>온톨로지 기반 매칭으로 최적의 공고를 추천받으세요</p>
+        </header>
+        
+        <div class="nav">
+            <a href="/recruitment/dashboard">대시보드</a>
+            <a href="/recruitment/jobs">채용 공고</a>
+            <a href="/recruitment/candidates" class="active">지원자</a>
+            <a href="/recruitment/applications">지원 현황</a>
+        </div>
+        
+        <div class="filters">
+            <input type="text" id="searchInput" placeholder="이름 또는 이메일 검색...">
+            <select id="educationFilter">
+                <option value="">전체 학력</option>
+                <option value="HIGH_SCHOOL">고등학교</option>
+                <option value="ASSOCIATE">전문학사</option>
+                <option value="BACHELOR">학사</option>
+                <option value="MASTER">석사</option>
+                <option value="DOCTORATE">박사</option>
+            </select>
+        </div>
+        
+        <div id="candidateList" class="loading">로딩 중...</div>
+    </div>
+    
+    <script>
+        const API_BASE = '/api/recruitment';
+        let token = localStorage.getItem('jwt_token');
+        let allCandidates = [];
+        
+        async function fetchWithAuth(url) {
+            const response = await fetch(url, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error('API 호출 실패');
+            return response.json();
+        }
+        
+        function getEducationName(education) {
+            const names = {
+                'HIGH_SCHOOL': '고등학교', 'ASSOCIATE': '전문학사',
+                'BACHELOR': '학사', 'MASTER': '석사', 'DOCTORATE': '박사'
+            };
+            return names[education] || education;
+        }
+        
+        function renderCandidates(candidates) {
+            const container = document.getElementById('candidateList');
+            
+            if (candidates.length === 0) {
+                container.innerHTML = '<div class="loading">지원자가 없습니다</div>';
+                return;
+            }
+            
+            container.className = 'candidate-grid';
+            container.innerHTML = candidates.map(candidate => `
+                <div class="candidate-card" onclick="location.href='/recruitment/candidates/${candidate.id}'">
+                    <div class="candidate-name">${candidate.name}</div>
+                    <div class="candidate-meta">
+                        <div>📧 ${candidate.email}</div>
+                        <div>🎓 ${getEducationName(candidate.education)} · ${candidate.university}</div>
+                        <div>💼 ${candidate.totalYearsOfExperience}년 경력</div>
+                    </div>
+                    ${candidate.summary ? `<p style="color: #666; font-size: 14px; line-height: 1.6;">${candidate.summary}</p>` : ''}
+                    <div class="skills">
+                        ${candidate.skills.slice(0, 8).map(skill => `
+                            <span class="skill-badge">${skill.skillName}</span>
+                        `).join('')}
+                        ${candidate.skills.length > 8 ? `<span class="skill-badge" style="background: #f0f0f0; color: #666;">+${candidate.skills.length - 8}</span>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function filterCandidates() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const educationFilter = document.getElementById('educationFilter').value;
+            
+            const filtered = allCandidates.filter(candidate => {
+                const matchSearch = candidate.name.toLowerCase().includes(searchTerm) || 
+                                  candidate.email.toLowerCase().includes(searchTerm);
+                const matchEducation = !educationFilter || candidate.education === educationFilter;
+                
+                return matchSearch && matchEducation;
+            });
+            
+            renderCandidates(filtered);
+        }
+        
+        async function loadCandidates() {
+            try {
+                allCandidates = await fetchWithAuth(`${API_BASE}/candidates`);
+                filterCandidates();
+            } catch (error) {
+                console.error('지원자 로딩 실패:', error);
+                document.getElementById('candidateList').innerHTML = '<div class="loading">데이터를 불러올 수 없습니다</div>';
+            }
+        }
+        
+        document.getElementById('searchInput').addEventListener('input', filterCandidates);
+        document.getElementById('educationFilter').addEventListener('change', filterCandidates);
+        
+        if (!token) {
+            window.location.href = '/recruitment/dashboard';
+        } else {
+            loadCandidates();
+        }
+    </script>
+</body>
+</html>

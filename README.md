@@ -1059,3 +1059,271 @@ http://localhost:8080/hr/attendance
 - 근태 통계 대시보드
 - 알림 시스템 (휴가 승인 알림 등)
 - 모바일 앱 연동
+
+
+## 🎯 온톨로지 기반 인사 채용 시스템
+
+PayFlow는 **AI 없이 규칙 기반 추론으로 구현한 지능형 채용 매칭 시스템**을 제공합니다.
+
+### 주요 특징
+
+#### 1. 온톨로지 기반 지식 표현
+- ✅ **기술 온톨로지**: 기술 간 유사도 관계 정의 (Java ≈ Kotlin, Spring ≈ Spring Boot)
+- ✅ **개념 계층**: Skill, Candidate, JobPosting, Requirement 등 도메인 개념
+- ✅ **관계 정의**: requires, possesses, matches, similarTo 등
+
+#### 2. 규칙 기반 매칭 엔진
+```
+매칭 알고리즘:
+- 필수 기술 매칭 (40%)
+- 우대 기술 매칭 (20%)
+- 경력 매칭 (25%)
+- 학력 매칭 (15%)
+
+→ 최종 매칭 스코어 (0-100점)
+```
+
+#### 3. 지능형 추천 시스템
+- ✅ 공고별 Top N 지원자 추천
+- ✅ 지원자별 적합 공고 추천
+- ✅ 유사 지원자 찾기 (Jaccard 유사도)
+
+#### 4. 자동 매칭 스코어
+- ✅ 지원 시 자동으로 매칭 스코어 계산
+- ✅ 기술 유사도, 숙련도, 경력 종합 평가
+- ✅ 상세 매칭 분석 제공
+
+### 도메인 모델
+
+```
+recruitment/
+├── domain/
+│   ├── Skill.java              # 기술 (온톨로지 개념)
+│   ├── Candidate.java          # 지원자
+│   ├── CandidateSkill.java     # 지원자 보유 기술
+│   ├── WorkExperience.java     # 경력
+│   ├── JobPosting.java         # 채용 공고
+│   ├── JobRequirement.java     # 요구사항
+│   └── JobApplication.java     # 지원
+├── application/
+│   ├── SkillMatchingEngine.java        # 기술 매칭 엔진
+│   ├── CandidateMatchingService.java   # 지원자 매칭 서비스
+│   ├── RecommendationEngine.java       # 추천 엔진
+│   ├── RecruitmentService.java         # 채용 공고 관리
+│   ├── CandidateService.java           # 지원자 관리
+│   └── ApplicationService.java         # 지원 관리
+└── presentation/
+    ├── RecruitmentController.java
+    ├── CandidateController.java
+    ├── ApplicationController.java
+    ├── SkillController.java
+    └── RecommendationController.java
+```
+
+### API 엔드포인트
+
+#### 기술 관리
+```bash
+# 기술 생성
+POST /api/recruitment/skills
+
+# 유사 기술 관계 추가 (온톨로지)
+POST /api/recruitment/skills/{skillId}/similar/{similarSkillId}
+
+# 기술 조회
+GET /api/recruitment/skills
+GET /api/recruitment/skills/{id}
+GET /api/recruitment/skills/category/{category}
+GET /api/recruitment/skills/search?keyword=Java
+
+# 유사 기술 조회
+GET /api/recruitment/skills/{skillId}/similar
+```
+
+#### 채용 공고
+```bash
+# 공고 생성
+POST /api/recruitment/jobs
+
+# 요구사항 추가
+POST /api/recruitment/jobs/{jobPostingId}/requirements
+
+# 공고 공개/마감
+POST /api/recruitment/jobs/{jobPostingId}/publish
+POST /api/recruitment/jobs/{jobPostingId}/close
+
+# 공고 조회
+GET /api/recruitment/jobs
+GET /api/recruitment/jobs/active
+GET /api/recruitment/jobs/{id}
+GET /api/recruitment/jobs/department/{departmentId}
+```
+
+#### 지원자 관리
+```bash
+# 지원자 생성
+POST /api/recruitment/candidates
+
+# 기술 추가
+POST /api/recruitment/candidates/{candidateId}/skills
+
+# 경력 추가
+POST /api/recruitment/candidates/{candidateId}/experiences
+
+# 지원자 조회
+GET /api/recruitment/candidates
+GET /api/recruitment/candidates/{id}
+GET /api/recruitment/candidates/skill/{skillId}
+```
+
+#### 지원 관리
+```bash
+# 지원 (자동 매칭 스코어 계산)
+POST /api/recruitment/applications
+
+# 지원 상태 변경
+PUT /api/recruitment/applications/{applicationId}/status
+
+# 매칭 스코어 재계산
+POST /api/recruitment/applications/{applicationId}/recalculate-score
+
+# 지원 조회
+GET /api/recruitment/applications/{id}
+GET /api/recruitment/applications/job/{jobPostingId}
+GET /api/recruitment/applications/candidate/{candidateId}
+
+# 상세 매칭 분석
+GET /api/recruitment/applications/{id}/matching-detail
+```
+
+#### 추천 시스템
+```bash
+# 공고에 적합한 지원자 추천
+GET /api/recruitment/recommendations/job/{jobPostingId}/candidates?topN=10
+
+# 지원자에게 적합한 공고 추천
+GET /api/recruitment/recommendations/candidate/{candidateId}/jobs?topN=10
+
+# 유사 지원자 찾기
+GET /api/recruitment/recommendations/candidate/{candidateId}/similar?topN=5
+```
+
+### 웹 UI
+
+```
+http://localhost:8080/recruitment/dashboard
+```
+
+**주요 화면:**
+- **대시보드** (`/recruitment/dashboard`): 통계, 최신 공고, 최근 지원자, 최고 매칭 지원
+- **채용 공고 목록** (`/recruitment/jobs`): 필터링, 검색, 지원자 수 표시
+- **채용 공고 상세** (`/recruitment/jobs/{id}`): 요구사항, 매칭 지원자, 추천 지원자
+- **지원자 목록** (`/recruitment/candidates`): 학력/경력 필터링, 보유 기술 표시
+- **지원자 상세** (`/recruitment/candidates/{id}`): 프로필, 기술, 경력, 추천 공고
+- **지원 현황** (`/recruitment/applications`): 매칭 스코어 순, 상태별 필터링
+
+### 테스트
+
+```bash
+# Windows (PowerShell)
+.\test-recruitment-api.sh
+
+# 또는 Git Bash
+bash test-recruitment-api.sh
+```
+
+이 스크립트는 다음을 테스트합니다:
+- 기술 온톨로지 조회
+- 유사 기술 관계 확인
+- 채용 공고 생성 및 조회
+- 지원자 생성 및 기술/경력 추가
+- 지원 및 자동 매칭 스코어 계산
+- 추천 시스템 (공고별 지원자, 지원자별 공고)
+- 유사 지원자 찾기
+- 상세 매칭 분석
+
+### 온톨로지 추론 예시
+
+#### 기술 매칭
+```
+요구사항: Java (ADVANCED, 3년)
+지원자 기술: Kotlin (EXPERT, 5년)
+
+→ 유사도: 0.8 (온톨로지 관계)
+→ 숙련도: 1.0 (EXPERT >= ADVANCED)
+→ 경력: 1.0 (5년 >= 3년)
+→ 최종 점수: 0.92
+```
+
+#### 종합 매칭
+```
+공고: 백엔드 개발자
+- 필수: Java, Spring Boot, MySQL
+- 우대: AWS, MSA
+
+지원자: 김개발
+- Java (EXPERT, 5년)
+- Spring Boot (EXPERT, 4년)
+- MySQL (ADVANCED, 5년)
+- AWS (INTERMEDIATE, 3년)
+- MSA (ADVANCED, 3년)
+
+→ 필수 기술: 95점
+→ 우대 기술: 90점
+→ 경력: 100점 (5년 >= 3년)
+→ 학력: 100점 (학사)
+→ 최종 매칭 스코어: 96.5점
+```
+
+### 초기 데이터
+
+시스템 시작 시 자동으로 생성되는 데이터:
+- **기술 18개**: Java, Kotlin, Python, JavaScript, Spring, Django, React, MySQL, PostgreSQL, MongoDB, Redis, AWS, Docker, Kubernetes, MSA, DDD, Agile 등
+- **온톨로지 관계**: Java↔Kotlin, Spring↔Spring Boot, Python↔Django, MySQL↔PostgreSQL, Docker↔Kubernetes
+- **지원자 3명**: 백엔드 개발자, 프론트엔드 개발자, 풀스택 개발자
+- **채용 공고 2개**: 백엔드 개발자, 프론트엔드 개발자
+- **지원 4건**: 자동 매칭 스코어 계산됨
+
+### 기술 스택
+
+- **온톨로지 구현**: JPA Entity 관계 (ManyToMany, OneToMany)
+- **추론 엔진**: 규칙 기반 알고리즘 (Java)
+- **매칭 알고리즘**: 가중치 기반 점수 계산
+- **추천 시스템**: Jaccard 유사도, 매칭 스코어 기반 정렬
+
+### 핵심 포인트
+
+1. **온톨로지 기반 지식 표현**
+   - 기술 간 유사도 관계를 그래프로 표현
+   - 도메인 개념과 관계를 명확히 정의
+
+2. **규칙 기반 추론**
+   - AI/ML 없이 규칙만으로 지능형 매칭
+   - 투명하고 설명 가능한 알고리즘
+
+3. **자동 매칭 스코어**
+   - 지원 시 자동으로 적합도 계산
+   - 다차원 평가 (기술, 경력, 학력)
+
+4. **추천 시스템**
+   - 양방향 추천 (공고→지원자, 지원자→공고)
+   - 유사 지원자 찾기
+
+5. **DDD 패턴**
+   - 도메인 주도 설계
+   - 명확한 레이어 분리
+
+6. **확장 가능성**
+   - 새로운 기술 추가 용이
+   - 매칭 알고리즘 조정 가능
+   - 온톨로지 관계 확장 가능
+
+### 실무 적용 가능성
+
+이 시스템은 실제 채용 플랫폼에서 다음과 같이 활용 가능:
+- 지원자 자동 스크리닝
+- 적합 인재 추천
+- 채용 담당자 업무 효율화
+- 지원자 경험 개선 (적합 공고 추천)
+- 채용 데이터 분석
+

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>채용 공고 목록</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        
+        header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 10px; margin-bottom: 30px; }
+        header h1 { font-size: 32px; margin-bottom: 10px; }
+        
+        .nav { display: flex; gap: 15px; margin-bottom: 20px; }
+        .nav a { padding: 10px 20px; background: white; color: #667eea; text-decoration: none; border-radius: 5px; transition: all 0.3s; }
+        .nav a:hover, .nav a.active { background: #667eea; color: white; }
+        
+        .filters { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; display: flex; gap: 15px; align-items: center; }
+        .filters input, .filters select { padding: 10px; border: 1px solid #ddd; border-radius: 5px; flex: 1; }
+        
+        .job-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 20px; }
+        .job-card { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); transition: all 0.3s; cursor: pointer; }
+        .job-card:hover { transform: translateY(-5px); box-shadow: 0 5px 20px rgba(0,0,0,0.15); }
+        
+        .job-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px; }
+        .job-title { font-size: 20px; font-weight: bold; color: #333; margin-bottom: 5px; }
+        .job-status { padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        .status-open { background: #e3f2fd; color: #1976d2; }
+        .status-closed { background: #ffebee; color: #c62828; }
+        
+        .job-meta { color: #666; font-size: 14px; margin-bottom: 15px; display: flex; gap: 15px; flex-wrap: wrap; }
+        .job-meta span { display: flex; align-items: center; gap: 5px; }
+        
+        .job-description { color: #555; font-size: 14px; line-height: 1.6; margin-bottom: 15px; }
+        
+        .requirements { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; }
+        .badge { display: inline-block; padding: 5px 12px; border-radius: 20px; font-size: 12px; }
+        .badge-required { background: #fee; color: #c33; font-weight: bold; }
+        .badge-preferred { background: #efe; color: #3c3; }
+        
+        .job-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 15px; border-top: 1px solid #eee; }
+        .applicant-count { color: #667eea; font-weight: bold; }
+        
+        .btn { display: inline-block; padding: 10px 20px; background: #667eea; color: white; text-decoration: none; border-radius: 5px; transition: all 0.3s; border: none; cursor: pointer; font-size: 14px; }
+        .btn:hover { background: #5568d3; transform: translateY(-1px); }
+        .btn-secondary { background: #6c757d; }
+        
+        .empty-state { text-align: center; padding: 60px 20px; color: #999; }
+        .empty-state svg { width: 100px; height: 100px; margin-bottom: 20px; opacity: 0.3; }
+        
+        .loading { text-align: center; padding: 40px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📢 채용 공고</h1>
+            <p>온톨로지 기반 매칭으로 최적의 인재를 찾아보세요</p>
+        </header>
+        
+        <div class="nav">
+            <a href="/recruitment/dashboard">대시보드</a>
+            <a href="/recruitment/jobs" class="active">채용 공고</a>
+            <a href="/recruitment/candidates">지원자</a>
+            <a href="/recruitment/applications">지원 현황</a>
+        </div>
+        
+        <div class="filters">
+            <input type="text" id="searchInput" placeholder="공고 제목 검색...">
+            <select id="statusFilter">
+                <option value="">전체 상태</option>
+                <option value="OPEN" selected>공개</option>
+                <option value="CLOSED">마감</option>
+                <option value="DRAFT">임시저장</option>
+            </select>
+            <select id="positionFilter">
+                <option value="">전체 직급</option>
+                <option value="CEO">대표이사</option>
+                <option value="DIRECTOR">이사</option>
+                <option value="GENERAL_MANAGER">부장</option>
+                <option value="MANAGER">차장</option>
+                <option value="ASSISTANT_MANAGER">과장</option>
+                <option value="SENIOR">대리</option>
+                <option value="STAFF">사원</option>
+            </select>
+        </div>
+        
+        <div id="jobList" class="loading">로딩 중...</div>
+    </div>
+    
+    <script>
+        const API_BASE = '/api/recruitment';
+        let token = localStorage.getItem('jwt_token');
+        let allJobs = [];
+        
+        async function fetchWithAuth(url) {
+            const response = await fetch(url, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error('API 호출 실패');
+            return response.json();
+        }
+        
+        function getPositionName(position) {
+            const names = {
+                'CEO': '대표이사', 'CTO': '기술이사', 'CFO': '재무이사',
+                'DIRECTOR': '이사', 'GENERAL_MANAGER': '부장', 'MANAGER': '차장',
+                'ASSISTANT_MANAGER': '과장', 'SENIOR': '대리', 'STAFF': '사원', 'INTERN': '인턴'
+            };
+            return names[position] || position;
+        }
+        
+        function renderJobs(jobs) {
+            const container = document.getElementById('jobList');
+            
+            if (jobs.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/>
+                        </svg>
+                        <h3>채용 공고가 없습니다</h3>
+                        <p>필터를 변경하거나 새로운 공고를 생성해보세요</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.className = 'job-grid';
+            container.innerHTML = jobs.map(job => `
+                <div class="job-card" onclick="location.href='/recruitment/jobs/${job.id}'">
+                    <div class="job-header">
+                        <div>
+                            <div class="job-title">${job.title}</div>
+                            <div class="job-meta">
+                                <span>🏢 ${job.departmentName || '미지정'}</span>
+                                <span>👤 ${getPositionName(job.position)}</span>
+                                <span>👥 ${job.headcount}명</span>
+                            </div>
+                        </div>
+                        <span class="job-status status-${job.status.toLowerCase()}">
+                            ${job.status === 'OPEN' ? '공개' : job.status === 'CLOSED' ? '마감' : '임시저장'}
+                        </span>
+                    </div>
+                    
+                    <div class="job-description">
+                        ${job.description.length > 100 ? job.description.substring(0, 100) + '...' : job.description}
+                    </div>
+                    
+                    <div class="requirements">
+                        ${job.requirements.slice(0, 6).map(req => `
+                            <span class="badge ${req.type === 'REQUIRED' ? 'badge-required' : 'badge-preferred'}">
+                                ${req.type === 'REQUIRED' ? '필수' : '우대'}: ${req.skillName}
+                            </span>
+                        `).join('')}
+                        ${job.requirements.length > 6 ? `<span class="badge" style="background: #f0f0f0; color: #666;">+${job.requirements.length - 6}</span>` : ''}
+                    </div>
+                    
+                    <div class="job-footer">
+                        <span class="applicant-count" id="applicant-${job.id}">지원자 확인 중...</span>
+                        <span style="color: #999; font-size: 13px;">
+                            📅 ${job.startDate} ~ ${job.endDate}
+                        </span>
+                    </div>
+                </div>
+            `).join('');
+            
+            // 각 공고의 지원자 수 조회
+            jobs.forEach(async job => {
+                try {
+                    const applications = await fetchWithAuth(`${API_BASE}/applications/job/${job.id}`);
+                    const elem = document.getElementById(`applicant-${job.id}`);
+                    if (elem) {
+                        elem.textContent = `👥 지원자 ${applications.length}명`;
+                    }
+                } catch (e) {
+                    console.error('지원자 수 조회 실패:', e);
+                }
+            });
+        }
+        
+        function filterJobs() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            const positionFilter = document.getElementById('positionFilter').value;
+            
+            const filtered = allJobs.filter(job => {
+                const matchSearch = job.title.toLowerCase().includes(searchTerm) || 
+                                  job.description.toLowerCase().includes(searchTerm);
+                const matchStatus = !statusFilter || job.status === statusFilter;
+                const matchPosition = !positionFilter || job.position === positionFilter;
+                
+                return matchSearch && matchStatus && matchPosition;
+            });
+            
+            renderJobs(filtered);
+        }
+        
+        async function loadJobs() {
+            try {
+                allJobs = await fetchWithAuth(`${API_BASE}/jobs`);
+                filterJobs();
+            } catch (error) {
+                console.error('공고 로딩 실패:', error);
+                document.getElementById('jobList').innerHTML = `
+                    <div class="empty-state">
+                        <h3>데이터를 불러올 수 없습니다</h3>
+                        <p>로그인이 필요하거나 서버 오류가 발생했습니다</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // 이벤트 리스너
+        document.getElementById('searchInput').addEventListener('input', filterJobs);
+        document.getElementById('statusFilter').addEventListener('change', filterJobs);
+        document.getElementById('positionFilter').addEventListener('change', filterJobs);
+        
+        // 페이지 로드
+        if (!token) {
+            // 대시보드로 리다이렉트 (로그인 모달 있음)
+            window.location.href = '/recruitment/dashboard';
+        } else {
+            loadJobs();
+        }
+    </script>
+</body>
+</html>

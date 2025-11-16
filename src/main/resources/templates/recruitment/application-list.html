@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>지원 현황</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        
+        header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 10px; margin-bottom: 30px; }
+        header h1 { font-size: 32px; margin-bottom: 10px; }
+        
+        .nav { display: flex; gap: 15px; margin-bottom: 20px; }
+        .nav a { padding: 10px 20px; background: white; color: #667eea; text-decoration: none; border-radius: 5px; transition: all 0.3s; }
+        .nav a:hover, .nav a.active { background: #667eea; color: white; }
+        
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .stat-number { font-size: 32px; font-weight: bold; color: #667eea; }
+        .stat-label { color: #666; margin-top: 5px; }
+        
+        .filters { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; display: flex; gap: 15px; }
+        .filters select { padding: 10px; border: 1px solid #ddd; border-radius: 5px; flex: 1; }
+        
+        .application-list { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .application-card { padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; transition: all 0.3s; }
+        .application-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); transform: translateY(-2px); }
+        
+        .app-info h3 { margin-bottom: 5px; }
+        .app-info p { color: #666; font-size: 14px; }
+        
+        .app-score { text-align: right; }
+        .score { font-size: 32px; font-weight: bold; color: #667eea; }
+        .score-bar { width: 200px; height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden; margin-top: 10px; }
+        .score-fill { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); }
+        
+        .status-badge { padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        .status-APPLIED { background: #e3f2fd; color: #1976d2; }
+        .status-SCREENING { background: #fff3e0; color: #f57c00; }
+        .status-SCREENING_PASSED { background: #e8f5e9; color: #388e3c; }
+        .status-OFFER { background: #f3e5f5; color: #7b1fa2; }
+        
+        .loading { text-align: center; padding: 40px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 지원 현황</h1>
+            <p>온톨로지 기반 매칭 스코어로 최적의 인재를 선별하세요</p>
+        </header>
+        
+        <div class="nav">
+            <a href="/recruitment/dashboard">대시보드</a>
+            <a href="/recruitment/jobs">채용 공고</a>
+            <a href="/recruitment/candidates">지원자</a>
+            <a href="/recruitment/applications" class="active">지원 현황</a>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalCount">-</div>
+                <div class="stat-label">전체 지원</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="avgScore">-</div>
+                <div class="stat-label">평균 매칭 스코어</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="highScoreCount">-</div>
+                <div class="stat-label">고득점 (90점 이상)</div>
+            </div>
+        </div>
+        
+        <div class="filters">
+            <select id="jobFilter">
+                <option value="">전체 공고</option>
+            </select>
+            <select id="statusFilter">
+                <option value="">전체 상태</option>
+                <option value="APPLIED">지원 완료</option>
+                <option value="SCREENING">서류 심사 중</option>
+                <option value="SCREENING_PASSED">서류 합격</option>
+                <option value="INTERVIEW_SCHEDULED">면접 예정</option>
+                <option value="OFFER">최종 합격</option>
+            </select>
+            <select id="sortFilter">
+                <option value="score">매칭 스코어 순</option>
+                <option value="date">지원일 순</option>
+            </select>
+        </div>
+        
+        <div class="application-list">
+            <h2 style="margin-bottom: 20px;">지원 목록</h2>
+            <div id="applicationList" class="loading">로딩 중...</div>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = '/api/recruitment';
+        let token = localStorage.getItem('jwt_token');
+        let allApplications = [];
+        let allJobs = [];
+        
+        async function fetchWithAuth(url) {
+            const response = await fetch(url, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error('API 호출 실패');
+            return response.json();
+        }
+        
+        function getStatusName(status) {
+            const names = {
+                'APPLIED': '지원 완료', 'SCREENING': '서류 심사 중',
+                'SCREENING_PASSED': '서류 합격', 'SCREENING_FAILED': '서류 불합격',
+                'INTERVIEW_SCHEDULED': '면접 예정', 'INTERVIEW_COMPLETED': '면접 완료',
+                'OFFER': '최종 합격', 'REJECTED': '불합격', 'WITHDRAWN': '지원 취소'
+            };
+            return names[status] || status;
+        }
+        
+        function renderApplications(applications) {
+            const container = document.getElementById('applicationList');
+            
+            if (applications.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #999;">지원 내역이 없습니다</p>';
+                return;
+            }
+            
+            container.innerHTML = applications.map(app => `
+                <div class="application-card">
+                    <div class="app-info">
+                        <h3>${app.candidateName}</h3>
+                        <p>${app.jobTitle}</p>
+                        <p style="margin-top: 5px;">
+                            <span class="status-badge status-${app.status}">${getStatusName(app.status)}</span>
+                            <span style="margin-left: 10px; color: #999;">지원일: ${new Date(app.appliedAt).toLocaleDateString()}</span>
+                        </p>
+                    </div>
+                    <div class="app-score">
+                        <div class="score">${app.matchingScore.toFixed(1)}</div>
+                        <div style="font-size: 12px; color: #999; margin-bottom: 5px;">매칭 점수</div>
+                        <div class="score-bar">
+                            <div class="score-fill" style="width: ${Math.min(app.matchingScore, 100)}%"></div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function updateStats(applications) {
+            document.getElementById('totalCount').textContent = applications.length;
+            
+            if (applications.length > 0) {
+                const avgScore = applications.reduce((sum, app) => sum + app.matchingScore, 0) / applications.length;
+                document.getElementById('avgScore').textContent = avgScore.toFixed(1);
+                
+                const highScoreCount = applications.filter(app => app.matchingScore >= 90).length;
+                document.getElementById('highScoreCount').textContent = highScoreCount;
+            }
+        }
+        
+        function filterApplications() {
+            const jobFilter = document.getElementById('jobFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            const sortFilter = document.getElementById('sortFilter').value;
+            
+            let filtered = allApplications.filter(app => {
+                const matchJob = !jobFilter || app.jobPostingId == jobFilter;
+                const matchStatus = !statusFilter || app.status === statusFilter;
+                return matchJob && matchStatus;
+            });
+            
+            if (sortFilter === 'score') {
+                filtered.sort((a, b) => b.matchingScore - a.matchingScore);
+            } else {
+                filtered.sort((a, b) => new Date(b.appliedAt) - new Date(a.appliedAt));
+            }
+            
+            renderApplications(filtered);
+            updateStats(filtered);
+        }
+        
+        async function loadData() {
+            try {
+                allJobs = await fetchWithAuth(`${API_BASE}/jobs`);
+                
+                const jobFilter = document.getElementById('jobFilter');
+                jobFilter.innerHTML = '<option value="">전체 공고</option>' + 
+                    allJobs.map(job => `<option value="${job.id}">${job.title}</option>`).join('');
+                
+                const promises = allJobs.map(job => 
+                    fetchWithAuth(`${API_BASE}/applications/job/${job.id}`)
+                );
+                const results = await Promise.all(promises);
+                allApplications = results.flat();
+                
+                filterApplications();
+                
+            } catch (error) {
+                console.error('데이터 로딩 실패:', error);
+                document.getElementById('applicationList').innerHTML = '<p>데이터를 불러올 수 없습니다</p>';
+            }
+        }
+        
+        document.getElementById('jobFilter').addEventListener('change', filterApplications);
+        document.getElementById('statusFilter').addEventListener('change', filterApplications);
+        document.getElementById('sortFilter').addEventListener('change', filterApplications);
+        
+        if (!token) {
+            window.location.href = '/recruitment/dashboard';
+        } else {
+            loadData();
+        }
+    </script>
+</body>
+</html>
