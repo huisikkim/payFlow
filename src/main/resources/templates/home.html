@@ -38,14 +38,31 @@
         <nav>
             <div class="logo">Legacy-Free Commerce</div>
             <ul class="nav-links">
-                <li><a href="/">홈</a></li>
-                <li><a href="#products">상품</a></li>
-                <li><a href="/escrow">🚛 에스크로</a></li>
-                <li><a href="/hr/attendance">👤 근태관리</a></li>
-                <li><a href="/hr/organization">🏢 조직도</a></li>
-                <li><a href="/recruitment/dashboard">🎯 채용시스템</a></li>
-                <li><a href="/logs/dashboard">이벤트 대시보드</a></li>
-                <li><a href="/session-replay/dashboard">🎬 세션 재생</a></li>
+                <li><a href="/">📱 홈</a></li>
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle">💰 커머스 ▾</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#products">상품 목록</a></li>
+                        <li><a href="/payment">결제하기</a></li>
+                        <li><a href="/escrow">🚛 에스크로 거래</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle">👥 인사관리 ▾</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="/hr/attendance">👤 근태관리</a></li>
+                        <li><a href="/hr/organization">🏢 조직도</a></li>
+                        <li><a href="/recruitment/dashboard">🎯 채용시스템</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle">🔧 시스템 ▾</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="/logs/dashboard">📊 이벤트 대시보드</a></li>
+                        <li><a href="/session-replay/dashboard">🎬 세션 재생</a></li>
+                        <li><a href="/sourcing">🔍 소싱 관리</a></li>
+                    </ul>
+                </li>
             </ul>
             <div class="user-section">
                 <div id="user-info" style="display: none;">
@@ -393,6 +410,22 @@
             // 결제 페이지로 이동
             location.href = '/payment';
         }
+        
+        // 드롭다운 메뉴 (모바일)
+        document.addEventListener('DOMContentLoaded', () => {
+            const dropdowns = document.querySelectorAll('.dropdown');
+            
+            dropdowns.forEach(dropdown => {
+                const toggle = dropdown.querySelector('.dropdown-toggle');
+                
+                toggle.addEventListener('click', (e) => {
+                    if (window.innerWidth <= 768) {
+                        e.preventDefault();
+                        dropdown.classList.toggle('active');
+                    }
+                });
+            });
+        });
     </script>
     </div>
 </body>

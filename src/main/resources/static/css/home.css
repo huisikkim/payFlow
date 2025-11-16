@@ -52,6 +52,10 @@ nav {
     list-style: none;
 }
 
+.nav-links > li {
+    position: relative;
+}
+
 .nav-links a {
     text-decoration: none;
     color: rgba(224, 231, 255, 0.85);
@@ -61,16 +65,18 @@ nav {
     border-radius: 8px;
     transition: all 0.3s ease;
     position: relative;
+    display: block;
+    white-space: nowrap;
 }
 
-.nav-links a:hover {
+.nav-links > li > a:hover {
     color: #e0e7ff;
     background: rgba(165, 180, 252, 0.1);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(165, 180, 252, 0.15);
 }
 
-.nav-links a::after {
+.nav-links > li > a::after {
     content: '';
     position: absolute;
     bottom: 4px;
@@ -84,8 +90,66 @@ nav {
     box-shadow: 0 0 8px rgba(165, 180, 252, 0.6);
 }
 
-.nav-links a:hover::after {
+.nav-links > li > a:hover::after {
     transform: translateX(-50%) scaleX(1);
+}
+
+/* 드롭다운 메뉴 */
+.dropdown {
+    position: relative;
+}
+
+.dropdown-toggle {
+    cursor: pointer;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border-radius: 12px;
+    padding: 8px 0;
+    min-width: 200px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(165, 180, 252, 0.15);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 1001;
+    list-style: none;
+    margin-top: 8px;
+    backdrop-filter: blur(10px);
+}
+
+.dropdown:hover .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdown-menu li {
+    padding: 0;
+}
+
+.dropdown-menu a {
+    padding: 12px 20px;
+    color: rgba(224, 231, 255, 0.85);
+    font-size: 14px;
+    border-radius: 0;
+    transition: all 0.2s ease;
+}
+
+.dropdown-menu a:hover {
+    background: rgba(165, 180, 252, 0.15);
+    color: #e0e7ff;
+    transform: translateX(4px);
+    box-shadow: none;
+}
+
+.dropdown-menu a::after {
+    display: none;
 }
 
 .user-section {
@@ -429,7 +493,52 @@ footer p {
         line-height: 1.5;
     }
     .hero p { font-size: 16px; }
-    .nav-links { display: none; }
+    
+    /* 모바일 메뉴 */
+    .nav-links {
+        position: fixed;
+        top: 70px;
+        left: 0;
+        right: 0;
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        flex-direction: column;
+        gap: 0;
+        padding: 16px 0;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        display: none;
+    }
+    
+    .nav-links.active {
+        display: flex;
+    }
+    
+    .dropdown-menu {
+        position: static;
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+        box-shadow: none;
+        border: none;
+        background: rgba(165, 180, 252, 0.05);
+        margin: 0;
+        padding: 0;
+        display: none;
+    }
+    
+    .dropdown.active .dropdown-menu {
+        display: block;
+    }
+    
+    .dropdown-toggle::after {
+        content: ' ▾';
+        transition: transform 0.3s ease;
+    }
+    
+    .dropdown.active .dropdown-toggle::after {
+        transform: rotate(180deg);
+        display: inline-block;
+    }
+    
     .products-grid {
         grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
         gap: 16px;
