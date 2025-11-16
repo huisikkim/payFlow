@@ -17,4 +17,14 @@ public class HrWebController {
     public String leavePage() {
         return "hr-leave";
     }
+    
+    @GetMapping("/organization")
+    public String organizationPage() {
+        return "hr-organization";
+    }
+    
+    @GetMapping("/employees")
+    public String employeesPage() {
+        return "hr-employees";
+    }
 }
