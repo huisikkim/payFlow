@@ -86,12 +86,13 @@
                     const statusBadge = getStatusBadge(jp.status);
                     const closeDate = jp.closeDate ? new Date(jp.closeDate).toLocaleDateString('ko-KR') : '-';
                     const applicationCount = countMap[jp.id] || 0;
+                    const educationLevel = getEducationLevelText(jp.qualification.minEducationLevel);
                     
                     html += `
                         <tr onclick="location.href='/ainjob/job-postings/${jp.id}'" style="cursor: pointer;">
                             <td><strong>${jp.title}</strong></td>
                             <td>${jp.position}</td>
-                            <td>${jp.qualification.minEducationLevel}</td>
+                            <td>${educationLevel}</td>
                             <td>${jp.qualification.minYearsOfExperience}년</td>
                             <td><span class="badge badge-applied">${applicationCount}명</span></td>
                             <td>${statusBadge}</td>
@@ -123,6 +124,17 @@
                     </div>
                 `;
             }
+        }
+        
+        function getEducationLevelText(level) {
+            const levels = {
+                'HIGH_SCHOOL': '고등학교',
+                'ASSOCIATE': '전문학사',
+                'BACHELOR': '학사',
+                'MASTER': '석사',
+                'DOCTORATE': '박사'
+            };
+            return levels[level] || level;
         }
         
         function getStatusBadge(status) {

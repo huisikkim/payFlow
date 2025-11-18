@@ -128,7 +128,7 @@
                         <div class="detail-grid">
                             <div class="detail-item">
                                 <div class="detail-item-label">최소 학력</div>
-                                <div class="detail-item-value">${jp.qualification.minEducationLevel}</div>
+                                <div class="detail-item-value">${getEducationLevelText(jp.qualification.minEducationLevel)}</div>
                             </div>
                             <div class="detail-item">
                                 <div class="detail-item-label">최소 경력</div>
@@ -545,6 +545,17 @@
         function closeQualifiedModal() {
             const modal = document.getElementById('qualified-modal');
             modal.style.display = 'none';
+        }
+        
+        function getEducationLevelText(level) {
+            const levels = {
+                'HIGH_SCHOOL': '고등학교',
+                'ASSOCIATE': '전문학사',
+                'BACHELOR': '학사',
+                'MASTER': '석사',
+                'DOCTORATE': '박사'
+            };
+            return levels[level] || level;
         }
         
         window.addEventListener('load', loadJobPostingDetail);
