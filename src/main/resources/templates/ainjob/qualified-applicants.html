@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>최종 합격자 - AINJOB</title>
+    <link rel="stylesheet" th:href="@{/css/ainjob.css}">
+    <style th:replace="~{fragments/navigation :: nav-style}"></style>
+</head>
+<body>
+    <header>
+        <nav th:replace="~{fragments/navigation :: nav}"></nav>
+    </header>
+    
+    <div class="ainjob-container">
+        <div class="table-container">
+            <div class="table-header">
+                <h2 class="table-title">✅ 최종 합격자</h2>
+                <button class="btn-secondary" onclick="history.back()">
+                    ← 돌아가기
+                </button>
+            </div>
+            
+            <div id="qualified-list">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>합격자 정보를 불러오는 중...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script th:replace="~{fragments/navigation :: nav-script}"></script>
+    <script>
+        async function loadQualifiedApplicants() {
+            try {
+                const response = await fetch('/api/ainjob/applications');
+                
+                if (!response.ok) {
+                    throw new Error('지원 내역 로드 실패');
+                }
+                
+                const applications = await response.json();
+                const qualified = applications.filter(app => app.status === 'FINAL_PASS');
+                
+                if (qualified.length === 0) {
+                    document.getElementById('qualified-list').innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📭</div>
+                            <div class="empty-state-title">아직 최종 합격자가 없습니다</div>
+                            <div class="empty-state-desc">지원자의 상태를 최종합격으로 변경해보세요</div>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // 지원자 정보와 공고 정보를 함께 가져오기
+                const applicantIds = [...new Set(qualified.map(app => app.applicantId))];
+                const jobPostingIds = [...new Set(qualified.map(app => app.jobPostingId))];
+                
+                const [applicantsRes, jobPostingsRes] = await Promise.all([
+                    fetch('/api/ainjob/applicants'),
+                    fetch('/api/ainjob/job-postings')
+                ]);
+                
+                const applicants = applicantsRes.ok ? await applicantsRes.json() : [];
+                const jobPostings = jobPostingsRes.ok ? await jobPostingsRes.json() : [];
+                
+                const applicantMap = Object.fromEntries(applicants.map(a => [a.id, a]));
+                const jobPostingMap = Object.fromEntries(jobPostings.map(jp => [jp.id, jp]));
+                
+                let html = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>지원자</th>
+                                <th>이메일</th>
+                                <th>전화번호</th>
+                                <th>채용 공고</th>
+                                <th>포지션</th>
+                                <th>합격일</th>
+                                <th>경력</th>
+                                <th>보유 스킬</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                qualified.forEach(app => {
+                    const applicant = applicantMap[app.applicantId] || {};
+                    const jobPosting = jobPostingMap[app.jobPostingId] || {};
+                    const passDate = app.updatedAt ? new Date(app.updatedAt).toLocaleDateString('ko-KR') : '-';
+                    
+                    const skills = applicant.careers?.flatMap(c => c.skills || []) || [];
+                    const uniqueSkills = [...new Set(skills.map(s => s.skillName))];
+                    
+                    html += `
+                        <tr onclick="location.href='/ainjob/applicants/${app.applicantId}'" style="cursor: pointer;">
+                            <td><strong>${applicant.name || '지원자 #' + app.applicantId}</strong></td>
+                            <td>${applicant.email || '-'}</td>
+                            <td>${applicant.phone || '-'}</td>
+                            <td>${jobPosting.title || '공고 #' + app.jobPostingId}</td>
+                            <td>${jobPosting.position || '-'}</td>
+                            <td>${passDate}</td>
+                            <td>${applicant.totalYearsOfExperience?.toFixed(1) || 0}년</td>
+                            <td>
+                                <div class="skill-tags">
+                                    ${uniqueSkills.slice(0, 3).map(s => 
+                                        `<span class="skill-tag">${s}</span>`
+                                    ).join('')}
+                                    ${uniqueSkills.length > 3 ? 
+                                        `<span class="skill-tag">+${uniqueSkills.length - 3}</span>` : ''}
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                html += `
+                        </tbody>
+                    </table>
+                    <div style="margin-top: 16px; padding: 16px; background: #d4edda; border-radius: 8px; color: #155724;">
+                        <strong>총 ${qualified.length}명</strong>의 최종 합격자가 있습니다.
+                    </div>
+                `;
+                
+                document.getElementById('qualified-list').innerHTML = html;
+                
+            } catch (error) {
+                console.error('합격자 정보 로드 실패:', error);
+                document.getElementById('qualified-list').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <div class="empty-state-title">데이터를 불러올 수 없습니다</div>
+                        <div class="empty-state-desc">${error.message}</div>
+                    </div>
+                `;
+            }
+        }
+        
+        window.addEventListener('load', loadQualifiedApplicants);
+    </script>
+</body>
+</html>

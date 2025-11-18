@@ -48,4 +48,9 @@ public class AinjobWebController {
     public String applicationList() {
         return "ainjob/application-list";
     }
+    
+    @GetMapping("/qualified-applicants")
+    public String qualifiedApplicants() {
+        return "ainjob/qualified-applicants";
+    }
 }
