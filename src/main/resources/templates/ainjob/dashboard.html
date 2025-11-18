@@ -109,17 +109,65 @@
                         jobPostings.filter(jp => jp.status === 'OPEN').length;
                 }
                 
-                // 최근 지원 내역 (임시 데이터)
-                document.getElementById('recent-applications').innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">📭</div>
-                        <div class="empty-state-title">아직 지원 내역이 없습니다</div>
-                        <div class="empty-state-desc">지원자를 등록하고 채용 공고에 지원해보세요</div>
-                    </div>
-                `;
-                
-                document.getElementById('application-count').textContent = '0';
-                document.getElementById('pass-count').textContent = '0';
+                // 지원 내역 수
+                const applicationsRes = await fetch('/api/ainjob/applications');
+                if (applicationsRes.ok) {
+                    const applications = await applicationsRes.json();
+                    document.getElementById('application-count').textContent = applications.length;
+                    
+                    // 최종 합격자 수
+                    const passCount = applications.filter(app => app.status === 'FINAL_PASS').length;
+                    document.getElementById('pass-count').textContent = passCount;
+                    
+                    // 최근 지원 내역 표시
+                    if (applications.length > 0) {
+                        const recentApps = applications.slice(0, 5);
+                        let html = `
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>지원자</th>
+                                        <th>공고 ID</th>
+                                        <th>상태</th>
+                                        <th>지원일</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                        `;
+                        
+                        recentApps.forEach(app => {
+                            const statusBadge = getApplicationStatusBadge(app.status);
+                            const appliedDate = new Date(app.appliedAt).toLocaleDateString('ko-KR');
+                            
+                            html += `
+                                <tr onclick="location.href='/ainjob/applications/${app.id}'" style="cursor: pointer;">
+                                    <td><strong>${app.applicantName || '지원자 #' + app.applicantId}</strong></td>
+                                    <td>공고 #${app.jobPostingId}</td>
+                                    <td>${statusBadge}</td>
+                                    <td>${appliedDate}</td>
+                                </tr>
+                            `;
+                        });
+                        
+                        html += `
+                                </tbody>
+                            </table>
+                        `;
+                        
+                        document.getElementById('recent-applications').innerHTML = html;
+                    } else {
+                        document.getElementById('recent-applications').innerHTML = `
+                            <div class="empty-state">
+                                <div class="empty-state-icon">📭</div>
+                                <div class="empty-state-title">아직 지원 내역이 없습니다</div>
+                                <div class="empty-state-desc">지원자를 등록하고 채용 공고에 지원해보세요</div>
+                            </div>
+                        `;
+                    }
+                } else {
+                    document.getElementById('application-count').textContent = '0';
+                    document.getElementById('pass-count').textContent = '0';
+                }
                 
             } catch (error) {
                 console.error('대시보드 데이터 로드 실패:', error);
@@ -128,6 +176,24 @@
                 document.getElementById('application-count').textContent = '0';
                 document.getElementById('pass-count').textContent = '0';
             }
+        }
+        
+        function getApplicationStatusBadge(status) {
+            const badges = {
+                'APPLIED': '<span class="badge badge-applied">지원완료</span>',
+                'DOCUMENT_PASS': '<span class="badge badge-open">서류합격</span>',
+                'DOCUMENT_FAIL': '<span class="badge badge-rejected">서류탈락</span>',
+                'INTERVIEW_SCHEDULED': '<span class="badge badge-open">면접예정</span>',
+                'INTERVIEW_PASS': '<span class="badge badge-open">면접합격</span>',
+                'INTERVIEW_FAIL': '<span class="badge badge-rejected">면접탈락</span>',
+                'FINAL_PASS': '<span class="badge badge-final-pass">최종합격</span>',
+                'FINAL_FAIL': '<span class="badge badge-rejected">최종탈락</span>',
+                'OFFER_SENT': '<span class="badge badge-open">제안전송</span>',
+                'OFFER_ACCEPTED': '<span class="badge badge-final-pass">제안수락</span>',
+                'OFFER_REJECTED': '<span class="badge badge-rejected">제안거절</span>',
+                'WITHDRAWN': '<span class="badge badge-closed">지원철회</span>'
+            };
+            return badges[status] || status;
         }
         
         // 페이지 로드 시 데이터 로드

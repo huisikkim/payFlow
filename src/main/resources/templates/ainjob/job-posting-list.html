@@ -53,6 +53,18 @@
                     return;
                 }
                 
+                // 각 공고별 지원자 수 조회
+                const applicationCounts = await Promise.all(
+                    jobPostings.map(jp => 
+                        fetch(`/api/ainjob/applications/job-posting/${jp.id}`)
+                            .then(res => res.ok ? res.json() : { content: [] })
+                            .then(data => ({ id: jp.id, count: data.content?.length || 0 }))
+                            .catch(() => ({ id: jp.id, count: 0 }))
+                    )
+                );
+                
+                const countMap = Object.fromEntries(applicationCounts.map(c => [c.id, c.count]));
+                
                 let html = `
                     <table>
                         <thead>
@@ -61,6 +73,7 @@
                                 <th>포지션</th>
                                 <th>최소 학력</th>
                                 <th>최소 경력</th>
+                                <th>지원자 수</th>
                                 <th>상태</th>
                                 <th>마감일</th>
                                 <th>액션</th>
@@ -72,6 +85,7 @@
                 jobPostings.forEach(jp => {
                     const statusBadge = getStatusBadge(jp.status);
                     const closeDate = jp.closeDate ? new Date(jp.closeDate).toLocaleDateString('ko-KR') : '-';
+                    const applicationCount = countMap[jp.id] || 0;
                     
                     html += `
                         <tr onclick="location.href='/ainjob/job-postings/${jp.id}'" style="cursor: pointer;">
@@ -79,6 +93,7 @@
                             <td>${jp.position}</td>
                             <td>${jp.qualification.minEducationLevel}</td>
                             <td>${jp.qualification.minYearsOfExperience}년</td>
+                            <td><span class="badge badge-applied">${applicationCount}명</span></td>
                             <td>${statusBadge}</td>
                             <td>${closeDate}</td>
                             <td>
