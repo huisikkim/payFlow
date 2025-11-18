@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>지원 내역 - AINJOB</title>
+    <link rel="stylesheet" th:href="@{/css/ainjob.css}">
+    <style th:replace="~{fragments/navigation :: nav-style}"></style>
+</head>
+<body>
+    <header>
+        <nav th:replace="~{fragments/navigation :: nav}"></nav>
+    </header>
+    
+    <div class="ainjob-container">
+        <div class="table-container">
+            <div class="table-header">
+                <h2 class="table-title">📝 지원 내역</h2>
+            </div>
+            
+            <div class="empty-state">
+                <div class="empty-state-icon">📭</div>
+                <div class="empty-state-title">아직 지원 내역이 없습니다</div>
+                <div class="empty-state-desc">지원자를 등록하고 채용 공고에 지원해보세요</div>
+            </div>
+        </div>
+    </div>
+    
+    <script th:replace="~{fragments/navigation :: nav-script}"></script>
+</body>
+</html>

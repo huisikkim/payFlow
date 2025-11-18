@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>채용 공고 상세 - AINJOB</title>
+    <link rel="stylesheet" th:href="@{/css/ainjob.css}">
+    <style th:replace="~{fragments/navigation :: nav-style}"></style>
+</head>
+<body>
+    <header>
+        <nav th:replace="~{fragments/navigation :: nav}"></nav>
+    </header>
+    
+    <div class="ainjob-container">
+        <div class="detail-container">
+            <div id="job-posting-detail">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>채용 공고 정보를 불러오는 중...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script th:replace="~{fragments/navigation :: nav-script}"></script>
+    <script>
+        const jobPostingId = window.location.pathname.split('/').pop();
+        
+        async function loadJobPostingDetail() {
+            try {
+                const response = await fetch(`/api/ainjob/job-postings/${jobPostingId}`);
+                
+                if (!response.ok) {
+                    throw new Error('채용 공고 정보 로드 실패');
+                }
+                
+                const jp = await response.json();
+                
+                const statusBadge = getStatusBadge(jp.status);
+                const openDate = jp.openDate ? new Date(jp.openDate).toLocaleDateString('ko-KR') : '-';
+                const closeDate = jp.closeDate ? new Date(jp.closeDate).toLocaleDateString('ko-KR') : '-';
+                
+                let html = `
+                    <div class="detail-header">
+                        <div>
+                            <h1 class="detail-title">${jp.title}</h1>
+                            <p style="color: #6c757d; margin-top: 8px;">${jp.position} · 회사 ID: ${jp.companyId}</p>
+                        </div>
+                        <div>
+                            ${statusBadge}
+                        </div>
+                    </div>
+                    
+                    <div class="detail-section">
+                        <h3 class="detail-section-title">기본 정보</h3>
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <div class="detail-item-label">포지션</div>
+                                <div class="detail-item-value">${jp.position}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-item-label">상태</div>
+                                <div class="detail-item-value">${jp.status}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-item-label">오픈일</div>
+                                <div class="detail-item-value">${openDate}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-item-label">마감일</div>
+                                <div class="detail-item-value">${closeDate}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    ${jp.description ? `
+                    <div class="detail-section">
+                        <h3 class="detail-section-title">상세 설명</h3>
+                        <p style="line-height: 1.6; color: #495057;">${jp.description}</p>
+                    </div>
+                    ` : ''}
+                    
+                    <div class="detail-section">
+                        <h3 class="detail-section-title">자격 요건</h3>
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <div class="detail-item-label">최소 학력</div>
+                                <div class="detail-item-value">${jp.qualification.minEducationLevel}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-item-label">최소 경력</div>
+                                <div class="detail-item-value">${jp.qualification.minYearsOfExperience}년</div>
+                            </div>
+                        </div>
+                        ${jp.qualification.acceptedMajors && jp.qualification.acceptedMajors.length > 0 ? `
+                        <div style="margin-top: 16px;">
+                            <div class="detail-item-label" style="margin-bottom: 8px;">허용 전공</div>
+                            <div class="skill-tags">
+                                ${jp.qualification.acceptedMajors.map(major => 
+                                    `<span class="skill-tag">${major}</span>`
+                                ).join('')}
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
+                    
+                    <div class="detail-section">
+                        <h3 class="detail-section-title">요구 스킬</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>스킬명</th>
+                                    <th>필수 여부</th>
+                                    <th>최소 숙련도</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${jp.requiredSkills.map(skill => `
+                                    <tr>
+                                        <td><strong>${skill.skillName}</strong></td>
+                                        <td>${skill.isRequired ? 
+                                            '<span class="badge badge-final-pass">필수</span>' : 
+                                            '<span class="badge badge-applied">선택</span>'}</td>
+                                        <td>${skill.minProficiency || '-'}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="btn-group">
+                        ${jp.status === 'DRAFT' ? `
+                            <button class="btn-primary" onclick="openJobPosting()">공고 오픈</button>
+                        ` : ''}
+                        ${jp.status === 'OPEN' ? `
+                            <button class="btn-secondary" onclick="closeJobPosting()">공고 마감</button>
+                        ` : ''}
+                        <button class="btn-secondary" onclick="history.back()">목록으로</button>
+                    </div>
+                `;
+                
+                document.getElementById('job-posting-detail').innerHTML = html;
+                
+            } catch (error) {
+                console.error('채용 공고 정보 로드 실패:', error);
+                document.getElementById('job-posting-detail').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <div class="empty-state-title">데이터를 불러올 수 없습니다</div>
+                        <div class="empty-state-desc">${error.message}</div>
+                    </div>
+                `;
+            }
+        }
+        
+        function getStatusBadge(status) {
+            const badges = {
+                'DRAFT': '<span class="badge badge-draft">임시저장</span>',
+                'OPEN': '<span class="badge badge-open">공개</span>',
+                'CLOSED': '<span class="badge badge-closed">마감</span>'
+            };
+            return badges[status] || status;
+        }
+        
+        async function openJobPosting() {
+            if (!confirm('채용 공고를 오픈하시겠습니까?')) return;
+            
+            try {
+                const response = await fetch(`/api/ainjob/job-postings/${jobPostingId}/open`, {
+                    method: 'PATCH'
+                });
+                
+                if (!response.ok) {
+                    throw new Error('공고 오픈 실패');
+                }
+                
+                alert('채용 공고가 오픈되었습니다!');
+                location.reload();
+            } catch (error) {
+                alert('공고 오픈에 실패했습니다: ' + error.message);
+            }
+        }
+        
+        async function closeJobPosting() {
+            if (!confirm('채용 공고를 마감하시겠습니까?')) return;
+            
+            try {
+                const response = await fetch(`/api/ainjob/job-postings/${jobPostingId}/close`, {
+                    method: 'PATCH'
+                });
+                
+                if (!response.ok) {
+                    throw new Error('공고 마감 실패');
+                }
+                
+                alert('채용 공고가 마감되었습니다!');
+                location.reload();
+            } catch (error) {
+                alert('공고 마감에 실패했습니다: ' + error.message);
+            }
+        }
+        
+        window.addEventListener('load', loadJobPostingDetail);
+    </script>
+</body>
+</html>

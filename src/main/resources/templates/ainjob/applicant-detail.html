@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>지원자 상세 - AINJOB</title>
+    <link rel="stylesheet" th:href="@{/css/ainjob.css}">
+    <style th:replace="~{fragments/navigation :: nav-style}"></style>
+</head>
+<body>
+    <header>
+        <nav th:replace="~{fragments/navigation :: nav}"></nav>
+    </header>
+    
+    <div class="ainjob-container">
+        <div class="detail-container">
+            <div id="applicant-detail">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>지원자 정보를 불러오는 중...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script th:replace="~{fragments/navigation :: nav-script}"></script>
+    <script src="/js/applicant-detail.js"></script>
+</body>
+</html>

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>채용 공고 작성 - AINJOB</title>
+    <link rel="stylesheet" th:href="@{/css/ainjob.css}">
+    <style th:replace="~{fragments/navigation :: nav-style}"></style>
+</head>
+<body>
+    <header>
+        <nav th:replace="~{fragments/navigation :: nav}"></nav>
+    </header>
+    
+    <div class="ainjob-container">
+        <div class="form-container">
+            <h2 class="table-title" style="margin-bottom: 24px;">📋 채용 공고 작성</h2>
+            
+            <form id="job-posting-form" onsubmit="handleSubmit(event)">
+                <!-- 기본 정보 -->
+                <div class="detail-section">
+                    <h3 class="detail-section-title">기본 정보</h3>
+                    
+                    <div class="form-group">
+                        <label class="form-label">회사 ID *</label>
+                        <input type="number" class="form-input" name="companyId" value="1" required>
+                        <small style="color: #6c757d;">임시로 1을 사용합니다</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">공고 제목 *</label>
+                        <input type="text" class="form-input" name="title" required 
+                               placeholder="예: 백엔드 개발자 채용">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">포지션 *</label>
+                        <input type="text" class="form-input" name="position" required 
+                               placeholder="예: BACKEND, FRONTEND, FULLSTACK">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">상세 설명</label>
+                        <textarea class="form-textarea" name="description" 
+                                  placeholder="채용 공고 상세 내용을 입력하세요"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">오픈일</label>
+                        <input type="date" class="form-input" name="openDate">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">마감일</label>
+                        <input type="date" class="form-input" name="closeDate">
+                    </div>
+                </div>
+                
+                <!-- 자격 요건 -->
+                <div class="detail-section">
+                    <h3 class="detail-section-title">자격 요건</h3>
+                    
+                    <div class="form-group">
+                        <label class="form-label">최소 학력 *</label>
+                        <select class="form-select" name="minEducationLevel" required>
+                            <option value="">선택하세요</option>
+                            <option value="HIGH_SCHOOL">고등학교</option>
+                            <option value="ASSOCIATE">전문학사</option>
+                            <option value="BACHELOR">학사</option>
+                            <option value="MASTER">석사</option>
+                            <option value="DOCTORATE">박사</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">허용 전공 (쉼표로 구분)</label>
+                        <input type="text" class="form-input" name="acceptedMajors" 
+                               placeholder="예: 컴퓨터공학, 소프트웨어공학, 정보보안">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">최소 경력 연차</label>
+                        <input type="number" class="form-input" name="minYearsOfExperience" 
+                               value="0" min="0" placeholder="0">
+                    </div>
+                </div>
+                
+                <!-- 요구 스킬 -->
+                <div class="detail-section">
+                    <h3 class="detail-section-title">요구 스킬</h3>
+                    
+                    <div id="skills-container">
+                        <div class="skill-item" style="margin-bottom: 16px; padding: 16px; background: #f8f9fa; border-radius: 8px;">
+                            <div class="form-group">
+                                <label class="form-label">스킬명 *</label>
+                                <input type="text" class="form-input" name="skillName[]" required 
+                                       placeholder="예: Java">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">필수 여부</label>
+                                <select class="form-select" name="isRequired[]">
+                                    <option value="true">필수</option>
+                                    <option value="false">선택</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">최소 숙련도 (1-5)</label>
+                                <input type="number" class="form-input" name="minProficiency[]" 
+                                       min="1" max="5" value="3">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="button" class="btn-secondary" onclick="addSkill()" 
+                            style="width: auto; margin-bottom: 16px;">
+                        ➕ 스킬 추가
+                    </button>
+                </div>
+                
+                <div class="btn-group">
+                    <button type="submit" class="btn-primary">공고 등록</button>
+                    <button type="button" class="btn-secondary" onclick="history.back()">취소</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script th:replace="~{fragments/navigation :: nav-script}"></script>
+    <script>
+        function addSkill() {
+            const container = document.getElementById('skills-container');
+            const skillItem = document.createElement('div');
+            skillItem.className = 'skill-item';
+            skillItem.style.cssText = 'margin-bottom: 16px; padding: 16px; background: #f8f9fa; border-radius: 8px; position: relative;';
+            skillItem.innerHTML = `
+                <button type="button" onclick="this.parentElement.remove()" 
+                        style="position: absolute; top: 8px; right: 8px; background: #dc3545; color: white; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 12px;">
+                    삭제
+                </button>
+                <div class="form-group">
+                    <label class="form-label">스킬명 *</label>
+                    <input type="text" class="form-input" name="skillName[]" required 
+                           placeholder="예: Spring Boot">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">필수 여부</label>
+                    <select class="form-select" name="isRequired[]">
+                        <option value="true">필수</option>
+                        <option value="false">선택</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">최소 숙련도 (1-5)</label>
+                    <input type="number" class="form-input" name="minProficiency[]" 
+                           min="1" max="5" value="3">
+                </div>
+            `;
+            container.appendChild(skillItem);
+        }
+        
+        async function handleSubmit(event) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const formData = new FormData(form);
+            
+            // 스킬 배열 생성
+            const skillNames = formData.getAll('skillName[]');
+            const isRequiredList = formData.getAll('isRequired[]');
+            const minProficiencyList = formData.getAll('minProficiency[]');
+            
+            const requiredSkills = skillNames.map((name, index) => ({
+                skillName: name,
+                isRequired: isRequiredList[index] === 'true',
+                minProficiency: parseInt(minProficiencyList[index]) || 3
+            }));
+            
+            // 허용 전공 배열 생성
+            const acceptedMajorsStr = formData.get('acceptedMajors');
+            const acceptedMajors = acceptedMajorsStr 
+                ? acceptedMajorsStr.split(',').map(m => m.trim()).filter(m => m)
+                : [];
+            
+            // 요청 데이터 생성
+            const data = {
+                companyId: parseInt(formData.get('companyId')),
+                title: formData.get('title'),
+                description: formData.get('description') || null,
+                position: formData.get('position'),
+                qualification: {
+                    minEducationLevel: formData.get('minEducationLevel'),
+                    acceptedMajors: acceptedMajors,
+                    minYearsOfExperience: parseInt(formData.get('minYearsOfExperience')) || 0
+                },
+                requiredSkills: requiredSkills,
+                openDate: formData.get('openDate') || null,
+                closeDate: formData.get('closeDate') || null
+            };
+            
+            try {
+                const response = await fetch('/api/ainjob/job-postings', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || '채용 공고 등록 실패');
+                }
+                
+                const result = await response.json();
+                alert('채용 공고가 성공적으로 등록되었습니다!');
+                location.href = '/ainjob/job-postings/' + result.id;
+                
+            } catch (error) {
+                console.error('채용 공고 등록 실패:', error);
+                alert('채용 공고 등록에 실패했습니다: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

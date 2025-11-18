@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>지원자 목록 - AINJOB</title>
+    <link rel="stylesheet" th:href="@{/css/ainjob.css}">
+    <style th:replace="~{fragments/navigation :: nav-style}"></style>
+</head>
+<body>
+    <header>
+        <nav th:replace="~{fragments/navigation :: nav}"></nav>
+    </header>
+    
+    <div class="ainjob-container">
+        <div class="table-container">
+            <div class="table-header">
+                <h2 class="table-title">👥 지원자 목록</h2>
+                <button class="btn-primary" onclick="location.href='/ainjob/applicants/create'">
+                    ➕ 지원자 등록
+                </button>
+            </div>
+            
+            <div id="applicant-list">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>지원자 목록을 불러오는 중...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script th:replace="~{fragments/navigation :: nav-script}"></script>
+    <script>
+        async function loadApplicants() {
+            try {
+                const response = await fetch('/api/ainjob/applicants');
+                
+                if (!response.ok) {
+                    throw new Error('지원자 목록 로드 실패');
+                }
+                
+                const applicants = await response.json();
+                
+                if (applicants.length === 0) {
+                    document.getElementById('applicant-list').innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">👥</div>
+                            <div class="empty-state-title">등록된 지원자가 없습니다</div>
+                            <div class="empty-state-desc">새로운 지원자를 등록해보세요</div>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                let html = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>이름</th>
+                                <th>이메일</th>
+                                <th>전화번호</th>
+                                <th>학력</th>
+                                <th>경력</th>
+                                <th>등록일</th>
+                                <th>액션</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                applicants.forEach(applicant => {
+                    const education = applicant.educations && applicant.educations.length > 0 
+                        ? applicant.educations[0] : null;
+                    const educationText = education 
+                        ? `${education.level} (${education.majorName || '-'})` 
+                        : '-';
+                    
+                    html += `
+                        <tr onclick="location.href='/ainjob/applicants/${applicant.id}'" style="cursor: pointer;">
+                            <td><strong>${applicant.name}</strong></td>
+                            <td>${applicant.email}</td>
+                            <td>${applicant.phone || '-'}</td>
+                            <td>${educationText}</td>
+                            <td>${applicant.totalYearsOfExperience}년</td>
+                            <td>${new Date(applicant.createdAt).toLocaleDateString('ko-KR')}</td>
+                            <td>
+                                <button class="btn-secondary" style="padding: 6px 12px; font-size: 13px;" 
+                                        onclick="event.stopPropagation(); viewDetail(${applicant.id})">
+                                    상세보기
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                html += `
+                        </tbody>
+                    </table>
+                `;
+                
+                document.getElementById('applicant-list').innerHTML = html;
+                
+            } catch (error) {
+                console.error('지원자 목록 로드 실패:', error);
+                document.getElementById('applicant-list').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <div class="empty-state-title">데이터를 불러올 수 없습니다</div>
+                        <div class="empty-state-desc">${error.message}</div>
+                    </div>
+                `;
+            }
+        }
+        
+        function viewDetail(id) {
+            location.href = '/ainjob/applicants/' + id;
+        }
+        
+        window.addEventListener('load', loadApplicants);
+    </script>
+</body>
+</html>

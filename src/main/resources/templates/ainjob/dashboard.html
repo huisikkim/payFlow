@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AINJOB - HR SaaS 플랫폼</title>
+    <link rel="stylesheet" th:href="@{/css/ainjob.css}">
+    <style th:replace="~{fragments/navigation :: nav-style}"></style>
+</head>
+<body>
+    <!-- 네비게이션 -->
+    <header>
+        <nav th:replace="~{fragments/navigation :: nav}"></nav>
+    </header>
+    
+    <div class="ainjob-container">
+        <!-- 헤더 -->
+        <div class="ainjob-header">
+            <h1>🎯 AINJOB HR SaaS 플랫폼</h1>
+            <p>채용 공고 관리부터 지원자 추적까지 - 통합 인사 관리 시스템</p>
+        </div>
+        
+        <!-- 대시보드 카드 -->
+        <div class="dashboard-grid">
+            <div class="dashboard-card" onclick="location.href='/ainjob/applicants'">
+                <div class="dashboard-card-icon">👥</div>
+                <div class="dashboard-card-title">지원자 관리</div>
+                <div class="dashboard-card-count" id="applicant-count">-</div>
+                <div class="dashboard-card-desc">등록된 지원자</div>
+            </div>
+            
+            <div class="dashboard-card" onclick="location.href='/ainjob/job-postings'">
+                <div class="dashboard-card-icon">📋</div>
+                <div class="dashboard-card-title">채용 공고</div>
+                <div class="dashboard-card-count" id="job-posting-count">-</div>
+                <div class="dashboard-card-desc">진행 중인 공고</div>
+            </div>
+            
+            <div class="dashboard-card" onclick="location.href='/ainjob/applications'">
+                <div class="dashboard-card-icon">📝</div>
+                <div class="dashboard-card-title">지원 내역</div>
+                <div class="dashboard-card-count" id="application-count">-</div>
+                <div class="dashboard-card-desc">총 지원 건수</div>
+            </div>
+            
+            <div class="dashboard-card">
+                <div class="dashboard-card-icon">✅</div>
+                <div class="dashboard-card-title">합격자</div>
+                <div class="dashboard-card-count" id="pass-count">-</div>
+                <div class="dashboard-card-desc">최종 합격자</div>
+            </div>
+        </div>
+        
+        <!-- 빠른 액션 -->
+        <div class="table-container">
+            <div class="table-header">
+                <h2 class="table-title">빠른 시작</h2>
+            </div>
+            <div class="btn-group">
+                <button class="btn-primary" onclick="location.href='/ainjob/applicants/create'">
+                    ➕ 지원자 등록
+                </button>
+                <button class="btn-primary" onclick="location.href='/ainjob/job-postings/create'">
+                    📝 채용 공고 작성
+                </button>
+                <button class="btn-secondary" onclick="location.href='/ainjob/applicants'">
+                    👥 지원자 목록
+                </button>
+                <button class="btn-secondary" onclick="location.href='/ainjob/job-postings'">
+                    📋 공고 목록
+                </button>
+            </div>
+        </div>
+        
+        <!-- 최근 지원 내역 -->
+        <div class="table-container" style="margin-top: 24px;">
+            <div class="table-header">
+                <h2 class="table-title">최근 지원 내역</h2>
+                <button class="btn-secondary" onclick="location.href='/ainjob/applications'">
+                    전체 보기 →
+                </button>
+            </div>
+            <div id="recent-applications">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>데이터를 불러오는 중...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script th:replace="~{fragments/navigation :: nav-script}"></script>
+    <script>
+        // 대시보드 데이터 로드
+        async function loadDashboardData() {
+            try {
+                // 지원자 수
+                const applicantsRes = await fetch('/api/ainjob/applicants');
+                if (applicantsRes.ok) {
+                    const applicants = await applicantsRes.json();
+                    document.getElementById('applicant-count').textContent = applicants.length;
+                }
+                
+                // 채용 공고 수
+                const jobPostingsRes = await fetch('/api/ainjob/job-postings');
+                if (jobPostingsRes.ok) {
+                    const jobPostings = await jobPostingsRes.json();
+                    document.getElementById('job-posting-count').textContent = 
+                        jobPostings.filter(jp => jp.status === 'OPEN').length;
+                }
+                
+                // 최근 지원 내역 (임시 데이터)
+                document.getElementById('recent-applications').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <div class="empty-state-title">아직 지원 내역이 없습니다</div>
+                        <div class="empty-state-desc">지원자를 등록하고 채용 공고에 지원해보세요</div>
+                    </div>
+                `;
+                
+                document.getElementById('application-count').textContent = '0';
+                document.getElementById('pass-count').textContent = '0';
+                
+            } catch (error) {
+                console.error('대시보드 데이터 로드 실패:', error);
+                document.getElementById('applicant-count').textContent = '0';
+                document.getElementById('job-posting-count').textContent = '0';
+                document.getElementById('application-count').textContent = '0';
+                document.getElementById('pass-count').textContent = '0';
+            }
+        }
+        
+        // 페이지 로드 시 데이터 로드
+        window.addEventListener('load', loadDashboardData);
+    </script>
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>채용 공고 목록 - AINJOB</title>
+    <link rel="stylesheet" th:href="@{/css/ainjob.css}">
+    <style th:replace="~{fragments/navigation :: nav-style}"></style>
+</head>
+<body>
+    <header>
+        <nav th:replace="~{fragments/navigation :: nav}"></nav>
+    </header>
+    
+    <div class="ainjob-container">
+        <div class="table-container">
+            <div class="table-header">
+                <h2 class="table-title">📋 채용 공고 목록</h2>
+                <button class="btn-primary" onclick="location.href='/ainjob/job-postings/create'">
+                    ➕ 공고 작성
+                </button>
+            </div>
+            
+            <div id="job-posting-list">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>채용 공고 목록을 불러오는 중...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script th:replace="~{fragments/navigation :: nav-script}"></script>
+    <script>
+        async function loadJobPostings() {
+            try {
+                const response = await fetch('/api/ainjob/job-postings');
+                
+                if (!response.ok) {
+                    throw new Error('채용 공고 목록 로드 실패');
+                }
+                
+                const jobPostings = await response.json();
+                
+                if (jobPostings.length === 0) {
+                    document.getElementById('job-posting-list').innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📋</div>
+                            <div class="empty-state-title">등록된 채용 공고가 없습니다</div>
+                            <div class="empty-state-desc">새로운 채용 공고를 작성해보세요</div>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                let html = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>제목</th>
+                                <th>포지션</th>
+                                <th>최소 학력</th>
+                                <th>최소 경력</th>
+                                <th>상태</th>
+                                <th>마감일</th>
+                                <th>액션</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                jobPostings.forEach(jp => {
+                    const statusBadge = getStatusBadge(jp.status);
+                    const closeDate = jp.closeDate ? new Date(jp.closeDate).toLocaleDateString('ko-KR') : '-';
+                    
+                    html += `
+                        <tr onclick="location.href='/ainjob/job-postings/${jp.id}'" style="cursor: pointer;">
+                            <td><strong>${jp.title}</strong></td>
+                            <td>${jp.position}</td>
+                            <td>${jp.qualification.minEducationLevel}</td>
+                            <td>${jp.qualification.minYearsOfExperience}년</td>
+                            <td>${statusBadge}</td>
+                            <td>${closeDate}</td>
+                            <td>
+                                <button class="btn-secondary" style="padding: 6px 12px; font-size: 13px;" 
+                                        onclick="event.stopPropagation(); viewDetail(${jp.id})">
+                                    상세보기
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                html += `
+                        </tbody>
+                    </table>
+                `;
+                
+                document.getElementById('job-posting-list').innerHTML = html;
+                
+            } catch (error) {
+                console.error('채용 공고 목록 로드 실패:', error);
+                document.getElementById('job-posting-list').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <div class="empty-state-title">데이터를 불러올 수 없습니다</div>
+                        <div class="empty-state-desc">${error.message}</div>
+                    </div>
+                `;
+            }
+        }
+        
+        function getStatusBadge(status) {
+            const badges = {
+                'DRAFT': '<span class="badge badge-draft">임시저장</span>',
+                'OPEN': '<span class="badge badge-open">공개</span>',
+                'CLOSED': '<span class="badge badge-closed">마감</span>'
+            };
+            return badges[status] || status;
+        }
+        
+        function viewDetail(id) {
+            location.href = '/ainjob/job-postings/' + id;
+        }
+        
+        window.addEventListener('load', loadJobPostings);
+    </script>
+</body>
+</html>

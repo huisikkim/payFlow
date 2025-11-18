@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>지원자 등록 - AINJOB</title>
+    <link rel="stylesheet" th:href="@{/css/ainjob.css}">
+    <style th:replace="~{fragments/navigation :: nav-style}"></style>
+</head>
+<body>
+    <header>
+        <nav th:replace="~{fragments/navigation :: nav}"></nav>
+    </header>
+    
+    <div class="ainjob-container">
+        <div class="form-container">
+            <h2 class="table-title" style="margin-bottom: 24px;">👥 지원자 등록</h2>
+            
+            <form id="applicant-form" onsubmit="handleSubmit(event)">
+                <!-- 기본 정보 -->
+                <div class="detail-section">
+                    <h3 class="detail-section-title">기본 정보</h3>
+                    
+                    <div class="form-group">
+                        <label class="form-label">이름 *</label>
+                        <input type="text" class="form-input" name="name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">이메일 *</label>
+                        <input type="email" class="form-input" name="email" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">전화번호</label>
+                        <input type="tel" class="form-input" name="phone" placeholder="010-1234-5678">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">생년월일</label>
+                        <input type="date" class="form-input" name="birthDate">
+                    </div>
+                </div>
+                
+                <!-- 주소 -->
+                <div class="detail-section">
+                    <h3 class="detail-section-title">주소</h3>
+                    
+                    <div class="form-group">
+                        <label class="form-label">도시</label>
+                        <input type="text" class="form-input" name="city" placeholder="서울">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">구/군</label>
+                        <input type="text" class="form-input" name="district" placeholder="강남구">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">상세 주소</label>
+                        <input type="text" class="form-input" name="addressDetail" placeholder="테헤란로 123">
+                    </div>
+                </div>
+                
+                <!-- 학력 -->
+                <div class="detail-section">
+                    <h3 class="detail-section-title">학력</h3>
+                    
+                    <div class="form-group">
+                        <label class="form-label">학력 수준 *</label>
+                        <select class="form-select" name="educationLevel" required>
+                            <option value="">선택하세요</option>
+                            <option value="HIGH_SCHOOL">고등학교</option>
+                            <option value="ASSOCIATE">전문학사</option>
+                            <option value="BACHELOR">학사</option>
+                            <option value="MASTER">석사</option>
+                            <option value="DOCTORATE">박사</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">전공 *</label>
+                        <input type="text" class="form-input" name="majorName" required placeholder="컴퓨터공학">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">학교명 *</label>
+                        <input type="text" class="form-input" name="schoolName" required placeholder="서울대학교">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">입학일</label>
+                        <input type="date" class="form-input" name="educationStartDate">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">졸업일</label>
+                        <input type="date" class="form-input" name="educationEndDate">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">상태</label>
+                        <select class="form-select" name="educationStatus">
+                            <option value="GRADUATED">졸업</option>
+                            <option value="IN_PROGRESS">재학중</option>
+                            <option value="LEAVE">휴학</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- 경력 -->
+                <div class="detail-section">
+                    <h3 class="detail-section-title">경력 (선택)</h3>
+                    
+                    <div class="form-group">
+                        <label class="form-label">회사명</label>
+                        <input type="text" class="form-input" name="companyName" placeholder="네이버">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">직책</label>
+                        <input type="text" class="form-input" name="position" placeholder="Backend Developer">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">업무 설명</label>
+                        <textarea class="form-textarea" name="careerDescription" 
+                                  placeholder="Java/Spring Boot 기반 서비스 개발"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">입사일</label>
+                        <input type="date" class="form-input" name="careerStartDate">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">퇴사일 (재직중이면 비워두세요)</label>
+                        <input type="date" class="form-input" name="careerEndDate">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">보유 스킬 (쉼표로 구분)</label>
+                        <input type="text" class="form-input" name="skills" 
+                               placeholder="Java, Spring Boot, AWS">
+                    </div>
+                </div>
+                
+                <div class="btn-group">
+                    <button type="submit" class="btn-primary">등록하기</button>
+                    <button type="button" class="btn-secondary" onclick="history.back()">취소</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script th:replace="~{fragments/navigation :: nav-script}"></script>
+    <script>
+        async function handleSubmit(event) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const formData = new FormData(form);
+            
+            // 기본 정보
+            const data = {
+                name: formData.get('name'),
+                email: formData.get('email'),
+                phone: formData.get('phone') || null,
+                birthDate: formData.get('birthDate') || null,
+                address: {
+                    city: formData.get('city') || null,
+                    district: formData.get('district') || null,
+                    detail: formData.get('addressDetail') || null
+                },
+                educations: [{
+                    level: formData.get('educationLevel'),
+                    majorName: formData.get('majorName'),
+                    schoolName: formData.get('schoolName'),
+                    startDate: formData.get('educationStartDate') || null,
+                    endDate: formData.get('educationEndDate') || null,
+                    status: formData.get('educationStatus') || 'GRADUATED'
+                }],
+                careers: []
+            };
+            
+            // 경력 정보 (입력된 경우에만)
+            if (formData.get('companyName')) {
+                const skills = formData.get('skills') 
+                    ? formData.get('skills').split(',').map(s => ({
+                        skillName: s.trim(),
+                        proficiencyLevel: 3
+                    }))
+                    : [];
+                
+                data.careers.push({
+                    companyName: formData.get('companyName'),
+                    position: formData.get('position') || null,
+                    description: formData.get('careerDescription') || null,
+                    startDate: formData.get('careerStartDate') || null,
+                    endDate: formData.get('careerEndDate') || null,
+                    skills: skills
+                });
+            }
+            
+            try {
+                const response = await fetch('/api/ainjob/applicants', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || '지원자 등록 실패');
+                }
+                
+                const result = await response.json();
+                alert('지원자가 성공적으로 등록되었습니다!');
+                location.href = '/ainjob/applicants/' + result.id;
+                
+            } catch (error) {
+                console.error('지원자 등록 실패:', error);
+                alert('지원자 등록에 실패했습니다: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
