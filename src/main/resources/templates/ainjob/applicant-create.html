@@ -23,22 +23,22 @@
                     
                     <div class="form-group">
                         <label class="form-label">이름 *</label>
-                        <input type="text" class="form-input" name="name" required>
+                        <input type="text" class="form-input" name="name" value="김개발" required>
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">이메일 *</label>
-                        <input type="email" class="form-input" name="email" required>
+                        <input type="email" class="form-input" name="email" value="kim.dev@example.com" required>
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">전화번호</label>
-                        <input type="tel" class="form-input" name="phone" placeholder="010-1234-5678">
+                        <input type="tel" class="form-input" name="phone" value="010-1234-5678" placeholder="010-1234-5678">
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">생년월일</label>
-                        <input type="date" class="form-input" name="birthDate">
+                        <input type="date" class="form-input" name="birthDate" value="1995-03-15">
                     </div>
                 </div>
                 
@@ -48,17 +48,17 @@
                     
                     <div class="form-group">
                         <label class="form-label">도시</label>
-                        <input type="text" class="form-input" name="city" placeholder="서울">
+                        <input type="text" class="form-input" name="city" value="서울" placeholder="서울">
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">구/군</label>
-                        <input type="text" class="form-input" name="district" placeholder="강남구">
+                        <input type="text" class="form-input" name="district" value="강남구" placeholder="강남구">
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">상세 주소</label>
-                        <input type="text" class="form-input" name="addressDetail" placeholder="테헤란로 123">
+                        <input type="text" class="form-input" name="addressDetail" value="테헤란로 123" placeholder="테헤란로 123">
                     </div>
                 </div>
                 
@@ -72,7 +72,7 @@
                             <option value="">선택하세요</option>
                             <option value="HIGH_SCHOOL">고등학교</option>
                             <option value="ASSOCIATE">전문학사</option>
-                            <option value="BACHELOR">학사</option>
+                            <option value="BACHELOR" selected>학사</option>
                             <option value="MASTER">석사</option>
                             <option value="DOCTORATE">박사</option>
                         </select>
@@ -80,28 +80,28 @@
                     
                     <div class="form-group">
                         <label class="form-label">전공 *</label>
-                        <input type="text" class="form-input" name="majorName" required placeholder="컴퓨터공학">
+                        <input type="text" class="form-input" name="majorName" value="컴퓨터공학" required placeholder="컴퓨터공학">
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">학교명 *</label>
-                        <input type="text" class="form-input" name="schoolName" required placeholder="서울대학교">
+                        <input type="text" class="form-input" name="schoolName" value="서울대학교" required placeholder="서울대학교">
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">입학일</label>
-                        <input type="date" class="form-input" name="educationStartDate">
+                        <input type="date" class="form-input" name="educationStartDate" value="2014-03-02">
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">졸업일</label>
-                        <input type="date" class="form-input" name="educationEndDate">
+                        <input type="date" class="form-input" name="educationEndDate" value="2018-02-28">
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">상태</label>
                         <select class="form-select" name="educationStatus">
-                            <option value="GRADUATED">졸업</option>
+                            <option value="GRADUATED" selected>졸업</option>
                             <option value="IN_PROGRESS">재학중</option>
                             <option value="LEAVE">휴학</option>
                         </select>
@@ -114,33 +114,33 @@
                     
                     <div class="form-group">
                         <label class="form-label">회사명</label>
-                        <input type="text" class="form-input" name="companyName" placeholder="네이버">
+                        <input type="text" class="form-input" name="companyName" value="네이버" placeholder="네이버">
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">직책</label>
-                        <input type="text" class="form-input" name="position" placeholder="Backend Developer">
+                        <input type="text" class="form-input" name="position" value="Backend Developer" placeholder="Backend Developer">
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">업무 설명</label>
                         <textarea class="form-textarea" name="careerDescription" 
-                                  placeholder="Java/Spring Boot 기반 서비스 개발"></textarea>
+                                  placeholder="Java/Spring Boot 기반 서비스 개발">Java/Spring Boot 기반 대규모 트래픽 처리 서비스 개발 및 운영</textarea>
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">입사일</label>
-                        <input type="date" class="form-input" name="careerStartDate">
+                        <input type="date" class="form-input" name="careerStartDate" value="2018-03-15">
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">퇴사일 (재직중이면 비워두세요)</label>
-                        <input type="date" class="form-input" name="careerEndDate">
+                        <input type="date" class="form-input" name="careerEndDate" value="2023-12-31">
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">보유 스킬 (쉼표로 구분)</label>
-                        <input type="text" class="form-input" name="skills" 
+                        <input type="text" class="form-input" name="skills" value="Java, Spring Boot, AWS, MySQL, Redis"
                                placeholder="Java, Spring Boot, AWS">
                     </div>
                 </div>
