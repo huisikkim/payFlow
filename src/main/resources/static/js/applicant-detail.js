@@ -81,7 +81,7 @@ async function loadApplicantDetail() {
         
         html += `
             <div class="btn-group">
-                <button class="btn-secondary" onclick="history.back()">목록으로</button>
+                <button class="btn-secondary" onclick="location.href='/ainjob/applicants'">목록으로</button>
             </div>
         `;
         
