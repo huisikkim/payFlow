@@ -113,6 +113,7 @@
                 const applicationsRes = await fetch('/api/ainjob/applications');
                 if (applicationsRes.ok) {
                     const applications = await applicationsRes.json();
+                    console.log('지원 내역 데이터:', applications);
                     document.getElementById('application-count').textContent = applications.length;
                     
                     // 최종 합격자 수
@@ -121,13 +122,23 @@
                     
                     // 최근 지원 내역 표시
                     if (applications.length > 0) {
+                        // 지원자 정보 가져오기
+                        const applicantsRes = await fetch('/api/ainjob/applicants');
+                        const applicants = applicantsRes.ok ? await applicantsRes.json() : [];
+                        const applicantMap = Object.fromEntries(applicants.map(a => [a.id, a]));
+                        
+                        // 채용 공고 정보 가져오기
+                        const jobPostingsRes = await fetch('/api/ainjob/job-postings');
+                        const jobPostings = jobPostingsRes.ok ? await jobPostingsRes.json() : [];
+                        const jobPostingMap = Object.fromEntries(jobPostings.map(jp => [jp.id, jp]));
+                        
                         const recentApps = applications.slice(0, 5);
                         let html = `
                             <table>
                                 <thead>
                                     <tr>
                                         <th>지원자</th>
-                                        <th>공고 ID</th>
+                                        <th>채용 공고</th>
                                         <th>상태</th>
                                         <th>지원일</th>
                                     </tr>
@@ -136,13 +147,19 @@
                         `;
                         
                         recentApps.forEach(app => {
+                            const applicant = applicantMap[app.applicantId] || {};
+                            const jobPosting = jobPostingMap[app.jobPostingId] || {};
                             const statusBadge = getApplicationStatusBadge(app.status);
                             const appliedDate = new Date(app.appliedAt).toLocaleDateString('ko-KR');
                             
                             html += `
-                                <tr onclick="location.href='/ainjob/applications/${app.id}'" style="cursor: pointer;">
-                                    <td><strong>${app.applicantName || '지원자 #' + app.applicantId}</strong></td>
-                                    <td>공고 #${app.jobPostingId}</td>
+                                <tr onclick="location.href='/ainjob/applicants/${app.applicantId}'" style="cursor: pointer;">
+                                    <td><strong>${applicant.name || '지원자 #' + app.applicantId}</strong><br>
+                                        <small style="color: #6c757d;">${applicant.email || ''}</small>
+                                    </td>
+                                    <td>${jobPosting.title || '공고 #' + app.jobPostingId}<br>
+                                        <small style="color: #6c757d;">${jobPosting.position || ''}</small>
+                                    </td>
                                     <td>${statusBadge}</td>
                                     <td>${appliedDate}</td>
                                 </tr>
