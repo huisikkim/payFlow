@@ -84,10 +84,17 @@ public class ApplicantMatchingService {
         List<String> acceptedMajors = parseAcceptedMajors(qualification.getAcceptedMajors());
         boolean majorMatched = checkMajor(majorName, acceptedMajors);
         
-        // 3. 스킬 체크
-        Set<String> applicantSkills = getApplicantSkills(applicant);
-        Set<String> requiredSkills = getRequiredSkills(jobPosting);
-        boolean skillsMatched = checkSkills(applicantSkills, requiredSkills);
+        // 3. 스킬 체크 (대소문자 무시, 원본 이름 유지)
+        Set<String> applicantSkillsLower = getApplicantSkills(applicant);
+        Set<String> requiredSkillsLower = getRequiredSkills(jobPosting);
+        boolean skillsMatched = checkSkills(applicantSkillsLower, requiredSkillsLower);
+        
+        // 원본 스킬명 가져오기
+        List<String> applicantSkillsOriginal = applicant.getCareers().stream()
+            .flatMap(career -> career.getSkills().stream())
+            .map(cs -> cs.getSkill().getName())
+            .distinct()
+            .collect(Collectors.toList());
         
         // 4. 경력 체크
         double totalExperience = calculateTotalExperience(applicant);
@@ -112,7 +119,7 @@ public class ApplicantMatchingService {
             applicant.getEmail(),
             highestEducation != null ? highestEducation.name() : "없음",
             majorName,
-            new ArrayList<>(applicantSkills),
+            applicantSkillsOriginal,
             totalExperience,
             matchingScore,
             matchingReason,
@@ -139,17 +146,38 @@ public class ApplicantMatchingService {
         List<String> acceptedMajors = parseAcceptedMajors(qualification.getAcceptedMajors());
         int majorScore = checkMajor(majorName, acceptedMajors) ? 25 : 0;
         
-        // 스킬 점수 (25점)
-        Set<String> applicantSkills = getApplicantSkills(applicant);
-        Set<String> requiredSkills = getRequiredSkills(jobPosting);
-        int skillScore = checkSkills(applicantSkills, requiredSkills) ? 25 : 0;
+        // 스킬 점수 (25점) - 원본 스킬명 유지
+        Map<String, String> applicantSkillsMap = applicant.getCareers().stream()
+            .flatMap(career -> career.getSkills().stream())
+            .collect(Collectors.toMap(
+                cs -> cs.getSkill().getName().toLowerCase().trim(),
+                cs -> cs.getSkill().getName(),
+                (existing, replacement) -> existing
+            ));
         
-        List<String> matchedSkills = applicantSkills.stream()
-            .filter(requiredSkills::contains)
+        Map<String, String> requiredSkillsMap = jobPosting.getRequiredSkills().stream()
+            .filter(JobPostingSkill::getIsRequired)
+            .collect(Collectors.toMap(
+                jps -> jps.getSkill().getName().toLowerCase().trim(),
+                jps -> jps.getSkill().getName(),
+                (existing, replacement) -> existing
+            ));
+        
+        Set<String> applicantSkillsLower = applicantSkillsMap.keySet();
+        Set<String> requiredSkillsLower = requiredSkillsMap.keySet();
+        
+        int skillScore = applicantSkillsLower.containsAll(requiredSkillsLower) ? 25 : 0;
+        
+        // 매칭된 스킬 (원본 이름)
+        List<String> matchedSkills = requiredSkillsLower.stream()
+            .filter(applicantSkillsLower::contains)
+            .map(requiredSkillsMap::get)
             .collect(Collectors.toList());
         
-        List<String> missingSkills = requiredSkills.stream()
-            .filter(skill -> !applicantSkills.contains(skill))
+        // 부족한 스킬 (원본 이름)
+        List<String> missingSkills = requiredSkillsLower.stream()
+            .filter(skill -> !applicantSkillsLower.contains(skill))
+            .map(requiredSkillsMap::get)
             .collect(Collectors.toList());
         
         // 경력 점수 (25점)
@@ -233,14 +261,14 @@ public class ApplicantMatchingService {
     private Set<String> getApplicantSkills(Applicant applicant) {
         return applicant.getCareers().stream()
             .flatMap(career -> career.getSkills().stream())
-            .map(cs -> cs.getSkill().getName())
+            .map(cs -> cs.getSkill().getName().toLowerCase().trim())
             .collect(Collectors.toSet());
     }
     
     private Set<String> getRequiredSkills(AinjobJobPosting jobPosting) {
         return jobPosting.getRequiredSkills().stream()
             .filter(JobPostingSkill::getIsRequired)
-            .map(jps -> jps.getSkill().getName())
+            .map(jps -> jps.getSkill().getName().toLowerCase().trim())
             .collect(Collectors.toSet());
     }
     
