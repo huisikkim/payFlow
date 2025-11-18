@@ -90,7 +90,16 @@ public class AinjobJobPosting {
     }
     
     public boolean isApplicable() {
-        return status == JobPostingStatus.OPEN 
-            && LocalDate.now().isBefore(closeDate);
+        if (status != JobPostingStatus.OPEN) {
+            return false;
+        }
+        
+        // closeDate가 없으면 항상 지원 가능
+        if (closeDate == null) {
+            return true;
+        }
+        
+        // 마감일 당일까지 지원 가능 (isBefore가 아닌 isAfter 사용)
+        return !LocalDate.now().isAfter(closeDate);
     }
 }

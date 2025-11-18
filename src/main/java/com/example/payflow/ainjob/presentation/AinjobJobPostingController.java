@@ -16,6 +16,7 @@ import java.util.List;
 public class AinjobJobPostingController {
     
     private final JobPostingService jobPostingService;
+    private final com.example.payflow.ainjob.application.ApplicantMatchingService applicantMatchingService;
     
     @PostMapping
     public ResponseEntity<JobPostingResponse> createJobPosting(@RequestBody JobPostingCreateRequest request) {
@@ -57,5 +58,13 @@ public class AinjobJobPostingController {
     public ResponseEntity<Void> closeJobPosting(@PathVariable Long id) {
         jobPostingService.closeJobPosting(id);
         return ResponseEntity.ok().build();
+    }
+    
+    @GetMapping("/{id}/qualified-applicants")
+    public ResponseEntity<List<com.example.payflow.ainjob.application.dto.QualifiedApplicantResponse>> getQualifiedApplicants(
+            @PathVariable Long id) {
+        List<com.example.payflow.ainjob.application.dto.QualifiedApplicantResponse> responses = 
+            applicantMatchingService.getQualifiedApplicants(id);
+        return ResponseEntity.ok(responses);
     }
 }

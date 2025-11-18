@@ -16,16 +16,354 @@
         <div class="table-container">
             <div class="table-header">
                 <h2 class="table-title">📝 지원 내역</h2>
+                <div class="filter-group">
+                    <select id="status-filter" class="filter-select" onchange="filterByStatus()">
+                        <option value="">전체 상태</option>
+                        <option value="APPLIED">지원</option>
+                        <option value="DOCUMENT_PASS">서류합격</option>
+                        <option value="INTERVIEW_1">1차면접</option>
+                        <option value="INTERVIEW_2">2차면접</option>
+                        <option value="FINAL_PASS">최종합격</option>
+                        <option value="REJECTED">불합격</option>
+                    </select>
+                </div>
             </div>
             
-            <div class="empty-state">
-                <div class="empty-state-icon">📭</div>
-                <div class="empty-state-title">아직 지원 내역이 없습니다</div>
-                <div class="empty-state-desc">지원자를 등록하고 채용 공고에 지원해보세요</div>
+            <div id="application-list">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>지원 내역을 불러오는 중...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 매칭 점수 모달 -->
+    <div id="matching-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+        <div style="background: white; border-radius: 12px; padding: 32px; max-width: 700px; width: 90%; max-height: 80vh; overflow-y: auto;">
+            <h2 style="margin: 0 0 24px 0; font-size: 24px; color: #212529;">📊 매칭 점수 분석</h2>
+            
+            <div id="matching-content">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>매칭 점수를 계산하는 중...</p>
+                </div>
+            </div>
+            
+            <div class="btn-group" style="margin-top: 24px;">
+                <button class="btn-secondary" onclick="closeMatchingModal()">닫기</button>
             </div>
         </div>
     </div>
     
     <script th:replace="~{fragments/navigation :: nav-script}"></script>
+    <script>
+        let allApplications = [];
+        
+        async function loadApplications() {
+            try {
+                const response = await fetch('/api/ainjob/applications');
+                
+                if (!response.ok) {
+                    throw new Error('지원 내역 로드 실패');
+                }
+                
+                allApplications = await response.json();
+                displayApplications(allApplications);
+                
+            } catch (error) {
+                console.error('지원 내역 로드 실패:', error);
+                document.getElementById('application-list').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <div class="empty-state-title">데이터를 불러올 수 없습니다</div>
+                        <div class="empty-state-desc">${error.message}</div>
+                    </div>
+                `;
+            }
+        }
+        
+        function displayApplications(applications) {
+            const container = document.getElementById('application-list');
+            
+            if (applications.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <div class="empty-state-title">아직 지원 내역이 없습니다</div>
+                        <div class="empty-state-desc">채용 공고에서 지원하기 버튼을 눌러 지원해보세요</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>지원자 ID</th>
+                            <th>채용 공고 ID</th>
+                            <th>상태</th>
+                            <th>지원일</th>
+                            <th>최종 수정일</th>
+                            <th>관리</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            applications.forEach(app => {
+                const statusBadge = getStatusBadge(app.status);
+                const appliedAt = new Date(app.appliedAt).toLocaleString('ko-KR');
+                const updatedAt = app.updatedAt ? new Date(app.updatedAt).toLocaleString('ko-KR') : '-';
+                
+                html += `
+                    <tr>
+                        <td>${app.applicantId}</td>
+                        <td>${app.jobPostingId}</td>
+                        <td>${statusBadge}</td>
+                        <td>${appliedAt}</td>
+                        <td>${updatedAt}</td>
+                        <td>
+                            <button class="btn-sm btn-primary" onclick="changeStatus(${app.id}, '${app.status}')">
+                                상태 변경
+                            </button>
+                            <button class="btn-sm" onclick="showMatchingScore(${app.id})" 
+                                    style="background: #17a2b8; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; margin-left: 4px;">
+                                매칭 점수
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                    </tbody>
+                </table>
+            `;
+            
+            container.innerHTML = html;
+        }
+        
+        function getStatusBadge(status) {
+            const badges = {
+                'APPLIED': '<span class="badge badge-applied">지원</span>',
+                'DOCUMENT_PASS': '<span class="badge badge-document-pass">서류합격</span>',
+                'INTERVIEW_1': '<span class="badge badge-interview">1차면접</span>',
+                'INTERVIEW_2': '<span class="badge badge-interview">2차면접</span>',
+                'FINAL_PASS': '<span class="badge badge-final-pass">최종합격</span>',
+                'REJECTED': '<span class="badge badge-rejected">불합격</span>'
+            };
+            return badges[status] || status;
+        }
+        
+        function filterByStatus() {
+            const selectedStatus = document.getElementById('status-filter').value;
+            
+            if (selectedStatus === '') {
+                displayApplications(allApplications);
+            } else {
+                const filtered = allApplications.filter(app => app.status === selectedStatus);
+                displayApplications(filtered);
+            }
+        }
+        
+        async function changeStatus(applicationId, currentStatus) {
+            const statusOptions = {
+                'APPLIED': ['DOCUMENT_PASS', 'REJECTED'],
+                'DOCUMENT_PASS': ['INTERVIEW_1', 'REJECTED'],
+                'INTERVIEW_1': ['INTERVIEW_2', 'REJECTED'],
+                'INTERVIEW_2': ['FINAL_PASS', 'REJECTED'],
+                'FINAL_PASS': [],
+                'REJECTED': []
+            };
+            
+            const availableStatuses = statusOptions[currentStatus] || [];
+            
+            if (availableStatuses.length === 0) {
+                alert('더 이상 변경할 수 있는 상태가 없습니다.');
+                return;
+            }
+            
+            const statusNames = {
+                'DOCUMENT_PASS': '서류합격',
+                'INTERVIEW_1': '1차면접',
+                'INTERVIEW_2': '2차면접',
+                'FINAL_PASS': '최종합격',
+                'REJECTED': '불합격'
+            };
+            
+            let options = availableStatuses.map(s => 
+                `<option value="${s}">${statusNames[s]}</option>`
+            ).join('');
+            
+            const newStatus = prompt(
+                `변경할 상태를 선택하세요:\n\n` +
+                availableStatuses.map((s, i) => `${i + 1}. ${statusNames[s]}`).join('\n') +
+                `\n\n번호를 입력하세요 (1-${availableStatuses.length}):`
+            );
+            
+            if (!newStatus) return;
+            
+            const index = parseInt(newStatus) - 1;
+            if (index < 0 || index >= availableStatuses.length) {
+                alert('잘못된 선택입니다.');
+                return;
+            }
+            
+            const toStatus = availableStatuses[index];
+            const reason = prompt('변경 사유를 입력하세요:');
+            
+            if (!reason) {
+                alert('변경 사유를 입력해주세요.');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/ainjob/applications/${applicationId}/status`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        fromStatus: currentStatus,
+                        toStatus: toStatus,
+                        reason: reason
+                    })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || '상태 변경 실패');
+                }
+                
+                alert('상태가 변경되었습니다!');
+                loadApplications();
+                
+            } catch (error) {
+                console.error('상태 변경 실패:', error);
+                alert('상태 변경에 실패했습니다: ' + error.message);
+            }
+        }
+        
+        async function showMatchingScore(applicationId) {
+            const modal = document.getElementById('matching-modal');
+            modal.style.display = 'flex';
+            
+            const contentDiv = document.getElementById('matching-content');
+            contentDiv.innerHTML = `
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>매칭 점수를 계산하는 중...</p>
+                </div>
+            `;
+            
+            try {
+                const response = await fetch(`/api/ainjob/applications/${applicationId}/matching-score`);
+                
+                if (!response.ok) {
+                    throw new Error('매칭 점수 조회 실패');
+                }
+                
+                const score = await response.json();
+                
+                const percentage = score.matchingPercentage.toFixed(1);
+                const progressColor = percentage >= 75 ? '#28a745' : percentage >= 50 ? '#ffc107' : '#dc3545';
+                
+                let html = `
+                    <div style="text-align: center; margin-bottom: 24px;">
+                        <div style="font-size: 48px; font-weight: bold; color: ${progressColor};">
+                            ${score.totalScore} / ${score.maxScore}
+                        </div>
+                        <div style="font-size: 18px; color: #6c757d; margin-top: 8px;">
+                            매칭률: ${percentage}%
+                        </div>
+                        <div style="width: 100%; height: 12px; background: #e9ecef; border-radius: 6px; margin-top: 16px; overflow: hidden;">
+                            <div style="width: ${percentage}%; height: 100%; background: ${progressColor}; transition: width 0.3s;"></div>
+                        </div>
+                    </div>
+                    
+                    <div style="background: #f8f9fa; padding: 16px; border-radius: 8px; margin-bottom: 24px;">
+                        <h4 style="margin: 0 0 12px 0; font-size: 16px;">💡 추천 의견</h4>
+                        <p style="margin: 0; color: #495057; line-height: 1.6;">${score.recommendation}</p>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px;">
+                        <div style="padding: 16px; border: 2px solid ${score.educationScore > 0 ? '#28a745' : '#dc3545'}; border-radius: 8px;">
+                            <div style="font-size: 14px; color: #6c757d; margin-bottom: 4px;">학력</div>
+                            <div style="font-size: 24px; font-weight: bold; color: ${score.educationScore > 0 ? '#28a745' : '#dc3545'};">
+                                ${score.educationScore} / 25
+                            </div>
+                        </div>
+                        <div style="padding: 16px; border: 2px solid ${score.majorScore > 0 ? '#28a745' : '#dc3545'}; border-radius: 8px;">
+                            <div style="font-size: 14px; color: #6c757d; margin-bottom: 4px;">전공</div>
+                            <div style="font-size: 24px; font-weight: bold; color: ${score.majorScore > 0 ? '#28a745' : '#dc3545'};">
+                                ${score.majorScore} / 25
+                            </div>
+                        </div>
+                        <div style="padding: 16px; border: 2px solid ${score.skillScore > 0 ? '#28a745' : '#dc3545'}; border-radius: 8px;">
+                            <div style="font-size: 14px; color: #6c757d; margin-bottom: 4px;">스킬</div>
+                            <div style="font-size: 24px; font-weight: bold; color: ${score.skillScore > 0 ? '#28a745' : '#dc3545'};">
+                                ${score.skillScore} / 25
+                            </div>
+                        </div>
+                        <div style="padding: 16px; border: 2px solid ${score.experienceScore > 0 ? '#28a745' : '#dc3545'}; border-radius: 8px;">
+                            <div style="font-size: 14px; color: #6c757d; margin-bottom: 4px;">경력</div>
+                            <div style="font-size: 24px; font-weight: bold; color: ${score.experienceScore > 0 ? '#28a745' : '#dc3545'};">
+                                ${score.experienceScore} / 25
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                if (score.matchedSkills && score.matchedSkills.length > 0) {
+                    html += `
+                        <div style="margin-bottom: 16px;">
+                            <h4 style="margin: 0 0 8px 0; font-size: 14px; color: #28a745;">✓ 보유 스킬</h4>
+                            <div class="skill-tags">
+                                ${score.matchedSkills.map(s => `<span class="skill-tag" style="background: #d4edda; color: #155724;">${s}</span>`).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                if (score.missingSkills && score.missingSkills.length > 0) {
+                    html += `
+                        <div>
+                            <h4 style="margin: 0 0 8px 0; font-size: 14px; color: #dc3545;">✗ 부족한 스킬</h4>
+                            <div class="skill-tags">
+                                ${score.missingSkills.map(s => `<span class="skill-tag" style="background: #f8d7da; color: #721c24;">${s}</span>`).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                contentDiv.innerHTML = html;
+                
+            } catch (error) {
+                console.error('매칭 점수 조회 실패:', error);
+                contentDiv.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <div class="empty-state-title">데이터를 불러올 수 없습니다</div>
+                        <div class="empty-state-desc">${error.message}</div>
+                    </div>
+                `;
+            }
+        }
+        
+        function closeMatchingModal() {
+            const modal = document.getElementById('matching-modal');
+            modal.style.display = 'none';
+        }
+        
+        document.getElementById('matching-modal')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeMatchingModal();
+            }
+        });
+        
+        window.addEventListener('load', loadApplications);
+    </script>
 </body>
 </html>

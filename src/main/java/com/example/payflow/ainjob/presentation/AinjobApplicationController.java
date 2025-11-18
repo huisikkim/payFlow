@@ -21,11 +21,18 @@ import java.util.List;
 public class AinjobApplicationController {
     
     private final ApplicationTrackingService applicationTrackingService;
+    private final com.example.payflow.ainjob.application.ApplicantMatchingService applicantMatchingService;
     
     @PostMapping
     public ResponseEntity<ApplicationResponse> createApplication(@RequestBody ApplicationCreateRequest request) {
         ApplicationResponse response = applicationTrackingService.createApplication(request);
         return ResponseEntity.ok(response);
+    }
+    
+    @GetMapping
+    public ResponseEntity<List<ApplicationResponse>> getAllApplications() {
+        List<ApplicationResponse> responses = applicationTrackingService.getAllApplications();
+        return ResponseEntity.ok(responses);
     }
     
     @GetMapping("/{id}")
@@ -65,5 +72,13 @@ public class AinjobApplicationController {
             @RequestBody ApplicationStatusChangeRequest request) {
         ApplicationResponse response = applicationTrackingService.changeApplicationStatus(id, request);
         return ResponseEntity.ok(response);
+    }
+    
+    @GetMapping("/{id}/matching-score")
+    public ResponseEntity<com.example.payflow.ainjob.application.dto.ApplicantMatchingScore> getMatchingScore(
+            @PathVariable Long id) {
+        com.example.payflow.ainjob.application.dto.ApplicantMatchingScore score = 
+            applicantMatchingService.calculateMatchingScore(id);
+        return ResponseEntity.ok(score);
     }
 }

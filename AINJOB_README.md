@@ -137,10 +137,18 @@ DELETE /api/ain/applicants/{id}    # 지원자 삭제
 
 ```http
 POST   /api/ain/applications       # 지원하기
+GET    /api/ain/applications       # 전체 지원 목록
 GET    /api/ain/applications/{id}  # 지원 상세
+GET    /api/ain/applications/{id}/matching-score  # 매칭 점수 조회
 GET    /api/ain/applications/job-posting/{jobPostingId}  # 공고별 지원 목록
 GET    /api/ain/applications/applicant/{applicantId}     # 지원자별 지원 목록
 PATCH  /api/ain/applications/{id}/status  # 상태 변경
+```
+
+### 매칭 API
+
+```http
+GET    /api/ain/job-postings/{id}/qualified-applicants  # 자격 요건 충족 지원자 목록
 ```
 
 ## 📝 API 사용 예시
@@ -323,10 +331,16 @@ ain_application_status_history # 지원 상태 이력
 - 초기 데이터는 AINDataInitializer에서 자동 생성
 - proposal 문서의 설계를 최대한 반영하여 구현
 
+### 5. 합격자 자동 필터링 ⭐ NEW
+- 자격 요건 기반 자동 매칭
+- 학력, 전공, 스킬, 경력 조건 체크
+- 매칭 점수 계산 (100점 만점)
+- 합격자/불합격자 자동 분류
+- 상세 매칭 분석 리포트
+
 ## 🎯 향후 개선 사항
 
 - 파일 업로드 기능 (S3 연동)
-- 필터 매칭 시스템 구현
 - 통계 및 대시보드
 - 알림 기능
 - 검색 기능 강화

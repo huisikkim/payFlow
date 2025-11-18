@@ -55,6 +55,12 @@ public class ApplicationTrackingService {
         return new ApplicationResponse(saved);
     }
     
+    public List<ApplicationResponse> getAllApplications() {
+        return applicationTrackingRepository.findAll().stream()
+            .map(ApplicationResponse::new)
+            .collect(Collectors.toList());
+    }
+    
     public ApplicationResponse getApplication(Long id) {
         ApplicationTracking tracking = applicationTrackingRepository.findByIdWithHistories(id)
             .orElseThrow(() -> new IllegalArgumentException("지원 내역을 찾을 수 없습니다: " + id));

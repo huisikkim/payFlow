@@ -30,29 +30,33 @@
                     <div class="form-group">
                         <label class="form-label">공고 제목 *</label>
                         <input type="text" class="form-input" name="title" required 
+                               value="시니어 백엔드 개발자 채용"
                                placeholder="예: 백엔드 개발자 채용">
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">포지션 *</label>
                         <input type="text" class="form-input" name="position" required 
+                               value="BACKEND"
                                placeholder="예: BACKEND, FRONTEND, FULLSTACK">
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">상세 설명</label>
                         <textarea class="form-textarea" name="description" 
-                                  placeholder="채용 공고 상세 내용을 입력하세요"></textarea>
+                                  placeholder="채용 공고 상세 내용을 입력하세요">Java/Spring Boot 기반 백엔드 개발자를 모집합니다.
+MSA 아키텍처 경험이 있으신 분을 우대합니다.
+AWS 클라우드 환경에서의 개발 경험이 필요합니다.</textarea>
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">오픈일</label>
-                        <input type="date" class="form-input" name="openDate">
+                        <input type="date" class="form-input" name="openDate" value="2025-01-01">
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">마감일</label>
-                        <input type="date" class="form-input" name="closeDate">
+                        <input type="date" class="form-input" name="closeDate" value="2025-12-31">
                     </div>
                 </div>
                 
@@ -66,7 +70,7 @@
                             <option value="">선택하세요</option>
                             <option value="HIGH_SCHOOL">고등학교</option>
                             <option value="ASSOCIATE">전문학사</option>
-                            <option value="BACHELOR">학사</option>
+                            <option value="BACHELOR" selected>학사</option>
                             <option value="MASTER">석사</option>
                             <option value="DOCTORATE">박사</option>
                         </select>
@@ -75,13 +79,14 @@
                     <div class="form-group">
                         <label class="form-label">허용 전공 (쉼표로 구분)</label>
                         <input type="text" class="form-input" name="acceptedMajors" 
+                               value="컴퓨터공학, 소프트웨어공학, 정보보안"
                                placeholder="예: 컴퓨터공학, 소프트웨어공학, 정보보안">
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">최소 경력 연차</label>
                         <input type="number" class="form-input" name="minYearsOfExperience" 
-                               value="0" min="0" placeholder="0">
+                               value="5" min="0" placeholder="0">
                     </div>
                 </div>
                 
@@ -94,13 +99,66 @@
                             <div class="form-group">
                                 <label class="form-label">스킬명 *</label>
                                 <input type="text" class="form-input" name="skillName[]" required 
+                                       value="Java"
                                        placeholder="예: Java">
                             </div>
                             
                             <div class="form-group">
                                 <label class="form-label">필수 여부</label>
                                 <select class="form-select" name="isRequired[]">
-                                    <option value="true">필수</option>
+                                    <option value="true" selected>필수</option>
+                                    <option value="false">선택</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">최소 숙련도 (1-5)</label>
+                                <input type="number" class="form-input" name="minProficiency[]" 
+                                       min="1" max="5" value="4">
+                            </div>
+                        </div>
+                        <div class="skill-item" style="margin-bottom: 16px; padding: 16px; background: #f8f9fa; border-radius: 8px; position: relative;">
+                            <button type="button" onclick="this.parentElement.remove()" 
+                                    style="position: absolute; top: 8px; right: 8px; background: #dc3545; color: white; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 12px;">
+                                삭제
+                            </button>
+                            <div class="form-group">
+                                <label class="form-label">스킬명 *</label>
+                                <input type="text" class="form-input" name="skillName[]" required 
+                                       value="Spring Boot"
+                                       placeholder="예: Spring Boot">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">필수 여부</label>
+                                <select class="form-select" name="isRequired[]">
+                                    <option value="true" selected>필수</option>
+                                    <option value="false">선택</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">최소 숙련도 (1-5)</label>
+                                <input type="number" class="form-input" name="minProficiency[]" 
+                                       min="1" max="5" value="4">
+                            </div>
+                        </div>
+                        <div class="skill-item" style="margin-bottom: 16px; padding: 16px; background: #f8f9fa; border-radius: 8px; position: relative;">
+                            <button type="button" onclick="this.parentElement.remove()" 
+                                    style="position: absolute; top: 8px; right: 8px; background: #dc3545; color: white; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 12px;">
+                                삭제
+                            </button>
+                            <div class="form-group">
+                                <label class="form-label">스킬명 *</label>
+                                <input type="text" class="form-input" name="skillName[]" required 
+                                       value="AWS"
+                                       placeholder="예: AWS">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">필수 여부</label>
+                                <select class="form-select" name="isRequired[]">
+                                    <option value="true" selected>필수</option>
                                     <option value="false">선택</option>
                                 </select>
                             </div>
