@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pick Swap - 믿을 수 있는 중고거래</title>
+    <link rel="stylesheet" th:href="@{/css/pickswap.css}">
+</head>
+<body>
+    <!-- Header -->
+    <header class="pickswap-header">
+        <div class="header-container">
+            <a href="/pickswap" class="logo">
+                <span class="logo-icon">🔄</span>
+                <span class="logo-text">Pick Swap</span>
+            </a>
+            
+            <div class="search-bar">
+                <input type="text" 
+                       id="search-input" 
+                       class="search-input" 
+                       placeholder="어떤 상품을 찾으시나요?">
+                <button id="search-btn" class="search-btn">
+                    🔍
+                </button>
+            </div>
+            
+            <div class="nav-actions">
+                <a href="/pickswap/sell" class="nav-btn btn-sell">
+                    ✨ 판매하기
+                </a>
+                <a href="/pickswap/my-products" class="nav-btn btn-my-products">
+                    📦 내 상품
+                </a>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Category Filter -->
+    <div class="category-filter">
+        <div class="category-container">
+            <button class="category-chip" data-category="">
+                🏠 전체
+            </button>
+            <button class="category-chip" data-category="ELECTRONICS">
+                📱 전자기기
+            </button>
+            <button class="category-chip" data-category="FASHION">
+                👕 패션/의류
+            </button>
+            <button class="category-chip" data-category="HOME_APPLIANCES">
+                🔌 가전제품
+            </button>
+            <button class="category-chip" data-category="FURNITURE">
+                🛋️ 가구/인테리어
+            </button>
+            <button class="category-chip" data-category="BOOKS">
+                📚 도서
+            </button>
+            <button class="category-chip" data-category="SPORTS">
+                ⚽ 스포츠/레저
+            </button>
+            <button class="category-chip" data-category="TOYS">
+                🎮 완구/취미
+            </button>
+            <button class="category-chip" data-category="BEAUTY">
+                💄 뷰티/미용
+            </button>
+            <button class="category-chip" data-category="PET_SUPPLIES">
+                🐾 반려동물용품
+            </button>
+            <button class="category-chip" data-category="OTHERS">
+                📦 기타
+            </button>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <main class="main-content">
+        <div id="product-grid" class="product-grid">
+            <!-- Products will be loaded here -->
+        </div>
+        
+        <div id="pagination" class="pagination">
+            <!-- Pagination will be loaded here -->
+        </div>
+    </main>
+    
+    <script th:src="@{/js/pickswap.js}"></script>
+</body>
+</html>

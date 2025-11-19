@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>상품 상세 - Pick Swap</title>
+    <link rel="stylesheet" th:href="@{/css/pickswap.css}">
+    <style>
+        .detail-container {
+            max-width: 1280px;
+            margin: 32px auto;
+            padding: 0 24px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 48px;
+        }
+        
+        .image-section {
+            position: sticky;
+            top: 100px;
+            height: fit-content;
+        }
+        
+        .main-image {
+            width: 100%;
+            height: 500px;
+            object-fit: cover;
+            border-radius: 16px;
+            background: var(--light-bg);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .thumbnail-list {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+            overflow-x: auto;
+        }
+        
+        .thumbnail {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .thumbnail:hover,
+        .thumbnail.active {
+            border-color: var(--primary-color);
+        }
+        
+        .info-section {
+            padding: 24px 0;
+        }
+        
+        .product-header {
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .product-detail-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+        }
+        
+        .product-detail-price {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 16px;
+        }
+        
+        .product-stats {
+            display: flex;
+            gap: 24px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        
+        .seller-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 24px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .seller-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        
+        .seller-details h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .seller-details p {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        
+        .product-description {
+            padding: 24px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .product-description h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        
+        .product-description p {
+            font-size: 15px;
+            line-height: 1.8;
+            color: var(--text-secondary);
+            white-space: pre-wrap;
+        }
+        
+        .product-details {
+            padding: 24px 0;
+        }
+        
+        .detail-row {
+            display: flex;
+            padding: 12px 0;
+            font-size: 15px;
+        }
+        
+        .detail-label {
+            width: 120px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        
+        .detail-value {
+            flex: 1;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+        
+        .action-buttons {
+            position: sticky;
+            bottom: 0;
+            background: white;
+            padding: 24px 0;
+            display: flex;
+            gap: 12px;
+        }
+        
+        .btn-action {
+            flex: 1;
+            padding: 16px;
+            border-radius: 12px;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-like {
+            background: white;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+        }
+        
+        .btn-like:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-chat {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-chat:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        @media (max-width: 768px) {
+            .detail-container {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+            
+            .image-section {
+                position: static;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="pickswap-header">
+        <div class="header-container">
+            <a href="/pickswap" class="logo">
+                <span class="logo-icon">🔄</span>
+                <span class="logo-text">Pick Swap</span>
+            </a>
+            
+            <div class="search-bar">
+                <input type="text" 
+                       id="search-input" 
+                       class="search-input" 
+                       placeholder="어떤 상품을 찾으시나요?">
+                <button id="search-btn" class="search-btn">
+                    🔍
+                </button>
+            </div>
+            
+            <div class="nav-actions">
+                <a href="/pickswap/sell" class="nav-btn btn-sell">
+                    ✨ 판매하기
+                </a>
+                <a href="/pickswap/my-products" class="nav-btn btn-my-products">
+                    📦 내 상품
+                </a>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <div class="detail-container">
+        <!-- Image Section -->
+        <div class="image-section">
+            <img id="main-image" 
+                 src="https://via.placeholder.com/600x500" 
+                 alt="Product Image" 
+                 class="main-image">
+            <div id="thumbnail-list" class="thumbnail-list">
+                <!-- Thumbnails will be loaded here -->
+            </div>
+        </div>
+        
+        <!-- Info Section -->
+        <div class="info-section">
+            <div class="product-header">
+                <div id="status-badge"></div>
+                <h1 id="product-title" class="product-detail-title">상품 제목</h1>
+                <div id="product-price" class="product-detail-price">0원</div>
+                <div class="product-stats">
+                    <span id="view-count">👁️ 0</span>
+                    <span id="like-count">❤️ 0</span>
+                    <span id="chat-count">💬 0</span>
+                    <span id="created-at">⏰ 방금 전</span>
+                </div>
+            </div>
+            
+            <div class="seller-info">
+                <div class="seller-avatar">👤</div>
+                <div class="seller-details">
+                    <h3 id="seller-name">판매자</h3>
+                    <p id="seller-location">📍 위치</p>
+                </div>
+            </div>
+            
+            <div class="product-description">
+                <h3>상품 설명</h3>
+                <p id="product-description">상품 설명이 여기에 표시됩니다.</p>
+            </div>
+            
+            <div class="product-details">
+                <div class="detail-row">
+                    <span class="detail-label">카테고리</span>
+                    <span id="category" class="detail-value">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">상품 상태</span>
+                    <span id="condition" class="detail-value">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">거래 지역</span>
+                    <span id="location" class="detail-value">-</span>
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <button id="btn-like" class="btn-action btn-like">
+                    ❤️ 찜하기
+                </button>
+                <button id="btn-chat" class="btn-action btn-chat">
+                    💬 채팅하기
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const productId = window.location.pathname.split('/').pop();
+        
+        // 상품 상세 정보 로드
+        async function loadProductDetail() {
+            try {
+                const response = await fetch(`/api/products/${productId}`);
+                const product = await response.json();
+                
+                displayProduct(product);
+            } catch (error) {
+                console.error('상품 로드 실패:', error);
+                alert('상품 정보를 불러오는데 실패했습니다.');
+                window.location.href = '/pickswap';
+            }
+        }
+        
+        // 상품 정보 표시
+        function displayProduct(product) {
+            // 상태 뱃지
+            const statusBadges = {
+                'AVAILABLE': '<span class="status-badge status-available">판매중</span>',
+                'RESERVED': '<span class="status-badge status-reserved">예약중</span>',
+                'SOLD': '<span class="status-badge status-sold">판매완료</span>'
+            };
+            document.getElementById('status-badge').innerHTML = statusBadges[product.status] || '';
+            
+            // 기본 정보
+            document.getElementById('product-title').textContent = product.title;
+            document.getElementById('product-price').textContent = formatPrice(product.price) + '원';
+            document.getElementById('view-count').textContent = `👁️ ${product.viewCount}`;
+            document.getElementById('like-count').textContent = `❤️ ${product.likeCount}`;
+            document.getElementById('chat-count').textContent = `💬 ${product.chatCount}`;
+            document.getElementById('created-at').textContent = `⏰ ${formatDate(product.createdAt)}`;
+            
+            // 판매자 정보
+            document.getElementById('seller-name').textContent = product.sellerName;
+            document.getElementById('seller-location').textContent = `📍 ${product.location || '위치 미정'}`;
+            
+            // 상품 설명
+            document.getElementById('product-description').textContent = product.description || '상품 설명이 없습니다.';
+            
+            // 상세 정보
+            document.getElementById('category').textContent = getCategoryName(product.category);
+            document.getElementById('condition').textContent = getConditionName(product.productCondition);
+            document.getElementById('location').textContent = product.location || '위치 미정';
+            
+            // 이미지
+            if (product.imageUrls && product.imageUrls.length > 0) {
+                document.getElementById('main-image').src = product.imageUrls[0];
+                
+                const thumbnailList = document.getElementById('thumbnail-list');
+                thumbnailList.innerHTML = product.imageUrls.map((url, index) => `
+                    <img src="${url}" 
+                         alt="Thumbnail ${index + 1}" 
+                         class="thumbnail ${index === 0 ? 'active' : ''}"
+                         onclick="changeMainImage('${url}', this)">
+                `).join('');
+            }
+        }
+        
+        // 메인 이미지 변경
+        function changeMainImage(url, thumbnail) {
+            document.getElementById('main-image').src = url;
+            document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+            thumbnail.classList.add('active');
+        }
+        
+        // 찜하기
+        document.getElementById('btn-like').addEventListener('click', async () => {
+            try {
+                await fetch(`/api/products/${productId}/like`, { method: 'POST' });
+                alert('찜 목록에 추가되었습니다!');
+                loadProductDetail(); // 새로고침
+            } catch (error) {
+                console.error('찜하기 실패:', error);
+                alert('찜하기에 실패했습니다.');
+            }
+        });
+        
+        // 채팅하기
+        document.getElementById('btn-chat').addEventListener('click', () => {
+            alert('채팅 기능은 준비 중입니다!');
+        });
+        
+        // 유틸리티 함수
+        function formatPrice(price) {
+            return new Intl.NumberFormat('ko-KR').format(price);
+        }
+        
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diff = now - date;
+            
+            const minutes = Math.floor(diff / 60000);
+            const hours = Math.floor(diff / 3600000);
+            const days = Math.floor(diff / 86400000);
+            
+            if (minutes < 1) return '방금 전';
+            if (minutes < 60) return `${minutes}분 전`;
+            if (hours < 24) return `${hours}시간 전`;
+            if (days < 7) return `${days}일 전`;
+            
+            return date.toLocaleDateString('ko-KR');
+        }
+        
+        function getCategoryName(category) {
+            const names = {
+                'ELECTRONICS': '📱 전자기기',
+                'FASHION': '👕 패션/의류',
+                'HOME_APPLIANCES': '🔌 가전제품',
+                'FURNITURE': '🛋️ 가구/인테리어',
+                'BOOKS': '📚 도서',
+                'SPORTS': '⚽ 스포츠/레저',
+                'TOYS': '🎮 완구/취미',
+                'BEAUTY': '💄 뷰티/미용',
+                'PET_SUPPLIES': '🐾 반려동물용품',
+                'OTHERS': '📦 기타'
+            };
+            return names[category] || category;
+        }
+        
+        function getConditionName(condition) {
+            const names = {
+                'NEW': '🆕 새 상품',
+                'LIKE_NEW': '✨ 거의 새것',
+                'GOOD': '👍 좋음',
+                'FAIR': '👌 보통',
+                'POOR': '🔧 나쁨'
+            };
+            return names[condition] || condition;
+        }
+        
+        // 페이지 로드 시 실행
+        loadProductDetail();
+    </script>
+</body>
+</html>

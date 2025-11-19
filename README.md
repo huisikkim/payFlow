@@ -36,7 +36,18 @@ GET /api/products/{productId}
 POST /api/products
 ```
 
-### 테스트
+### 웹 UI 접속
+```
+http://localhost:8080/pickswap
+```
+
+**주요 페이지:**
+- **홈 (상품 피드)**: `/pickswap` - 최신 상품 목록, 카테고리 필터, 검색
+- **상품 상세**: `/pickswap/products/{id}` - 상품 정보, 이미지, 판매자 정보
+- **상품 등록**: `/pickswap/sell` - 새 상품 등록 폼
+- **내 상품 관리**: `/pickswap/my-products` - 내가 등록한 상품 목록
+
+### API 테스트
 ```powershell
 .\test-product-api.ps1
 ```

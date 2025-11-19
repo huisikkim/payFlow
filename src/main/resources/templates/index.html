@@ -52,6 +52,11 @@
             display: flex;
             gap: 8px;
             list-style: none;
+            align-items: center;
+        }
+        
+        .nav-links li {
+            position: relative;
         }
         
         .nav-links a {
@@ -63,6 +68,7 @@
             border-radius: 8px;
             transition: all 0.3s ease;
             position: relative;
+            display: block;
         }
         
         .nav-links a:hover {
@@ -88,6 +94,67 @@
         
         .nav-links a:hover::after {
             transform: translateX(-50%) scaleX(1);
+        }
+        
+        /* 드롭다운 메뉴 */
+        .dropdown {
+            position: relative;
+        }
+        
+        .dropdown-toggle {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .dropdown-toggle::before {
+            content: '▼';
+            font-size: 10px;
+            transition: transform 0.3s ease;
+        }
+        
+        .dropdown:hover .dropdown-toggle::before {
+            transform: rotate(180deg);
+        }
+        
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 12px;
+            padding: 8px;
+            min-width: 200px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(165, 180, 252, 0.2);
+            margin-top: 8px;
+        }
+        
+        .dropdown:hover .dropdown-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .dropdown-menu a {
+            padding: 10px 16px;
+            border-radius: 8px;
+            display: block;
+            white-space: nowrap;
+        }
+        
+        .dropdown-menu a::after {
+            display: none;
+        }
+        
+        .dropdown-menu a:hover {
+            background: rgba(165, 180, 252, 0.15);
+            transform: translateX(4px);
         }
         
         .user-section {
@@ -153,11 +220,37 @@
         <nav>
             <div class="logo">Legacy-Free Commerce</div>
             <ul class="nav-links">
-                <li><a href="/">홈</a></li>
-                <li><a href="/#products">상품</a></li>
-                <li><a href="/escrow">🚛 에스크로</a></li>
-                <li><a href="/logs/dashboard">이벤트 대시보드</a></li>
-                <li><a href="/session-replay/dashboard">🎬 세션 재생</a></li>
+                <li><a href="/">🏠 홈</a></li>
+                
+                <!-- 커머스 그룹 -->
+                <li class="dropdown">
+                    <a class="dropdown-toggle">🛒 커머스</a>
+                    <div class="dropdown-menu">
+                        <a href="/pickswap">🔄 Pick Swap</a>
+                        <a href="/escrow">🚛 에스크로</a>
+                    </div>
+                </li>
+                
+                <!-- 인사관리 그룹 -->
+                <li class="dropdown">
+                    <a class="dropdown-toggle">👥 인사관리</a>
+                    <div class="dropdown-menu">
+                        <a href="/hr/attendance">⏰ 근태관리</a>
+                        <a href="/recruitment/dashboard">🎯 채용시스템</a>
+                        <a href="/ainjob">💼 AI 채용</a>
+                    </div>
+                </li>
+                
+                <!-- 시스템 그룹 -->
+                <li class="dropdown">
+                    <a class="dropdown-toggle">⚙️ 시스템</a>
+                    <div class="dropdown-menu">
+                        <a href="/logs/dashboard">📊 이벤트 대시보드</a>
+                        <a href="/session-replay/dashboard">🎬 세션 재생</a>
+                        <a href="/sourcing">🔍 토탈소싱기</a>
+                        <a href="/chatbot">💬 챗봇</a>
+                    </div>
+                </li>
             </ul>
             <div class="user-section">
                 <div id="header-user-info" style="display: none;">
