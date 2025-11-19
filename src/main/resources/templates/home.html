@@ -381,6 +381,7 @@
                 const data = await response.json();
                 localStorage.setItem('accessToken', data.accessToken);
                 localStorage.setItem('username', data.username);
+                localStorage.setItem('userId', data.userId);
                 
                 // 로그인 성공 후 페이지 새로고침
                 location.reload();

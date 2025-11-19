@@ -401,6 +401,16 @@
                 return;
             }
             
+            // 로그인 확인
+            const userId = localStorage.getItem('userId');
+            const username = localStorage.getItem('username');
+            
+            if (!userId || !username) {
+                alert('로그인이 필요합니다.');
+                window.location.href = '/';
+                return;
+            }
+            
             const formData = {
                 title: document.getElementById('title').value,
                 description: document.getElementById('description').value,
@@ -408,8 +418,8 @@
                 category: document.getElementById('category').value,
                 productCondition: document.getElementById('condition').value,
                 location: document.getElementById('location').value,
-                sellerId: 1, // TODO: 실제 로그인한 사용자 ID
-                sellerName: '테스트 판매자', // TODO: 실제 로그인한 사용자 이름
+                sellerId: parseInt(userId),
+                sellerName: username,
                 imageUrls: uploadedImages
             };
             

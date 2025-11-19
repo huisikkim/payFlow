@@ -61,10 +61,15 @@ public class AuthService {
         
         String token = jwtTokenProvider.generateToken(authentication);
         
+        // 사용자 정보 조회
+        User user = userRepository.findByUsername(request.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
         return LoginResponse.builder()
                 .accessToken(token)
                 .tokenType("Bearer")
                 .username(request.getUsername())
+                .userId(user.getId())
                 .build();
     }
 }

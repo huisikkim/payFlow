@@ -230,8 +230,9 @@
             // 로그인 확인
             const token = localStorage.getItem('accessToken');
             const username = localStorage.getItem('username');
+            const userId = localStorage.getItem('userId');
             
-            if (!token || !username) {
+            if (!token || !username || !userId) {
                 alert('로그인이 필요합니다.');
                 window.location.href = '/';
                 return;
@@ -240,9 +241,8 @@
             // 사용자 정보 표시
             document.getElementById('user-info').textContent = `${username}님의 상품을 관리합니다`;
             
-            // TODO: 실제로는 JWT에서 userId를 추출해야 함
-            // 현재는 username에 따라 sellerId 설정 (임시)
-            sellerId = username === 'admin' ? 1 : 2;
+            // 로그인한 사용자의 ID를 sellerId로 사용
+            sellerId = parseInt(userId);
             
             await loadMyProducts();
             await loadStats();
