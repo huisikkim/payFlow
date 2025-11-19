@@ -1,20 +1,21 @@
-/* Pick Swap - Modern Marketplace CSS */
+/* Pick Swap - Vinted Style Marketplace CSS */
 
 :root {
-    --primary-color: #FF6B35;
-    --primary-hover: #FF5722;
-    --secondary-color: #4ECDC4;
-    --dark-bg: #1A1A2E;
-    --light-bg: #F7F7F7;
+    --primary-color: #09B1BA;
+    --primary-hover: #078C93;
+    --secondary-color: #13C1CA;
+    --accent-color: #F59E0B;
+    --dark-bg: #1F2937;
+    --light-bg: #F9FAFB;
     --card-bg: #FFFFFF;
-    --text-primary: #2D3436;
-    --text-secondary: #636E72;
-    --border-color: #DFE6E9;
-    --success-color: #00B894;
-    --warning-color: #FDCB6E;
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
-    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
-    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.16);
+    --text-primary: #111827;
+    --text-secondary: #6B7280;
+    --border-color: #E5E7EB;
+    --success-color: #10B981;
+    --warning-color: #F59E0B;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 10px 24px rgba(0, 0, 0, 0.1);
 }
 
 * {
@@ -27,7 +28,8 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     background-color: var(--light-bg);
     color: var(--text-primary);
-    line-height: 1.6;
+    line-height: 1.5;
+    letter-spacing: -0.01em;
 }
 
 /* Header */
@@ -53,22 +55,31 @@ body {
 .logo {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     text-decoration: none;
     color: var(--text-primary);
-    font-size: 24px;
+    font-size: 22px;
     font-weight: 700;
+    transition: all 0.2s ease;
 }
 
-.logo-icon {
-    font-size: 32px;
+.logo:hover {
+    transform: translateY(-1px);
+}
+
+.logo-svg {
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
+}
+
+.logo:hover .logo-svg {
+    transform: rotate(180deg);
 }
 
 .logo-text {
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--text-primary);
+    font-weight: 700;
+    letter-spacing: -0.02em;
 }
 
 /* Search Bar */
@@ -81,39 +92,41 @@ body {
 
 .search-input {
     width: 100%;
-    padding: 12px 48px 12px 20px;
-    border: 2px solid var(--border-color);
-    border-radius: 24px;
-    font-size: 15px;
-    transition: all 0.3s ease;
+    padding: 11px 48px 11px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    background-color: var(--light-bg);
 }
 
 .search-input:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.1);
+    background-color: white;
+    box-shadow: 0 0 0 3px rgba(9, 177, 186, 0.1);
 }
 
 .search-btn {
     position: absolute;
-    right: 8px;
+    right: 6px;
     top: 50%;
     transform: translateY(-50%);
-    background: var(--primary-color);
+    background: transparent;
     border: none;
-    border-radius: 50%;
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
+    color: var(--text-secondary);
+    font-size: 18px;
 }
 
 .search-btn:hover {
-    background: var(--primary-hover);
-    transform: translateY(-50%) scale(1.05);
+    color: var(--primary-color);
 }
 
 /* Navigation */
@@ -140,12 +153,13 @@ body {
 .btn-sell {
     background: var(--primary-color);
     color: white;
+    box-shadow: none;
 }
 
 .btn-sell:hover {
     background: var(--primary-hover);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(9, 177, 186, 0.3);
 }
 
 .btn-my-products {
@@ -181,19 +195,23 @@ body {
 }
 
 .category-chip {
-    padding: 10px 20px;
-    border-radius: 24px;
-    border: 2px solid var(--border-color);
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
     background: white;
-    color: var(--text-secondary);
-    font-size: 14px;
-    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 500;
     cursor: pointer;
     white-space: nowrap;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
 }
 
-.category-chip:hover,
+.category-chip:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
 .category-chip.active {
     border-color: var(--primary-color);
     background: var(--primary-color);
@@ -217,10 +235,10 @@ body {
 
 .product-card {
     background: var(--card-bg);
-    border-radius: 16px;
+    border-radius: 12px;
     overflow: hidden;
-    box-shadow: var(--shadow-sm);
-    transition: all 0.3s ease;
+    border: 1px solid var(--border-color);
+    transition: all 0.2s ease;
     cursor: pointer;
     text-decoration: none;
     color: inherit;
@@ -228,8 +246,9 @@ body {
 }
 
 .product-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary-color);
 }
 
 .product-image {
@@ -244,20 +263,21 @@ body {
 }
 
 .product-title {
-    font-size: 16px;
-    font-weight: 600;
+    font-size: 14px;
+    font-weight: 500;
     color: var(--text-primary);
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    line-height: 1.4;
 }
 
 .product-price {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 700;
     color: var(--text-primary);
-    margin-bottom: 8px;
+    margin-bottom: 6px;
 }
 
 .product-location {
@@ -283,26 +303,28 @@ body {
 /* Product Status Badge */
 .status-badge {
     display: inline-block;
-    padding: 4px 12px;
-    border-radius: 12px;
-    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 11px;
     font-weight: 600;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .status-available {
-    background: #E8F5E9;
-    color: #2E7D32;
+    background: #D1FAE5;
+    color: #065F46;
 }
 
 .status-reserved {
-    background: #FFF3E0;
-    color: #E65100;
+    background: #FEF3C7;
+    color: #92400E;
 }
 
 .status-sold {
-    background: #ECEFF1;
-    color: #546E7A;
+    background: #E5E7EB;
+    color: #374151;
 }
 
 /* Loading Spinner */
@@ -360,19 +382,20 @@ body {
 }
 
 .page-btn {
-    padding: 10px 16px;
-    border: 2px solid var(--border-color);
+    padding: 8px 14px;
+    border: 1px solid var(--border-color);
     background: white;
-    border-radius: 8px;
+    border-radius: 6px;
     cursor: pointer;
-    font-size: 14px;
-    font-weight: 600;
+    font-size: 13px;
+    font-weight: 500;
     color: var(--text-primary);
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
 }
 
 .page-btn:hover:not(:disabled) {
     border-color: var(--primary-color);
+    background-color: rgba(9, 177, 186, 0.05);
     color: var(--primary-color);
 }
 

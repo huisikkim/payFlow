@@ -1,0 +1,15 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 배경 원 -->
+  <circle cx="32" cy="32" r="32" fill="#09B1BA"/>
+  
+  <!-- 교환 화살표 -->
+  <path d="M16 32L28 20L28 26L36 26L36 20L48 32L36 44L36 38L28 38L28 44L16 32Z" fill="white"/>
+  
+  <!-- 작은 점들 (거래 포인트) -->
+  <circle cx="12" cy="32" r="3" fill="#13C1CA"/>
+  <circle cx="52" cy="32" r="3" fill="#13C1CA"/>
+  
+  <!-- 상단 장식 점 -->
+  <circle cx="32" cy="12" r="2" fill="white" opacity="0.6"/>
+  <circle cx="32" cy="52" r="2" fill="white" opacity="0.6"/>
+</svg>

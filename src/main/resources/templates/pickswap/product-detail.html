@@ -25,9 +25,9 @@
             width: 100%;
             height: 500px;
             object-fit: cover;
-            border-radius: 16px;
+            border-radius: 12px;
             background: var(--light-bg);
-            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
         }
         
         .thumbnail-list {
@@ -69,9 +69,9 @@
         }
         
         .product-detail-price {
-            font-size: 32px;
+            font-size: 28px;
             font-weight: 700;
-            color: var(--primary-color);
+            color: var(--text-primary);
             margin-bottom: 16px;
         }
         
@@ -175,23 +175,23 @@
         .btn-like {
             background: white;
             color: var(--primary-color);
-            border: 2px solid var(--primary-color);
+            border: 1px solid var(--primary-color);
         }
         
         .btn-like:hover {
-            background: var(--primary-color);
-            color: white;
+            background: rgba(9, 177, 186, 0.05);
         }
         
         .btn-chat {
             background: var(--primary-color);
             color: white;
+            border: 1px solid var(--primary-color);
         }
         
         .btn-chat:hover {
             background: var(--primary-hover);
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(9, 177, 186, 0.3);
         }
         
         @media (max-width: 768px) {
@@ -211,7 +211,15 @@
     <header class="pickswap-header">
         <div class="header-container">
             <a href="/pickswap" class="logo">
-                <span class="logo-icon">🔄</span>
+                <svg class="logo-svg" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- 왼쪽 화살표 -->
+                    <path d="M8 16L14 10L14 13L18 13L18 10L24 16L18 22L18 19L14 19L14 22L8 16Z" fill="#09B1BA"/>
+                    <!-- 외곽 원 -->
+                    <circle cx="16" cy="16" r="14" stroke="#09B1BA" stroke-width="2" fill="none"/>
+                    <!-- 작은 점들 (거래 느낌) -->
+                    <circle cx="6" cy="16" r="1.5" fill="#13C1CA"/>
+                    <circle cx="26" cy="16" r="1.5" fill="#13C1CA"/>
+                </svg>
                 <span class="logo-text">Pick Swap</span>
             </a>
             
