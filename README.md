@@ -2,6 +2,47 @@
 
 토스페이먼츠를 연동한 실전형 결제 시스템 MVP입니다.
 
+## 🆕 Pick Swap - 중고 거래 플랫폼 (신규 추가!)
+
+PayFlow에 **Pick Swap 중고 거래 플랫폼**의 상품 관리 기능이 추가되었습니다!
+
+### 주요 기능
+- ✅ **Home Feed**: 최신 상품 리스트 (Flutter 앱 메인 화면용)
+- ✅ **카테고리별 조회**: 전자기기, 패션, 가전, 가구 등 11개 카테고리
+- ✅ **검색 기능**: 키워드, 가격 범위, 지역별 검색
+- ✅ **상품 관리**: 등록, 수정, 삭제, 판매 완료 처리
+- ✅ **인기 상품**: 좋아요 많은 순 정렬
+- ✅ **판매자 상품**: 판매자별 상품 목록
+- ✅ **좋아요 기능**: 상품 좋아요/취소
+
+### Flutter 앱 연동
+상세한 API 문서는 [PRODUCT_API_GUIDE.md](PRODUCT_API_GUIDE.md)를 참고하세요.
+
+**주요 API:**
+```bash
+# Home Feed (최신 상품 20개)
+GET /api/products/feed?page=0&size=20
+
+# 카테고리별 조회
+GET /api/products/category/ELECTRONICS?page=0&size=20
+
+# 키워드 검색
+GET /api/products/search?keyword=아이폰&page=0&size=20
+
+# 상품 상세
+GET /api/products/{productId}
+
+# 상품 등록
+POST /api/products
+```
+
+### 테스트
+```powershell
+.\test-product-api.ps1
+```
+
+이 스크립트는 Home Feed, 카테고리 조회, 검색, 상품 등록/수정/삭제 등 모든 기능을 테스트합니다.
+
 ## 아키텍처
 
 ### MSA (Microservices Architecture)

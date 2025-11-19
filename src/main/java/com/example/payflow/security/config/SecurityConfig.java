@@ -75,6 +75,8 @@ public class SecurityConfig {
                         .requestMatchers("/ainjob/**").permitAll()  // AINJOB 웹 페이지 허용 (개발용)
                         .requestMatchers("/api/ainjob/**").permitAll()  // AINJOB API 허용 (개발용)
                         // TODO: 프로덕션에서는 .requestMatchers("/api/ainjob/**").hasAnyRole("USER", "ADMIN")으로 변경
+                        .requestMatchers("/api/products/**").permitAll()  // Pick Swap 상품 API 허용 (개발용)
+                        // TODO: 프로덕션에서는 .requestMatchers("/api/products/**").hasAnyRole("USER", "ADMIN")으로 변경
                         .requestMatchers("/api/stages/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
