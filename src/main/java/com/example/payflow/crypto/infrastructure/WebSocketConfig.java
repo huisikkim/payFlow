@@ -12,9 +12,17 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 public class WebSocketConfig implements WebSocketConfigurer {
     
     private final CryptoWebSocketHandler cryptoWebSocketHandler;
+    private final BithumbWebSocketHandler bithumbWebSocketHandler;
     
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
+        registry.addHandler(cryptoWebSocketHandler, "/ws/crypto/upbit")
+                .setAllowedOrigins("*");
+        
+        registry.addHandler(bithumbWebSocketHandler, "/ws/crypto/bithumb")
+                .setAllowedOrigins("*");
+        
+        // 레거시 호환
         registry.addHandler(cryptoWebSocketHandler, "/ws/crypto")
                 .setAllowedOrigins("*");
     }

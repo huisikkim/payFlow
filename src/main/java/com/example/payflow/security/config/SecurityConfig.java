@@ -83,7 +83,7 @@ public class SecurityConfig {
                         // TODO: 프로덕션에서는 등록/수정/삭제/입찰만 인증 필요하도록 변경
                         .requestMatchers("/crypto/**").permitAll()  // 코인 시세 웹 페이지 허용
                         .requestMatchers("/api/crypto/**").permitAll()  // 코인 시세 API 허용
-                        .requestMatchers("/ws/crypto").permitAll()  // 코인 시세 웹소켓 허용
+                        .requestMatchers("/ws/crypto", "/ws/crypto/**").permitAll()  // 코인 시세 웹소켓 허용
                         .requestMatchers("/api/stages/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()

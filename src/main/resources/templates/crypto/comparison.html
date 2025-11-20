@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exchange Comparison - Arbitrage Opportunities</title>
+    <link rel="stylesheet" th:href="@{/css/crypto-comparison.css}">
+</head>
+<body>
+    <!-- 헤더 -->
+    <div class="terminal-header">
+        <div class="terminal-title">
+            <h1>MARKET ANALYSIS</h1>
+            <span class="terminal-badge">LIVE</span>
+        </div>
+        <div class="terminal-nav">
+            <a href="/crypto" class="nav-link">Terminal</a>
+            <a href="/crypto/comparison" class="nav-link active">Analysis</a>
+        </div>
+        <div class="terminal-status">
+            <div class="status-item">
+                <div class="status-dot upbit-dot" id="upbitDot"></div>
+                <span>Upbit</span>
+            </div>
+            <div class="status-item">
+                <div class="status-dot bithumb-dot" id="bithumbDot"></div>
+                <span>Bithumb</span>
+            </div>
+            <div class="status-item">
+                <span id="updateTime">--:--:--</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 메인 컨테이너 -->
+    <div class="container">
+        <!-- 차익거래 알림 -->
+        <div class="arbitrage-alert" id="arbitrageAlert" style="display: none;">
+            <div class="alert-icon">💰</div>
+            <div class="alert-content">
+                <div class="alert-title">Arbitrage Opportunity Detected!</div>
+                <div class="alert-desc" id="alertDesc"></div>
+            </div>
+        </div>
+
+        <!-- 통계 카드 -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">평균 가격 차이</div>
+                <div class="stat-value" id="avgDiff">0%</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">최대 차익 기회</div>
+                <div class="stat-value highlight" id="maxOpportunity">0%</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">차익거래 기회 (≥1%)</div>
+                <div class="stat-value" style="color: #16a34a;" id="arbitrageCount">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">총 거래량 (24시간)</div>
+                <div class="stat-value" id="totalVolume">0</div>
+            </div>
+        </div>
+
+        <!-- 로딩 -->
+        <div id="loading" class="loading">
+            Loading comparison data...
+        </div>
+
+        <!-- 비교 테이블 -->
+        <div id="comparisonTable" class="comparison-table" style="display: none;">
+            <div class="table-header">
+                <div>코인</div>
+                <div>업비트 가격</div>
+                <div>빗썸 가격</div>
+                <div>가격 차이</div>
+                <div>저렴한 곳</div>
+                <div class="hide-mobile">거래량 (24시간)</div>
+            </div>
+            <div id="comparisonRows"></div>
+        </div>
+    </div>
+
+    <script th:src="@{/js/crypto-comparison.js}"></script>
+</body>
+</html>

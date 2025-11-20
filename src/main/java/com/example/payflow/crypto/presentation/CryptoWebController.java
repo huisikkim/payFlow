@@ -12,4 +12,9 @@ public class CryptoWebController {
     public String cryptoPage() {
         return "crypto/index";
     }
+    
+    @GetMapping("/comparison")
+    public String comparisonPage() {
+        return "crypto/comparison";
+    }
 }
