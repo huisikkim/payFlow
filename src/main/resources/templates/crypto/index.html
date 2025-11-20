@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>실시간 코인 시세 - PayFlow</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .status {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 15px 25px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4ade80;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .ticker-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .ticker-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .ticker-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        .ticker-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .ticker-name {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .ticker-korean {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #1f2937;
+        }
+
+        .ticker-market {
+            font-size: 0.9rem;
+            color: #6b7280;
+            margin-top: 2px;
+        }
+
+        .ticker-change {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 0.95rem;
+        }
+
+        .ticker-change.rise {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .ticker-change.fall {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        .ticker-change.even {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .ticker-price {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 15px;
+        }
+
+        .ticker-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
+
+        .stat-value {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .stat-value.high {
+            color: #dc2626;
+        }
+
+        .stat-value.low {
+            color: #2563eb;
+        }
+
+        .ticker-volume {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .volume-label {
+            font-size: 0.85rem;
+            color: #6b7280;
+            margin-bottom: 5px;
+        }
+
+        .volume-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #7c3aed;
+        }
+
+        .loading {
+            text-align: center;
+            color: white;
+            font-size: 1.2rem;
+            padding: 50px;
+        }
+
+        .error {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        @media (max-width: 768px) {
+            .ticker-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .status {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🪙 실시간 코인 시세</h1>
+            <p>업비트 웹소켓 실시간 데이터</p>
+        </div>
+
+        <div class="status">
+            <div class="status-indicator">
+                <div class="status-dot" id="statusDot"></div>
+                <span id="statusText">연결 중...</span>
+            </div>
+            <div id="updateTime">-</div>
+        </div>
+
+        <div id="loading" class="loading">
+            데이터를 불러오는 중...
+        </div>
+
+        <div id="error" class="error" style="display: none;">
+            연결에 실패했습니다. 페이지를 새로고침해주세요.
+        </div>
+
+        <div id="tickerGrid" class="ticker-grid" style="display: none;">
+        </div>
+    </div>
+
+    <script>
+        let ws;
+        const tickers = new Map();
+
+        function connect() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws/crypto`;
+            
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                console.log('✅ 웹소켓 연결 성공');
+                document.getElementById('statusText').textContent = '실시간 연결됨';
+                document.getElementById('statusDot').style.background = '#4ade80';
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'none';
+                document.getElementById('tickerGrid').style.display = 'grid';
+            };
+
+            ws.onmessage = (event) => {
+                try {
+                    const ticker = JSON.parse(event.data);
+                    tickers.set(ticker.market, ticker);
+                    updateUI();
+                } catch (error) {
+                    console.error('메시지 파싱 에러:', error);
+                }
+            };
+
+            ws.onerror = (error) => {
+                console.error('❌ 웹소켓 에러:', error);
+                document.getElementById('statusText').textContent = '연결 오류';
+                document.getElementById('statusDot').style.background = '#ef4444';
+                document.getElementById('error').style.display = 'block';
+            };
+
+            ws.onclose = () => {
+                console.log('❌ 웹소켓 연결 종료');
+                document.getElementById('statusText').textContent = '연결 끊김';
+                document.getElementById('statusDot').style.background = '#ef4444';
+                
+                // 5초 후 재연결 시도
+                setTimeout(() => {
+                    console.log('🔄 재연결 시도...');
+                    connect();
+                }, 5000);
+            };
+        }
+
+        function updateUI() {
+            const grid = document.getElementById('tickerGrid');
+            const sortedTickers = Array.from(tickers.values())
+                .sort((a, b) => b.accTradePrice24h - a.accTradePrice24h);
+
+            grid.innerHTML = sortedTickers.map(ticker => createTickerCard(ticker)).join('');
+            
+            const now = new Date();
+            document.getElementById('updateTime').textContent = 
+                `마지막 업데이트: ${now.toLocaleTimeString('ko-KR')}`;
+        }
+
+        function createTickerCard(ticker) {
+            const changeClass = ticker.change === 'RISE' ? 'rise' : 
+                               ticker.change === 'FALL' ? 'fall' : 'even';
+            
+            const changeSymbol = ticker.change === 'RISE' ? '▲' : 
+                                ticker.change === 'FALL' ? '▼' : '-';
+            
+            const changeRate = Math.abs(ticker.signedChangeRate).toFixed(2);
+            const changePrice = Math.abs(ticker.changePrice).toLocaleString('ko-KR');
+
+            return `
+                <div class="ticker-card">
+                    <div class="ticker-header">
+                        <div class="ticker-name">
+                            <div class="ticker-korean">${ticker.koreanName}</div>
+                            <div class="ticker-market">${ticker.market}</div>
+                        </div>
+                        <div class="ticker-change ${changeClass}">
+                            ${changeSymbol} ${changeRate}%
+                        </div>
+                    </div>
+
+                    <div class="ticker-price">
+                        ${formatPrice(ticker.tradePrice)}
+                    </div>
+
+                    <div class="ticker-stats">
+                        <div class="stat-item">
+                            <div class="stat-label">전일대비</div>
+                            <div class="stat-value ${changeClass}">
+                                ${ticker.signedChangeRate > 0 ? '+' : ''}${changePrice}원
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">시가</div>
+                            <div class="stat-value">
+                                ${formatPrice(ticker.openingPrice)}
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">고가</div>
+                            <div class="stat-value high">
+                                ${formatPrice(ticker.highPrice)}
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">저가</div>
+                            <div class="stat-value low">
+                                ${formatPrice(ticker.lowPrice)}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ticker-volume">
+                        <div class="volume-label">24시간 거래대금</div>
+                        <div class="volume-value">
+                            ${formatVolume(ticker.accTradePrice24h)}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function formatPrice(price) {
+            if (price >= 1000) {
+                return price.toLocaleString('ko-KR', {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                }) + '원';
+            } else if (price >= 1) {
+                return price.toLocaleString('ko-KR', {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 2
+                }) + '원';
+            } else {
+                return price.toLocaleString('ko-KR', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 4
+                }) + '원';
+            }
+        }
+
+        function formatVolume(volume) {
+            if (volume >= 100000000) {
+                return (volume / 100000000).toFixed(0) + '억원';
+            } else if (volume >= 10000) {
+                return (volume / 10000).toFixed(0) + '만원';
+            } else {
+                return volume.toLocaleString('ko-KR') + '원';
+            }
+        }
+
+        // 페이지 로드 시 연결
+        connect();
+    </script>
+</body>
+</html>
