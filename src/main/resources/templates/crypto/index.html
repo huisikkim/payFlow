@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>실시간 코인 시세 - PayFlow</title>
+    <title>Crypto Terminal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -12,250 +15,417 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0d0d0d;
+            color: #e0e0e0;
             min-height: 100vh;
-            padding: 20px;
+            overflow-x: hidden;
         }
 
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .header {
-            text-align: center;
-            color: white;
-            margin-bottom: 30px;
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-        }
-
-        .header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-
-        .status {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 15px 25px;
-            margin-bottom: 20px;
+        /* 터미널 헤더 */
+        .terminal-header {
+            background: #1a1a1a;
+            border-bottom: 1px solid #2a2a2a;
+            padding: 16px 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
         }
 
-        .status-indicator {
+        .terminal-title {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+        }
+
+        .terminal-title h1 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #ffffff;
+            letter-spacing: -0.5px;
+        }
+
+        .terminal-badge {
+            background: #16a34a;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .terminal-status {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .status-dot {
-            width: 12px;
-            height: 12px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
-            background: #4ade80;
-            animation: pulse 2s infinite;
+            background: #16a34a;
+            animation: pulse 2s ease-in-out infinite;
         }
 
         @keyframes pulse {
             0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+            50% { opacity: 0.4; }
         }
 
-        .ticker-grid {
+        /* 메인 컨테이너 */
+        .container {
+            max-width: 1920px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        /* 마켓 오버뷰 */
+        .market-overview {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
         }
 
-        .ticker-card {
-            background: white;
-            border-radius: 15px;
+        .overview-card {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            padding: 16px;
+            transition: all 0.2s;
+        }
+
+        .overview-card:hover {
+            border-color: #3a3a3a;
+            background: #1f1f1f;
+        }
+
+        .overview-label {
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .overview-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        /* 티커 테이블 */
+        .ticker-table {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .table-header {
+            display: grid;
+            grid-template-columns: 2fr 1.5fr 1fr 1fr 1fr 1.5fr;
+            gap: 16px;
+            padding: 16px 20px;
+            background: #151515;
+            border-bottom: 1px solid #2a2a2a;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .ticker-row {
+            display: grid;
+            grid-template-columns: 2fr 1.5fr 1fr 1fr 1fr 1.5fr;
+            gap: 16px;
             padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .ticker-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
-        }
-
-        .ticker-header {
-            display: flex;
-            justify-content: space-between;
+            border-bottom: 1px solid #2a2a2a;
+            transition: all 0.2s;
+            cursor: pointer;
             align-items: center;
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #f0f0f0;
         }
 
-        .ticker-name {
+        .ticker-row:hover {
+            background: #1f1f1f;
+        }
+
+        .ticker-row:last-child {
+            border-bottom: none;
+        }
+
+        .ticker-name-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .ticker-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: white;
+        }
+
+        .ticker-info {
             display: flex;
             flex-direction: column;
+            gap: 2px;
         }
 
         .ticker-korean {
-            font-size: 1.3rem;
-            font-weight: bold;
-            color: #1f2937;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #ffffff;
         }
 
         .ticker-market {
-            font-size: 0.9rem;
-            color: #6b7280;
-            margin-top: 2px;
-        }
-
-        .ticker-change {
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 0.95rem;
-        }
-
-        .ticker-change.rise {
-            background: #fee2e2;
-            color: #dc2626;
-        }
-
-        .ticker-change.fall {
-            background: #dbeafe;
-            color: #2563eb;
-        }
-
-        .ticker-change.even {
-            background: #f3f4f6;
-            color: #6b7280;
+            font-size: 0.75rem;
+            color: #666;
+            font-family: 'JetBrains Mono', monospace;
         }
 
         .ticker-price {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #1f2937;
-            margin-bottom: 15px;
-        }
-
-        .ticker-stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-
-        .stat-item {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .stat-label {
-            font-size: 0.85rem;
-            color: #6b7280;
-        }
-
-        .stat-value {
-            font-size: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
             font-weight: 600;
-            color: #1f2937;
+            color: #ffffff;
         }
 
-        .stat-value.high {
+        .ticker-change {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .ticker-change.rise {
+            color: #16a34a;
+        }
+
+        .ticker-change.fall {
             color: #dc2626;
         }
 
-        .stat-value.low {
-            color: #2563eb;
+        .ticker-change.even {
+            color: #888;
+        }
+
+        .change-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .change-badge.rise {
+            background: rgba(22, 163, 74, 0.15);
+            color: #16a34a;
+        }
+
+        .change-badge.fall {
+            background: rgba(220, 38, 38, 0.15);
+            color: #dc2626;
+        }
+
+        .ticker-stat {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: #aaa;
         }
 
         .ticker-volume {
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid #f0f0f0;
-        }
-
-        .volume-label {
+            font-family: 'JetBrains Mono', monospace;
             font-size: 0.85rem;
-            color: #6b7280;
-            margin-bottom: 5px;
+            color: #888;
         }
 
-        .volume-value {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #7c3aed;
-        }
-
+        /* 로딩 & 에러 */
         .loading {
             text-align: center;
-            color: white;
-            font-size: 1.2rem;
-            padding: 50px;
+            padding: 80px 20px;
+            color: #666;
+            font-size: 0.95rem;
         }
 
         .error {
-            background: #fee2e2;
+            background: rgba(220, 38, 38, 0.1);
+            border: 1px solid rgba(220, 38, 38, 0.3);
             color: #dc2626;
             padding: 20px;
-            border-radius: 10px;
+            border-radius: 8px;
             text-align: center;
-            margin: 20px 0;
+            margin: 20px;
+        }
+
+        /* 반응형 */
+        @media (max-width: 1200px) {
+            .table-header,
+            .ticker-row {
+                grid-template-columns: 2fr 1.5fr 1fr 1fr;
+            }
+
+            .table-header .hide-mobile,
+            .ticker-row .hide-mobile {
+                display: none;
+            }
         }
 
         @media (max-width: 768px) {
-            .ticker-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .header h1 {
-                font-size: 2rem;
-            }
-
-            .status {
+            .terminal-header {
                 flex-direction: column;
-                gap: 10px;
+                gap: 12px;
+                align-items: flex-start;
             }
+
+            .market-overview {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .table-header,
+            .ticker-row {
+                grid-template-columns: 2fr 1.2fr 1fr;
+                gap: 12px;
+                padding: 16px;
+            }
+
+            .ticker-icon {
+                width: 28px;
+                height: 28px;
+                font-size: 0.75rem;
+            }
+
+            .ticker-korean {
+                font-size: 0.85rem;
+            }
+
+            .ticker-price {
+                font-size: 0.95rem;
+            }
+        }
+
+        /* 스크롤바 스타일 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #3a3a3a;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4a4a4a;
+        }
+
+        /* 업데이트 애니메이션 */
+        @keyframes flash {
+            0%, 100% { background: transparent; }
+            50% { background: rgba(59, 130, 246, 0.1); }
+        }
+
+        .ticker-row.updated {
+            animation: flash 0.5s ease-in-out;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🪙 실시간 코인 시세</h1>
-            <p>업비트 웹소켓 실시간 데이터</p>
+    <!-- 터미널 헤더 -->
+    <div class="terminal-header">
+        <div class="terminal-title">
+            <h1>CRYPTO TERMINAL</h1>
+            <span class="terminal-badge" id="statusBadge">LIVE</span>
         </div>
-
-        <div class="status">
-            <div class="status-indicator">
+        <div class="terminal-status">
+            <div class="status-item">
                 <div class="status-dot" id="statusDot"></div>
-                <span id="statusText">연결 중...</span>
+                <span id="statusText">Connected</span>
             </div>
-            <div id="updateTime">-</div>
+            <div class="status-item">
+                <span id="updateTime">--:--:--</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 메인 컨테이너 -->
+    <div class="container">
+        <!-- 마켓 오버뷰 -->
+        <div class="market-overview" id="marketOverview">
+            <div class="overview-card">
+                <div class="overview-label">Total Markets</div>
+                <div class="overview-value" id="totalMarkets">0</div>
+            </div>
+            <div class="overview-card">
+                <div class="overview-label">24h Volume</div>
+                <div class="overview-value" id="totalVolume">0</div>
+            </div>
+            <div class="overview-card">
+                <div class="overview-label">Gainers</div>
+                <div class="overview-value" style="color: #16a34a;" id="gainers">0</div>
+            </div>
+            <div class="overview-card">
+                <div class="overview-label">Losers</div>
+                <div class="overview-value" style="color: #dc2626;" id="losers">0</div>
+            </div>
         </div>
 
+        <!-- 로딩 -->
         <div id="loading" class="loading">
-            데이터를 불러오는 중...
+            Connecting to market data...
         </div>
 
+        <!-- 에러 -->
         <div id="error" class="error" style="display: none;">
-            연결에 실패했습니다. 페이지를 새로고침해주세요.
+            Connection failed. Please refresh the page.
         </div>
 
-        <div id="tickerGrid" class="ticker-grid" style="display: none;">
+        <!-- 티커 테이블 -->
+        <div id="tickerTable" class="ticker-table" style="display: none;">
+            <div class="table-header">
+                <div>Market</div>
+                <div>Price</div>
+                <div>Change</div>
+                <div class="hide-mobile">High</div>
+                <div class="hide-mobile">Low</div>
+                <div>24h Volume</div>
+            </div>
+            <div id="tickerRows"></div>
         </div>
     </div>
 
     <script>
         let ws;
         const tickers = new Map();
+        let lastUpdate = new Map();
 
         function connect() {
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -264,115 +434,111 @@
             ws = new WebSocket(wsUrl);
 
             ws.onopen = () => {
-                console.log('✅ 웹소켓 연결 성공');
-                document.getElementById('statusText').textContent = '실시간 연결됨';
-                document.getElementById('statusDot').style.background = '#4ade80';
+                console.log('✅ Connected');
+                document.getElementById('statusText').textContent = 'Connected';
+                document.getElementById('statusBadge').textContent = 'LIVE';
+                document.getElementById('statusDot').style.background = '#16a34a';
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('error').style.display = 'none';
-                document.getElementById('tickerGrid').style.display = 'grid';
+                document.getElementById('tickerTable').style.display = 'block';
             };
 
             ws.onmessage = (event) => {
                 try {
                     const ticker = JSON.parse(event.data);
+                    const prevTicker = tickers.get(ticker.market);
                     tickers.set(ticker.market, ticker);
+                    
+                    // 가격 변동 체크
+                    if (prevTicker && prevTicker.tradePrice !== ticker.tradePrice) {
+                        lastUpdate.set(ticker.market, Date.now());
+                    }
+                    
                     updateUI();
                 } catch (error) {
-                    console.error('메시지 파싱 에러:', error);
+                    console.error('Parse error:', error);
                 }
             };
 
             ws.onerror = (error) => {
-                console.error('❌ 웹소켓 에러:', error);
-                document.getElementById('statusText').textContent = '연결 오류';
-                document.getElementById('statusDot').style.background = '#ef4444';
+                console.error('❌ Connection error:', error);
+                document.getElementById('statusText').textContent = 'Error';
+                document.getElementById('statusBadge').textContent = 'ERROR';
+                document.getElementById('statusDot').style.background = '#dc2626';
                 document.getElementById('error').style.display = 'block';
             };
 
             ws.onclose = () => {
-                console.log('❌ 웹소켓 연결 종료');
-                document.getElementById('statusText').textContent = '연결 끊김';
-                document.getElementById('statusDot').style.background = '#ef4444';
+                console.log('❌ Disconnected');
+                document.getElementById('statusText').textContent = 'Disconnected';
+                document.getElementById('statusBadge').textContent = 'OFFLINE';
+                document.getElementById('statusDot').style.background = '#dc2626';
                 
-                // 5초 후 재연결 시도
                 setTimeout(() => {
-                    console.log('🔄 재연결 시도...');
+                    console.log('🔄 Reconnecting...');
                     connect();
                 }, 5000);
             };
         }
 
         function updateUI() {
-            const grid = document.getElementById('tickerGrid');
             const sortedTickers = Array.from(tickers.values())
                 .sort((a, b) => b.accTradePrice24h - a.accTradePrice24h);
 
-            grid.innerHTML = sortedTickers.map(ticker => createTickerCard(ticker)).join('');
+            updateOverview(sortedTickers);
+            updateTable(sortedTickers);
             
             const now = new Date();
-            document.getElementById('updateTime').textContent = 
-                `마지막 업데이트: ${now.toLocaleTimeString('ko-KR')}`;
+            document.getElementById('updateTime').textContent = now.toLocaleTimeString('ko-KR');
         }
 
-        function createTickerCard(ticker) {
+        function updateOverview(sortedTickers) {
+            const totalVolume = sortedTickers.reduce((sum, t) => sum + parseFloat(t.accTradePrice24h), 0);
+            const gainers = sortedTickers.filter(t => t.change === 'RISE').length;
+            const losers = sortedTickers.filter(t => t.change === 'FALL').length;
+
+            document.getElementById('totalMarkets').textContent = sortedTickers.length;
+            document.getElementById('totalVolume').textContent = formatVolume(totalVolume);
+            document.getElementById('gainers').textContent = gainers;
+            document.getElementById('losers').textContent = losers;
+        }
+
+        function updateTable(sortedTickers) {
+            const rows = document.getElementById('tickerRows');
+            rows.innerHTML = sortedTickers.map(ticker => createTickerRow(ticker)).join('');
+        }
+
+        function createTickerRow(ticker) {
             const changeClass = ticker.change === 'RISE' ? 'rise' : 
                                ticker.change === 'FALL' ? 'fall' : 'even';
             
             const changeSymbol = ticker.change === 'RISE' ? '▲' : 
-                                ticker.change === 'FALL' ? '▼' : '-';
+                                ticker.change === 'FALL' ? '▼' : '—';
             
             const changeRate = Math.abs(ticker.signedChangeRate).toFixed(2);
-            const changePrice = Math.abs(ticker.changePrice).toLocaleString('ko-KR');
+            const isUpdated = lastUpdate.has(ticker.market) && 
+                            (Date.now() - lastUpdate.get(ticker.market)) < 1000;
+
+            const initial = ticker.koreanName.charAt(0);
 
             return `
-                <div class="ticker-card">
-                    <div class="ticker-header">
-                        <div class="ticker-name">
+                <div class="ticker-row ${isUpdated ? 'updated' : ''}">
+                    <div class="ticker-name-cell">
+                        <div class="ticker-icon">${initial}</div>
+                        <div class="ticker-info">
                             <div class="ticker-korean">${ticker.koreanName}</div>
                             <div class="ticker-market">${ticker.market}</div>
                         </div>
-                        <div class="ticker-change ${changeClass}">
+                    </div>
+                    <div class="ticker-price">${formatPrice(ticker.tradePrice)}</div>
+                    <div class="ticker-change ${changeClass}">
+                        <span class="change-badge ${changeClass}">
                             ${changeSymbol} ${changeRate}%
-                        </div>
+                        </span>
                     </div>
-
-                    <div class="ticker-price">
-                        ${formatPrice(ticker.tradePrice)}
-                    </div>
-
-                    <div class="ticker-stats">
-                        <div class="stat-item">
-                            <div class="stat-label">전일대비</div>
-                            <div class="stat-value ${changeClass}">
-                                ${ticker.signedChangeRate > 0 ? '+' : ''}${changePrice}원
-                            </div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-label">시가</div>
-                            <div class="stat-value">
-                                ${formatPrice(ticker.openingPrice)}
-                            </div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-label">고가</div>
-                            <div class="stat-value high">
-                                ${formatPrice(ticker.highPrice)}
-                            </div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-label">저가</div>
-                            <div class="stat-value low">
-                                ${formatPrice(ticker.lowPrice)}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="ticker-volume">
-                        <div class="volume-label">24시간 거래대금</div>
-                        <div class="volume-value">
-                            ${formatVolume(ticker.accTradePrice24h)}
-                        </div>
-                    </div>
+                    <div class="ticker-stat hide-mobile">${formatPrice(ticker.highPrice)}</div>
+                    <div class="ticker-stat hide-mobile">${formatPrice(ticker.lowPrice)}</div>
+                    <div class="ticker-volume">${formatVolume(ticker.accTradePrice24h)}</div>
                 </div>
             `;
         }
@@ -382,31 +548,31 @@
                 return price.toLocaleString('ko-KR', {
                     minimumFractionDigits: 0,
                     maximumFractionDigits: 0
-                }) + '원';
+                });
             } else if (price >= 1) {
                 return price.toLocaleString('ko-KR', {
                     minimumFractionDigits: 0,
                     maximumFractionDigits: 2
-                }) + '원';
+                });
             } else {
                 return price.toLocaleString('ko-KR', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 4
-                }) + '원';
+                });
             }
         }
 
         function formatVolume(volume) {
             if (volume >= 100000000) {
-                return (volume / 100000000).toFixed(0) + '억원';
+                return (volume / 100000000).toFixed(0) + '억';
             } else if (volume >= 10000) {
-                return (volume / 10000).toFixed(0) + '만원';
+                return (volume / 10000).toFixed(0) + '만';
             } else {
-                return volume.toLocaleString('ko-KR') + '원';
+                return volume.toLocaleString('ko-KR');
             }
         }
 
-        // 페이지 로드 시 연결
+        // 연결 시작
         connect();
     </script>
 </body>
