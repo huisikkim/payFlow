@@ -96,12 +96,22 @@ public class ProductService {
     }
     
     /**
-     * 판매자의 상품 목록 조회
+     * 판매자의 상품 목록 조회 (ID 기준)
      */
     public Page<ProductResponse> getSellerProducts(Long sellerId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Product> products = productRepository.findBySellerIdAndStatusOrderByCreatedAtDesc(
                 sellerId, ProductStatus.AVAILABLE, pageable);
+        return products.map(ProductResponse::from);
+    }
+    
+    /**
+     * 판매자의 상품 목록 조회 (이름 기준)
+     */
+    public Page<ProductResponse> getProductsBySellerName(String sellerName, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Product> products = productRepository.findBySellerNameAndStatusOrderByCreatedAtDesc(
+                sellerName, ProductStatus.AVAILABLE, pageable);
         return products.map(ProductResponse::from);
     }
     

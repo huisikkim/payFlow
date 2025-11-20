@@ -18,9 +18,13 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     Page<Product> findByCategoryAndStatusOrderByCreatedAtDesc(
             ProductCategory category, ProductStatus status, Pageable pageable);
     
-    // 판매자별 상품 조회
+    // 판매자별 상품 조회 (ID 기준)
     Page<Product> findBySellerIdAndStatusOrderByCreatedAtDesc(
             Long sellerId, ProductStatus status, Pageable pageable);
+    
+    // 판매자별 상품 조회 (이름 기준)
+    Page<Product> findBySellerNameAndStatusOrderByCreatedAtDesc(
+            String sellerName, ProductStatus status, Pageable pageable);
     
     // 가격 범위로 검색
     Page<Product> findByStatusAndPriceBetweenOrderByCreatedAtDesc(

@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -145,12 +146,19 @@ public class ProductController {
     @GetMapping("/my")
     public ResponseEntity<Page<ProductResponse>> getMyProducts(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "100") int size) {
+            @RequestParam(defaultValue = "100") int size,
+            Authentication authentication) {
         
-        log.info("내 상품 조회 요청: page={}, size={}", page, size);
-        // TODO: 실제로는 SecurityContext에서 현재 사용자 ID를 가져와야 함
-        // 현재는 개발 단계이므로 임시로 sellerId=1 사용
-        Page<ProductResponse> products = productService.getSellerProducts(1L, page, size);
+        if (authentication == null) {
+            log.warn("인증되지 않은 사용자의 내 상품 조회 시도");
+            return ResponseEntity.ok(Page.empty());
+        }
+        
+        String username = authentication.getName();
+        log.info("내 상품 조회 요청: username={}, page={}, size={}", username, page, size);
+        
+        // username으로 상품 조회 (sellerName 기준)
+        Page<ProductResponse> products = productService.getProductsBySellerName(username, page, size);
         return ResponseEntity.ok(products);
     }
     
