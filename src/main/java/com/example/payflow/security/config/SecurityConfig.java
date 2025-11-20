@@ -72,8 +72,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/hr/**").hasAnyRole("USER", "ADMIN")  // HR API (인증 필요)
                         .requestMatchers("/recruitment/**").permitAll()  // 채용 시스템 웹 페이지 허용 (개발용)
                         .requestMatchers("/api/recruitment/**").hasAnyRole("USER", "ADMIN")  // 채용 시스템 API (인증 필요)
-                        .requestMatchers("/ainjob/**").permitAll()  // AINJOB 웹 페이지 허용 (개발용)
-                        .requestMatchers("/api/ainjob/**").permitAll()  // AINJOB API 허용 (개발용)
+                        .requestMatchers("/ainjob/**").permitAll()  // 직잇다 웹 페이지 허용 (개발용)
+                        .requestMatchers("/api/ainjob/**").permitAll()  // 직잇다 API 허용 (개발용)
                         // TODO: 프로덕션에서는 .requestMatchers("/api/ainjob/**").hasAnyRole("USER", "ADMIN")으로 변경
                         .requestMatchers("/pickswap/**").permitAll()  // Pick Swap 웹 페이지 (개발용: 모두 허용, JavaScript에서 로그인 체크)
                         .requestMatchers("/api/products/**").permitAll()  // Pick Swap API (개발용: 모두 허용)
