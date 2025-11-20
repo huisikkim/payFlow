@@ -5,6 +5,7 @@ import com.example.payflow.auction.application.BidService;
 import com.example.payflow.auction.application.dto.AuctionResponse;
 import com.example.payflow.auction.application.dto.BidResponse;
 import com.example.payflow.product.application.ProductService;
+import com.example.payflow.product.application.dto.ProductDetailResponse;
 import com.example.payflow.product.application.dto.ProductResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -96,13 +97,20 @@ public class AuctionWebController {
         AuctionResponse auction = auctionService.getAuctionWithViewCount(id);
         List<BidResponse> bids = bidService.getBidsByAuction(id);
         
+        // 상품 정보 조회
+        ProductDetailResponse product = productService.getProductDetail(auction.getProductId());
+        
         model.addAttribute("auction", auction);
+        model.addAttribute("product", product);
         model.addAttribute("bids", bids);
         
         if (authentication != null) {
             String username = authentication.getName();
             model.addAttribute("isOwner", auction.getSellerId().equals(username));
             model.addAttribute("currentUser", username);
+        } else {
+            model.addAttribute("isOwner", false);
+            model.addAttribute("currentUser", null);
         }
         
         return "auction/auction-detail";
