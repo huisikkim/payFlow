@@ -5,5 +5,6 @@ public enum ProductStatus {
     RESERVED,       // 예약됨
     SOLD,           // 판매 완료
     HIDDEN,         // 숨김
-    DELETED         // 삭제됨
+    DELETED,        // 삭제됨
+    AUCTION_ACTIVE  // 경매 진행 중
 }

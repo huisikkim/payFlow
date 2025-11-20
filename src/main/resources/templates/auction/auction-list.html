@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>경매 목록 - PickSwap</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; }
+        .header { background: white; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .header h1 { font-size: 24px; color: #333; }
+        .nav { display: flex; gap: 10px; margin-top: 15px; }
+        .nav a { padding: 10px 20px; background: #f0f0f0; border-radius: 8px; text-decoration: none; color: #666; }
+        .nav a.active { background: #4CAF50; color: white; }
+        .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
+        .auction-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .auction-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: transform 0.2s; }
+        .auction-card:hover { transform: translateY(-4px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .auction-image { width: 100%; height: 200px; object-fit: cover; background: #e0e0e0; }
+        .auction-content { padding: 15px; }
+        .auction-title { font-size: 16px; font-weight: 600; margin-bottom: 8px; color: #333; }
+        .auction-price { font-size: 20px; font-weight: bold; color: #4CAF50; margin: 10px 0; }
+        .auction-info { display: flex; justify-content: space-between; font-size: 14px; color: #666; margin-top: 10px; }
+        .auction-timer { color: #ff5722; font-weight: 600; }
+        .auction-status { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+        .status-active { background: #e8f5e9; color: #4CAF50; }
+        .status-scheduled { background: #fff3e0; color: #ff9800; }
+        .status-ended { background: #f5f5f5; color: #999; }
+        .pagination { display: flex; justify-content: center; gap: 10px; margin: 30px 0; }
+        .pagination a { padding: 8px 12px; background: white; border-radius: 6px; text-decoration: none; color: #666; }
+        .pagination a.active { background: #4CAF50; color: white; }
+        .empty-state { text-align: center; padding: 60px 20px; color: #999; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔨 경매</h1>
+        <div class="nav">
+            <a th:href="@{/pickswap/auctions?tab=active}" th:classappend="${currentTab == 'active'} ? 'active' : ''">진행 중</a>
+            <a th:href="@{/pickswap/auctions?tab=ending-soon}" th:classappend="${currentTab == 'ending-soon'} ? 'active' : ''">마감 임박</a>
+            <a th:href="@{/pickswap/auctions?tab=popular}" th:classappend="${currentTab == 'popular'} ? 'active' : ''">인기 경매</a>
+            <a th:href="@{/pickswap/auctions?tab=scheduled}" th:classappend="${currentTab == 'scheduled'} ? 'active' : ''">예정</a>
+            <a th:href="@{/pickswap/auctions?tab=ended}" th:classappend="${currentTab == 'ended'} ? 'active' : ''">종료</a>
+            <a th:href="@{/pickswap/auctions/my}">내 경매</a>
+            <a th:href="@{/pickswap/auctions/create}" style="margin-left: auto; background: #4CAF50; color: white;">경매 등록</a>
+            <div id="authSection" style="margin-left: 10px;"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="auction-grid" th:if="${!auctions.empty}">
+            <div class="auction-card" th:each="auction : ${auctions}">
+                <a th:href="@{/pickswap/auctions/{id}(id=${auction.id})}" style="text-decoration: none; color: inherit;">
+                    <div class="auction-image"></div>
+                    <div class="auction-content">
+                        <span class="auction-status" 
+                              th:classappend="${auction.status.name() == 'ACTIVE'} ? 'status-active' : 
+                                             (${auction.status.name() == 'SCHEDULED'} ? 'status-scheduled' : 'status-ended')"
+                              th:text="${auction.status.name() == 'ACTIVE'} ? '진행 중' : 
+                                       (${auction.status.name() == 'SCHEDULED'} ? '예정' : '종료')">
+                        </span>
+                        <div class="auction-title" th:text="'경매 #' + ${auction.id}">경매 제목</div>
+                        <div class="auction-price" th:text="${#numbers.formatInteger(auction.currentPrice, 0, 'COMMA')} + '원'">100,000원</div>
+                        <div class="auction-info">
+                            <span>입찰 <span th:text="${auction.bidCount}">0</span>회</span>
+                            <span class="auction-timer" th:attr="data-end-time=${auction.endTime}">계산 중...</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <div class="empty-state" th:if="${auctions.empty}">
+            <p>경매가 없습니다.</p>
+        </div>
+
+        <div class="pagination" th:if="${auctions.totalPages > 1}">
+            <a th:each="i : ${#numbers.sequence(0, auctions.totalPages - 1)}"
+               th:href="@{/pickswap/auctions(tab=${currentTab}, page=${i})}"
+               th:text="${i + 1}"
+               th:classappend="${i == auctions.number} ? 'active' : ''">1</a>
+        </div>
+    </div>
+
+    <script>
+        function updateTimers() {
+            document.querySelectorAll('.auction-timer').forEach(timer => {
+                const endTime = new Date(timer.getAttribute('data-end-time'));
+                const now = new Date();
+                const diff = endTime - now;
+                
+                if (diff <= 0) {
+                    timer.textContent = '종료';
+                    return;
+                }
+                
+                const hours = Math.floor(diff / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                
+                if (hours > 24) {
+                    const days = Math.floor(hours / 24);
+                    timer.textContent = `${days}일 남음`;
+                } else if (hours > 0) {
+                    timer.textContent = `${hours}시간 ${minutes}분`;
+                } else {
+                    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                    timer.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                }
+            });
+        }
+        
+        updateTimers();
+        setInterval(updateTimers, 1000);
+        
+        // 로그인 상태 체크
+        function checkAuth() {
+            const token = localStorage.getItem('jwt_token');
+            const username = localStorage.getItem('username');
+            const authSection = document.getElementById('authSection');
+            
+            if (token && username) {
+                authSection.innerHTML = `
+                    <span style="margin-right: 10px; color: #666;">👤 ${username}</span>
+                    <button onclick="logout()" style="padding: 8px 16px; background: #f44336; color: white; border: none; border-radius: 6px; cursor: pointer;">로그아웃</button>
+                `;
+            } else {
+                authSection.innerHTML = `
+                    <a href="/login?redirect=${encodeURIComponent(location.pathname)}" style="padding: 8px 16px; background: #4CAF50; color: white; text-decoration: none; border-radius: 6px;">로그인</a>
+                `;
+            }
+        }
+        
+        function logout() {
+            localStorage.removeItem('jwt_token');
+            localStorage.removeItem('username');
+            alert('로그아웃되었습니다.');
+            location.reload();
+        }
+        
+        checkAuth();
+    </script>
+</body>
+</html>

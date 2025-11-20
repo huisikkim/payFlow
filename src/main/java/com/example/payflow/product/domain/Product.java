@@ -165,4 +165,9 @@ public class Product {
     public void incrementChatCount() {
         this.chatCount++;
     }
+    
+    public void updateStatus(ProductStatus status) {
+        this.status = status;
+        this.updatedAt = LocalDateTime.now();
+    }
 }

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>경매 상세 - PickSwap</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; }
+        .header { background: white; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .header h1 { font-size: 24px; color: #333; }
+        .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
+        .auction-detail { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        .auction-image { width: 100%; height: 400px; background: #e0e0e0; border-radius: 12px; }
+        .auction-info { background: white; padding: 30px; border-radius: 12px; }
+        .auction-title { font-size: 24px; font-weight: 600; margin-bottom: 20px; }
+        .price-section { background: #f8f8f8; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .current-price { font-size: 32px; font-weight: bold; color: #4CAF50; }
+        .timer { font-size: 24px; color: #ff5722; font-weight: 600; margin: 15px 0; }
+        .bid-form { margin: 20px 0; }
+        .bid-form input { width: 100%; padding: 15px; font-size: 16px; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 10px; }
+        .bid-form button { width: 100%; padding: 15px; font-size: 16px; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; }
+        .btn-bid { background: #4CAF50; color: white; }
+        .btn-buy-now { background: #ff9800; color: white; margin-top: 10px; }
+        .auto-bid-section { background: #e3f2fd; padding: 15px; border-radius: 8px; margin: 20px 0; }
+        .bid-history { background: white; padding: 30px; border-radius: 12px; margin-top: 20px; }
+        .bid-item { padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .bid-item:last-child { border-bottom: none; }
+        .bid-winner { background: #e8f5e9; }
+        .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .info-label { color: #666; }
+        .info-value { font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><a href="/pickswap/auctions" style="text-decoration: none; color: inherit;">← 경매 상세</a></h1>
+    </div>
+
+    <div class="container">
+        <div class="auction-detail">
+            <div>
+                <div class="auction-image"></div>
+            </div>
+            
+            <div class="auction-info">
+                <h2 class="auction-title" th:text="'경매 #' + ${auction.id}">경매 제목</h2>
+                
+                <div class="price-section">
+                    <div style="color: #666; margin-bottom: 5px;">현재가</div>
+                    <div class="current-price" th:text="${#numbers.formatInteger(auction.currentPrice, 0, 'COMMA')} + '원'">100,000원</div>
+                    <div class="timer" th:attr="data-end-time=${auction.endTime}">계산 중...</div>
+                    <div style="color: #666; font-size: 14px;">입찰 <span th:text="${auction.bidCount}">0</span>회 · 조회 <span th:text="${auction.viewCount}">0</span>회</div>
+                </div>
+                
+                <div class="info-row">
+                    <span class="info-label">시작가</span>
+                    <span class="info-value" th:text="${#numbers.formatInteger(auction.startPrice, 0, 'COMMA')} + '원'">50,000원</span>
+                </div>
+                <div class="info-row" th:if="${auction.buyNowPrice != null}">
+                    <span class="info-label">즉시 구매가</span>
+                    <span class="info-value" th:text="${#numbers.formatInteger(auction.buyNowPrice, 0, 'COMMA')} + '원'">200,000원</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">최소 입찰 단위</span>
+                    <span class="info-value" th:text="${#numbers.formatInteger(auction.minBidIncrement, 0, 'COMMA')} + '원'">1,000원</span>
+                </div>
+                
+                <div th:if="${auction.status.name() == 'ACTIVE' && !isOwner}">
+                    <form class="bid-form" onsubmit="placeBid(event)">
+                        <input type="number" id="bidAmount" 
+                               th:value="${auction.currentPrice + auction.minBidIncrement}"
+                               th:min="${auction.currentPrice + auction.minBidIncrement}"
+                               th:step="${auction.minBidIncrement}"
+                               placeholder="입찰 금액" required>
+                        <button type="submit" class="btn-bid">입찰하기</button>
+                    </form>
+                    
+                    <button class="btn-buy-now" th:if="${auction.buyNowPrice != null}" onclick="buyNow()">
+                        즉시 구매 (<span th:text="${#numbers.formatInteger(auction.buyNowPrice, 0, 'COMMA')}">200,000</span>원)
+                    </button>
+                    
+                    <div class="auto-bid-section">
+                        <h3 style="margin-bottom: 10px;">🤖 자동 입찰</h3>
+                        <input type="number" id="maxAmount" placeholder="최대 입찰 금액" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 10px;">
+                        <button onclick="setAutoBid()" style="width: 100%; padding: 10px; background: #2196F3; color: white; border: none; border-radius: 6px; cursor: pointer;">자동 입찰 설정</button>
+                    </div>
+                </div>
+                
+                <div th:if="${auction.status.name() == 'ENDED'}">
+                    <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; text-align: center;">
+                        <h3>경매 종료</h3>
+                        <p th:if="${auction.winnerId != null}">
+                            낙찰자: <span th:text="${auction.winnerId}">user</span><br>
+                            낙찰가: <span th:text="${#numbers.formatInteger(auction.currentPrice, 0, 'COMMA')} + '원'">100,000원</span>
+                        </p>
+                        <p th:if="${auction.winnerId == null}">유찰되었습니다.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bid-history">
+            <h3 style="margin-bottom: 20px;">입찰 내역</h3>
+            <div th:if="${!bids.empty}">
+                <div class="bid-item" th:each="bid, iterStat : ${bids}" 
+                     th:classappend="${bid.isWinning} ? 'bid-winner' : ''">
+                    <div>
+                        <div style="font-weight: 600;" th:text="${bid.bidderName}">입찰자</div>
+                        <div style="font-size: 14px; color: #666;" th:text="${#temporals.format(bid.bidTime, 'yyyy-MM-dd HH:mm:ss')}">2025-11-20 10:00:00</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 20px; font-weight: bold; color: #4CAF50;" th:text="${#numbers.formatInteger(bid.amount, 0, 'COMMA')} + '원'">100,000원</div>
+                        <div th:if="${bid.isWinning}" style="color: #4CAF50; font-size: 14px;">🏆 최고가</div>
+                        <div th:if="${bid.isAutoBid}" style="color: #2196F3; font-size: 12px;">🤖 자동</div>
+                    </div>
+                </div>
+            </div>
+            <div th:if="${bids.empty}" style="text-align: center; color: #999; padding: 40px;">
+                아직 입찰이 없습니다.
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        const auctionId = /*[[${auction.id}]]*/ 0;
+        
+        function updateTimer() {
+            const timer = document.querySelector('.timer');
+            const endTime = new Date(timer.getAttribute('data-end-time'));
+            const now = new Date();
+            const diff = endTime - now;
+            
+            if (diff <= 0) {
+                timer.textContent = '경매 종료';
+                timer.style.color = '#999';
+                return;
+            }
+            
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            
+            if (days > 0) {
+                timer.textContent = `${days}일 ${hours}시간 ${minutes}분 남음`;
+            } else if (hours > 0) {
+                timer.textContent = `${hours}시간 ${minutes}분 ${seconds}초 남음`;
+            } else {
+                timer.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            }
+        }
+        
+        updateTimer();
+        setInterval(updateTimer, 1000);
+        
+        function getAuthHeaders() {
+            const token = localStorage.getItem('jwt_token');
+            if (token) {
+                return {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                };
+            }
+            return { 'Content-Type': 'application/json' };
+        }
+        
+        async function placeBid(event) {
+            event.preventDefault();
+            const amount = document.getElementById('bidAmount').value;
+            
+            const token = localStorage.getItem('jwt_token');
+            if (!token) {
+                alert('로그인이 필요합니다.');
+                location.href = '/login?redirect=' + encodeURIComponent(location.pathname);
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/auctions/${auctionId}/bids`, {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ amount: parseFloat(amount) })
+                });
+                
+                if (response.ok) {
+                    alert('입찰 성공!');
+                    location.reload();
+                } else if (response.status === 401 || response.status === 403) {
+                    alert('로그인이 필요합니다.');
+                    localStorage.removeItem('jwt_token');
+                    location.href = '/login?redirect=' + encodeURIComponent(location.pathname);
+                } else {
+                    const error = await response.text();
+                    alert('입찰 실패: ' + error);
+                }
+            } catch (error) {
+                alert('입찰 중 오류가 발생했습니다.');
+            }
+        }
+        
+        async function buyNow() {
+            if (!confirm('즉시 구매하시겠습니까?')) return;
+            
+            const token = localStorage.getItem('jwt_token');
+            if (!token) {
+                alert('로그인이 필요합니다.');
+                location.href = '/login?redirect=' + encodeURIComponent(location.pathname);
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/auctions/${auctionId}/buy-now`, {
+                    method: 'POST',
+                    headers: getAuthHeaders()
+                });
+                
+                if (response.ok) {
+                    alert('즉시 구매 성공!');
+                    location.reload();
+                } else if (response.status === 401 || response.status === 403) {
+                    alert('로그인이 필요합니다.');
+                    localStorage.removeItem('jwt_token');
+                    location.href = '/login?redirect=' + encodeURIComponent(location.pathname);
+                } else {
+                    const error = await response.text();
+                    alert('즉시 구매 실패: ' + error);
+                }
+            } catch (error) {
+                alert('즉시 구매 중 오류가 발생했습니다.');
+            }
+        }
+        
+        async function setAutoBid() {
+            const maxAmount = document.getElementById('maxAmount').value;
+            if (!maxAmount) {
+                alert('최대 입찰 금액을 입력하세요.');
+                return;
+            }
+            
+            const token = localStorage.getItem('jwt_token');
+            if (!token) {
+                alert('로그인이 필요합니다.');
+                location.href = '/login?redirect=' + encodeURIComponent(location.pathname);
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/auctions/${auctionId}/auto-bid`, {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ maxAmount: parseFloat(maxAmount) })
+                });
+                
+                if (response.ok) {
+                    alert('자동 입찰 설정 완료!');
+                } else if (response.status === 401 || response.status === 403) {
+                    alert('로그인이 필요합니다.');
+                    localStorage.removeItem('jwt_token');
+                    location.href = '/login?redirect=' + encodeURIComponent(location.pathname);
+                } else {
+                    const error = await response.text();
+                    alert('자동 입찰 설정 실패: ' + error);
+                }
+            } catch (error) {
+                alert('자동 입찰 설정 중 오류가 발생했습니다.');
+            }
+        }
+    </script>
+</body>
+</html>

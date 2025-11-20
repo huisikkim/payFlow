@@ -34,12 +34,16 @@
             </div>
             
             <div class="nav-actions">
+                <a href="/pickswap/auctions" class="nav-btn" style="background: #ff9800; color: white;">
+                    🔨 경매
+                </a>
                 <a href="/pickswap/sell" class="nav-btn btn-sell">
                     ✨ 판매하기
                 </a>
                 <a href="/pickswap/my-products" class="nav-btn btn-my-products">
                     📦 내 상품
                 </a>
+                <div id="authSection"></div>
             </div>
         </div>
     </header>
@@ -95,5 +99,33 @@
     </main>
     
     <script th:src="@{/js/pickswap.js}"></script>
+    <script>
+        // 로그인 상태 체크
+        function checkAuth() {
+            const token = localStorage.getItem('jwt_token');
+            const username = localStorage.getItem('username');
+            const authSection = document.getElementById('authSection');
+            
+            if (token && username) {
+                authSection.innerHTML = `
+                    <span style="margin-right: 10px; color: #666;">👤 ${username}</span>
+                    <button onclick="logout()" class="nav-btn" style="background: #f44336; color: white;">로그아웃</button>
+                `;
+            } else {
+                authSection.innerHTML = `
+                    <a href="/login" class="nav-btn" style="background: #4CAF50; color: white;">로그인</a>
+                `;
+            }
+        }
+        
+        function logout() {
+            localStorage.removeItem('jwt_token');
+            localStorage.removeItem('username');
+            alert('로그아웃되었습니다.');
+            location.reload();
+        }
+        
+        checkAuth();
+    </script>
 </body>
 </html>

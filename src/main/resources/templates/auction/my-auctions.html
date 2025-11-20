@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>내 경매 - PickSwap</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; }
+        .header { background: white; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .header h1 { font-size: 24px; color: #333; }
+        .nav { display: flex; gap: 10px; margin-top: 15px; }
+        .nav a { padding: 10px 20px; background: #f0f0f0; border-radius: 8px; text-decoration: none; color: #666; }
+        .nav a.active { background: #4CAF50; color: white; }
+        .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
+        .auction-list { background: white; border-radius: 12px; overflow: hidden; }
+        .auction-item { padding: 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .auction-item:last-child { border-bottom: none; }
+        .auction-info h3 { font-size: 18px; margin-bottom: 8px; }
+        .auction-info p { color: #666; font-size: 14px; }
+        .auction-price { font-size: 24px; font-weight: bold; color: #4CAF50; text-align: right; }
+        .auction-status { font-size: 14px; color: #666; margin-top: 5px; }
+        .empty-state { text-align: center; padding: 60px 20px; color: #999; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>내 경매</h1>
+        <div class="nav">
+            <a th:href="@{/pickswap/auctions/my?tab=selling}" th:classappend="${currentTab == 'selling'} ? 'active' : ''">판매 중</a>
+            <a th:href="@{/pickswap/auctions/my?tab=winning}" th:classappend="${currentTab == 'winning'} ? 'active' : ''">낙찰 중</a>
+            <a th:href="@{/pickswap/auctions}" style="margin-left: auto;">← 경매 목록</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="auction-list" th:if="${!auctions.empty}">
+            <div class="auction-item" th:each="auction : ${auctions}">
+                <div class="auction-info">
+                    <h3><a th:href="@{/pickswap/auctions/{id}(id=${auction.id})}" style="text-decoration: none; color: inherit;">경매 #<span th:text="${auction.id}">1</span></a></h3>
+                    <p>입찰 <span th:text="${auction.bidCount}">0</span>회 · 조회 <span th:text="${auction.viewCount}">0</span>회</p>
+                    <p th:text="${#temporals.format(auction.endTime, 'yyyy-MM-dd HH:mm')} + ' 종료'">2025-11-23 18:00 종료</p>
+                </div>
+                <div>
+                    <div class="auction-price" th:text="${#numbers.formatInteger(auction.currentPrice, 0, 'COMMA')} + '원'">100,000원</div>
+                    <div class="auction-status" th:text="${auction.status.name() == 'ACTIVE'} ? '진행 중' : 
+                                                         (${auction.status.name() == 'SCHEDULED'} ? '예정' : '종료')">진행 중</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="empty-state" th:if="${auctions.empty}">
+            <p>경매가 없습니다.</p>
+        </div>
+    </div>
+</body>
+</html>

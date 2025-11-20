@@ -51,6 +51,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/login", "/signup").permitAll()  // 로그인/회원가입 페이지 허용
                         .requestMatchers("/api/saga/**").permitAll()  // Saga 테스트 API 허용
                         .requestMatchers("/api/test/**").permitAll()  // 카프카 테스트 API 허용
                         .requestMatchers("/h2-console/**").permitAll()
@@ -77,7 +78,9 @@ public class SecurityConfig {
                         // TODO: 프로덕션에서는 .requestMatchers("/api/ainjob/**").hasAnyRole("USER", "ADMIN")으로 변경
                         .requestMatchers("/pickswap/**").permitAll()  // Pick Swap 웹 페이지 (개발용: 모두 허용, JavaScript에서 로그인 체크)
                         .requestMatchers("/api/products/**").permitAll()  // Pick Swap API (개발용: 모두 허용)
-                        // TODO: 프로덕션에서는 등록/수정/삭제만 인증 필요하도록 변경
+                        .requestMatchers("/api/auctions/**").permitAll()  // 경매 API (개발용: 모두 허용)
+                        .requestMatchers("/api/bids/**").permitAll()  // 입찰 API (개발용: 모두 허용)
+                        // TODO: 프로덕션에서는 등록/수정/삭제/입찰만 인증 필요하도록 변경
                         .requestMatchers("/api/stages/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()

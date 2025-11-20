@@ -4,7 +4,7 @@
 
 ## 🆕 Pick Swap - 중고 거래 플랫폼 (신규 추가!)
 
-PayFlow에 **Pick Swap 중고 거래 플랫폼**의 상품 관리 기능이 추가되었습니다!
+PayFlow에 **Pick Swap 중고 거래 플랫폼**의 상품 관리 및 **경매 기능**이 추가되었습니다!
 
 ### 주요 기능
 - ✅ **Home Feed**: 최신 상품 리스트 (Flutter 앱 메인 화면용)
@@ -14,6 +14,7 @@ PayFlow에 **Pick Swap 중고 거래 플랫폼**의 상품 관리 기능이 추�
 - ✅ **인기 상품**: 좋아요 많은 순 정렬
 - ✅ **판매자 상품**: 판매자별 상품 목록
 - ✅ **좋아요 기능**: 상품 좋아요/취소
+- 🔨 **경매 시스템**: 실시간 경매 및 입찰 기능 (NEW!)
 
 ### Flutter 앱 연동
 상세한 API 문서는 [PRODUCT_API_GUIDE.md](PRODUCT_API_GUIDE.md)를 참고하세요.
@@ -46,13 +47,21 @@ http://localhost:8080/pickswap
 - **상품 상세**: `/pickswap/products/{id}` - 상품 정보, 이미지, 판매자 정보
 - **상품 등록**: `/pickswap/sell` - 새 상품 등록 폼
 - **내 상품 관리**: `/pickswap/my-products` - 내가 등록한 상품 목록
+- **경매 목록**: `/pickswap/auctions` - 진행 중/예정/종료 경매 목록
+- **경매 상세**: `/pickswap/auctions/{id}` - 실시간 입찰, 자동 입찰 설정
+- **경매 등록**: `/pickswap/auctions/create` - 새 경매 등록
+- **내 경매**: `/pickswap/auctions/my` - 판매 중/낙찰 중인 경매
 
 ### API 테스트
 ```powershell
+# 상품 API 테스트
 .\test-product-api.ps1
+
+# 경매 API 테스트
+.\test-auction-api.ps1
 ```
 
-이 스크립트는 Home Feed, 카테고리 조회, 검색, 상품 등록/수정/삭제 등 모든 기능을 테스트합니다.
+이 스크립트는 Home Feed, 카테고리 조회, 검색, 상품 등록/수정/삭제, 경매 생성/입찰/자동입찰 등 모든 기능을 테스트합니다.
 
 ## 아키텍처
 

@@ -139,6 +139,22 @@ public class ProductController {
     }
     
     /**
+     * 내 상품 목록 조회 (현재 로그인한 사용자)
+     * GET /api/products/my?page=0&size=20
+     */
+    @GetMapping("/my")
+    public ResponseEntity<Page<ProductResponse>> getMyProducts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "100") int size) {
+        
+        log.info("내 상품 조회 요청: page={}, size={}", page, size);
+        // TODO: 실제로는 SecurityContext에서 현재 사용자 ID를 가져와야 함
+        // 현재는 개발 단계이므로 임시로 sellerId=1 사용
+        Page<ProductResponse> products = productService.getSellerProducts(1L, page, size);
+        return ResponseEntity.ok(products);
+    }
+    
+    /**
      * 상품 등록
      * POST /api/products
      */
