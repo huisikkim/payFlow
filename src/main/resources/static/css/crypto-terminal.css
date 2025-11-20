@@ -1,0 +1,351 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #0d0d0d;
+    color: #e0e0e0;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* 터미널 헤더 */
+.terminal-header {
+    background: #1a1a1a;
+    border-bottom: 1px solid #2a2a2a;
+    padding: 16px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+}
+
+.terminal-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.terminal-title h1 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #ffffff;
+    letter-spacing: -0.5px;
+}
+
+.terminal-badge {
+    background: #16a34a;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.terminal-status {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    font-size: 0.85rem;
+    color: #888;
+}
+
+.status-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #16a34a;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+/* 메인 컨테이너 */
+.container {
+    max-width: 1920px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+/* 마켓 오버뷰 */
+.market-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.overview-card {
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    padding: 16px;
+    transition: all 0.2s;
+}
+
+.overview-card:hover {
+    border-color: #3a3a3a;
+    background: #1f1f1f;
+}
+
+.overview-label {
+    font-size: 0.75rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.overview-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+/* 티커 테이블 */
+.ticker-table {
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.table-header {
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 1fr 1fr 1fr 1.5fr;
+    gap: 16px;
+    padding: 16px 20px;
+    background: #151515;
+    border-bottom: 1px solid #2a2a2a;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.ticker-row {
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 1fr 1fr 1fr 1.5fr;
+    gap: 16px;
+    padding: 20px;
+    border-bottom: 1px solid #2a2a2a;
+    transition: all 0.2s;
+    cursor: pointer;
+    align-items: center;
+}
+
+.ticker-row:hover {
+    background: #1f1f1f;
+}
+
+.ticker-row:last-child {
+    border-bottom: none;
+}
+
+.ticker-name-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.ticker-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: white;
+    flex-shrink: 0;
+}
+
+.ticker-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.ticker-korean {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.ticker-market {
+    font-size: 0.75rem;
+    color: #666;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.ticker-price {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.ticker-change {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.ticker-change.rise {
+    color: #16a34a;
+}
+
+.ticker-change.fall {
+    color: #dc2626;
+}
+
+.ticker-change.even {
+    color: #888;
+}
+
+.change-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.change-badge.rise {
+    background: rgba(22, 163, 74, 0.15);
+    color: #16a34a;
+}
+
+.change-badge.fall {
+    background: rgba(220, 38, 38, 0.15);
+    color: #dc2626;
+}
+
+.ticker-stat {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    color: #aaa;
+}
+
+.ticker-volume {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    color: #888;
+}
+
+/* 로딩 & 에러 */
+.loading {
+    text-align: center;
+    padding: 80px 20px;
+    color: #666;
+    font-size: 0.95rem;
+}
+
+.error {
+    background: rgba(220, 38, 38, 0.1);
+    border: 1px solid rgba(220, 38, 38, 0.3);
+    color: #dc2626;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    margin: 20px;
+}
+
+/* 반응형 */
+@media (max-width: 1200px) {
+    .table-header,
+    .ticker-row {
+        grid-template-columns: 2fr 1.5fr 1fr 1fr;
+    }
+
+    .table-header .hide-mobile,
+    .ticker-row .hide-mobile {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .terminal-header {
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+    }
+
+    .market-overview {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .table-header,
+    .ticker-row {
+        grid-template-columns: 2fr 1.2fr 1fr;
+        gap: 12px;
+        padding: 16px;
+    }
+
+    .ticker-icon {
+        width: 28px;
+        height: 28px;
+        font-size: 0.75rem;
+    }
+
+    .ticker-korean {
+        font-size: 0.85rem;
+    }
+
+    .ticker-price {
+        font-size: 0.95rem;
+    }
+}
+
+/* 스크롤바 스타일 */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #1a1a1a;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #3a3a3a;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #4a4a4a;
+}
+
+/* 업데이트 애니메이션 */
+@keyframes flash {
+    0%, 100% { background: transparent; }
+    50% { background: rgba(59, 130, 246, 0.1); }
+}
+
+.ticker-row.updated {
+    animation: flash 0.5s ease-in-out;
+}
