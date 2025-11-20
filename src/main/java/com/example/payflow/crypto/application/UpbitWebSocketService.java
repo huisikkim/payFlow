@@ -150,7 +150,7 @@ public class UpbitWebSocketService extends TextWebSocketHandler {
             CoinTicker ticker = parseTicker(json);
             tickerCache.put(ticker.getMarket(), ticker);
             
-            log.info("💰 시세 업데이트: {} - {}원", ticker.getKoreanName(), ticker.getTradePrice());
+            //log.info("💰 시세 업데이트: {} - {}원", ticker.getKoreanName(), ticker.getTradePrice());
             
             // 모든 클라이언트에게 브로드캐스트
             broadcastToClients(ticker);

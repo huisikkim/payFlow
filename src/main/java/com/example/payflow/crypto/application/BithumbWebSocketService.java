@@ -170,7 +170,7 @@ public class BithumbWebSocketService extends TextWebSocketHandler {
                 if (ticker != null) {
                     tickerCache.put(ticker.getMarket(), ticker);
                     
-                    log.info("💰 빗썸 시세 업데이트: {} - {}원", ticker.getKoreanName(), ticker.getTradePrice());
+                    //log.info("💰 빗썸 시세 업데이트: {} - {}원", ticker.getKoreanName(), ticker.getTradePrice());
                     
                     // 모든 클라이언트에게 브로드캐스트
                     broadcastToClients(ticker);
