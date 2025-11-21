@@ -2,6 +2,7 @@ package com.example.payflow.crypto.application;
 
 import com.example.payflow.crypto.domain.CandleData;
 import com.example.payflow.crypto.domain.RSICalculator;
+import com.example.payflow.crypto.domain.VolumeSurgeCalculator;
 import com.example.payflow.crypto.infrastructure.BithumbCandleClient;
 import com.example.payflow.crypto.infrastructure.UpbitCandleClient;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,10 @@ public class RSIService {
     // RSI 캐시 (market -> RSI)
     private final Map<String, BigDecimal> upbitRSICache = new ConcurrentHashMap<>();
     private final Map<String, BigDecimal> bithumbRSICache = new ConcurrentHashMap<>();
+    
+    // 거래량 급증률 캐시 (market -> surge %)
+    private final Map<String, BigDecimal> upbitVolumeSurgeCache = new ConcurrentHashMap<>();
+    private final Map<String, BigDecimal> bithumbVolumeSurgeCache = new ConcurrentHashMap<>();
     
     // 지원하는 마켓 목록
     private static final List<String> MARKETS = List.of(
@@ -91,6 +96,7 @@ public class RSIService {
             List<CandleData> candles = upbitCandleClient.getMinuteCandles(market, 30);
             
             if (candles.size() >= 15) {
+                // RSI 계산
                 List<BigDecimal> closePrices = candles.stream()
                         .map(CandleData::getClosePrice)
                         .collect(Collectors.toList());
@@ -98,7 +104,19 @@ public class RSIService {
                 BigDecimal rsi = RSICalculator.calculate(closePrices);
                 upbitRSICache.put(market, rsi);
                 
-                log.debug("📈 업비트 RSI 계산: {} = {}", market, rsi);
+                // 거래량 급증률 계산 (최근 10개 캔들 기준)
+                if (candles.size() >= 11) {
+                    List<BigDecimal> volumes = candles.subList(candles.size() - 11, candles.size() - 1)
+                            .stream()
+                            .map(CandleData::getVolume)
+                            .collect(Collectors.toList());
+                    
+                    BigDecimal currentVolume = candles.get(candles.size() - 1).getVolume();
+                    BigDecimal volumeSurge = VolumeSurgeCalculator.calculate(volumes, currentVolume);
+                    upbitVolumeSurgeCache.put(market, volumeSurge);
+                    
+                    log.debug("📈 업비트 RSI: {} = {}, 거래량: {}%", market, rsi, volumeSurge);
+                }
             }
         } catch (Exception e) {
             log.error("❌ 업비트 RSI 계산 실패: {}", market, e);
@@ -110,6 +128,7 @@ public class RSIService {
             List<CandleData> candles = bithumbCandleClient.getMinuteCandles(symbol, 30);
             
             if (candles.size() >= 15) {
+                // RSI 계산
                 List<BigDecimal> closePrices = candles.stream()
                         .map(CandleData::getClosePrice)
                         .collect(Collectors.toList());
@@ -117,7 +136,19 @@ public class RSIService {
                 BigDecimal rsi = RSICalculator.calculate(closePrices);
                 bithumbRSICache.put(market, rsi);
                 
-                log.debug("📈 빗썸 RSI 계산: {} = {}", market, rsi);
+                // 거래량 급증률 계산 (최근 10개 캔들 기준)
+                if (candles.size() >= 11) {
+                    List<BigDecimal> volumes = candles.subList(candles.size() - 11, candles.size() - 1)
+                            .stream()
+                            .map(CandleData::getVolume)
+                            .collect(Collectors.toList());
+                    
+                    BigDecimal currentVolume = candles.get(candles.size() - 1).getVolume();
+                    BigDecimal volumeSurge = VolumeSurgeCalculator.calculate(volumes, currentVolume);
+                    bithumbVolumeSurgeCache.put(market, volumeSurge);
+                    
+                    log.debug("📈 빗썸 RSI: {} = {}, 거래량: {}%", market, rsi, volumeSurge);
+                }
             }
         } catch (Exception e) {
             log.error("❌ 빗썸 RSI 계산 실패: {}", market, e);
@@ -139,6 +170,20 @@ public class RSIService {
     }
     
     /**
+     * 업비트 거래량 급증률 조회
+     */
+    public BigDecimal getUpbitVolumeSurge(String market) {
+        return upbitVolumeSurgeCache.getOrDefault(market, BigDecimal.valueOf(100));
+    }
+    
+    /**
+     * 빗썸 거래량 급증률 조회
+     */
+    public BigDecimal getBithumbVolumeSurge(String market) {
+        return bithumbVolumeSurgeCache.getOrDefault(market, BigDecimal.valueOf(100));
+    }
+    
+    /**
      * 모든 RSI 데이터 조회
      */
     public Map<String, Map<String, BigDecimal>> getAllRSI() {
@@ -149,6 +194,43 @@ public class RSIService {
             rsiData.put("upbit", getUpbitRSI(market));
             rsiData.put("bithumb", getBithumbRSI(market));
             result.put(market, rsiData);
+        });
+        
+        return result;
+    }
+    
+    /**
+     * 모든 지표 데이터 조회 (RSI + 거래량 급증률)
+     */
+    public Map<String, Map<String, Object>> getAllIndicators() {
+        Map<String, Map<String, Object>> result = new HashMap<>();
+        
+        MARKETS.forEach(market -> {
+            Map<String, Object> indicators = new HashMap<>();
+            
+            // 업비트 데이터
+            Map<String, Object> upbitData = new HashMap<>();
+            BigDecimal upbitRSI = getUpbitRSI(market);
+            BigDecimal upbitVolume = getUpbitVolumeSurge(market);
+            upbitData.put("rsi", upbitRSI);
+            upbitData.put("volumeSurge", upbitVolume);
+            upbitData.put("rsiStatus", RSICalculator.getRSIStatus(upbitRSI));
+            upbitData.put("volumeStatus", VolumeSurgeCalculator.getVolumeStatus(upbitVolume));
+            upbitData.put("signalStrength", VolumeSurgeCalculator.getSignalStrength(upbitRSI, upbitVolume));
+            
+            // 빗썸 데이터
+            Map<String, Object> bithumbData = new HashMap<>();
+            BigDecimal bithumbRSI = getBithumbRSI(market);
+            BigDecimal bithumbVolume = getBithumbVolumeSurge(market);
+            bithumbData.put("rsi", bithumbRSI);
+            bithumbData.put("volumeSurge", bithumbVolume);
+            bithumbData.put("rsiStatus", RSICalculator.getRSIStatus(bithumbRSI));
+            bithumbData.put("volumeStatus", VolumeSurgeCalculator.getVolumeStatus(bithumbVolume));
+            bithumbData.put("signalStrength", VolumeSurgeCalculator.getSignalStrength(bithumbRSI, bithumbVolume));
+            
+            indicators.put("upbit", upbitData);
+            indicators.put("bithumb", bithumbData);
+            result.put(market, indicators);
         });
         
         return result;

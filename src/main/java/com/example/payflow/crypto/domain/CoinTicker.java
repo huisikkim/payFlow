@@ -29,4 +29,6 @@ public class CoinTicker {
     private LocalDateTime timestamp;    // 타임스탬프
     private BigDecimal rsi;             // RSI 지표 (0-100)
     private String rsiStatus;           // RSI 상태 (OVERBOUGHT, OVERSOLD, NEUTRAL)
+    private BigDecimal volumeSurge;     // 거래량 급증률 (%)
+    private String volumeStatus;        // 거래량 상태 (SURGE, NORMAL, LOW)
 }

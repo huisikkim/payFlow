@@ -1,7 +1,7 @@
 let wsUpbit, wsBithumb;
 const upbitTickers = new Map();
 const bithumbTickers = new Map();
-const rsiData = new Map(); // RSI 데이터 캐시
+const indicatorData = new Map(); // 지표 데이터 캐시 (RSI + 거래량)
 let updateInterval;
 
 function connectUpbit() {
@@ -227,10 +227,11 @@ function createComparisonRow(comparison) {
     const initial = comparison.koreanName.charAt(0);
     const hasBithumb = comparison.bithumbPrice !== null;
     
-    // RSI 데이터 가져오기
-    const marketRSI = rsiData.get(comparison.market) || { upbit: 0, bithumb: 0 };
-    const upbitRSI = marketRSI.upbit || 0;
-    const bithumbRSI = marketRSI.bithumb || 0;
+    // 지표 데이터 가져오기
+    const indicators = indicatorData.get(comparison.market) || { 
+        upbit: { rsi: 0, volumeSurge: 100, signalStrength: 'NEUTRAL' }, 
+        bithumb: { rsi: 0, volumeSurge: 100, signalStrength: 'NEUTRAL' } 
+    };
     
     return `
         <div class="comparison-row ${isOpportunity ? 'opportunity' : ''}">
@@ -251,37 +252,79 @@ function createComparisonRow(comparison) {
                     <div class="diff-amount">${formatPrice(comparison.priceDiff)}</div>
                 ` : '<span style="color: #666;">-</span>'}
             </div>
-            <div class="rsi-cell">
-                ${formatRSI(upbitRSI)}
+            <div class="indicator-cell">
+                ${formatIndicators(indicators.upbit)}
             </div>
-            <div class="rsi-cell">
-                ${formatRSI(bithumbRSI)}
+            <div class="indicator-cell">
+                ${formatIndicators(indicators.bithumb)}
             </div>
             <div class="volume-cell hide-mobile">${formatVolume(comparison.totalVolume)}</div>
         </div>
     `;
 }
 
-function formatRSI(rsi) {
-    if (!rsi || rsi === 0) {
+function formatIndicators(data) {
+    if (!data || !data.rsi) {
         return '<span style="color: #666;">-</span>';
     }
     
-    const rsiValue = parseFloat(rsi);
+    const rsi = parseFloat(data.rsi);
+    const volumeSurge = parseFloat(data.volumeSurge);
+    const signalStrength = data.signalStrength;
+    
+    // RSI 상태
     let rsiClass = 'neutral';
     let rsiLabel = '중립';
-    
-    if (rsiValue >= 70) {
+    if (rsi >= 70) {
         rsiClass = 'overbought';
         rsiLabel = '과매수';
-    } else if (rsiValue <= 30) {
+    } else if (rsi <= 30) {
         rsiClass = 'oversold';
         rsiLabel = '과매도';
     }
     
+    // 거래량 상태
+    let volumeIcon = '';
+    let volumeClass = '';
+    if (volumeSurge >= 200) {
+        volumeIcon = '🔥';
+        volumeClass = 'surge';
+    } else if (volumeSurge >= 150) {
+        volumeIcon = '↑';
+        volumeClass = 'high';
+    } else if (volumeSurge <= 50) {
+        volumeIcon = '↓';
+        volumeClass = 'low';
+    } else {
+        volumeIcon = '→';
+        volumeClass = 'normal';
+    }
+    
+    // 신호 강도
+    let signalBadge = '';
+    if (signalStrength === 'STRONG_BUY') {
+        signalBadge = '<div class="signal-badge strong-buy">강력 매수</div>';
+    } else if (signalStrength === 'STRONG_SELL') {
+        signalBadge = '<div class="signal-badge strong-sell">강력 매도</div>';
+    } else if (signalStrength === 'WEAK_BUY') {
+        signalBadge = '<div class="signal-badge weak-buy">약한 매수</div>';
+    } else if (signalStrength === 'WEAK_SELL') {
+        signalBadge = '<div class="signal-badge weak-sell">약한 매도</div>';
+    }
+    
     return `
-        <div class="rsi-value ${rsiClass}">${rsiValue.toFixed(1)}</div>
-        <div class="rsi-label">${rsiLabel}</div>
+        <div class="indicator-group">
+            <div class="rsi-row">
+                <span class="indicator-label">RSI</span>
+                <span class="rsi-value ${rsiClass}">${rsi.toFixed(1)}</span>
+                <span class="rsi-label-small">${rsiLabel}</span>
+            </div>
+            <div class="volume-row">
+                <span class="indicator-label">거래량</span>
+                <span class="volume-surge ${volumeClass}">${volumeIcon} ${volumeSurge.toFixed(0)}%</span>
+            </div>
+            ${signalBadge}
+        </div>
     `;
 }
 
@@ -330,23 +373,23 @@ function formatVolume(volume) {
     }
 }
 
-// RSI 데이터 가져오기
-async function fetchRSIData() {
+// 지표 데이터 가져오기 (RSI + 거래량)
+async function fetchIndicatorData() {
     try {
-        const response = await fetch('/api/crypto/rsi');
+        const response = await fetch('/api/crypto/indicators');
         if (response.ok) {
             const data = await response.json();
             
-            // RSI 데이터 캐시에 저장
+            // 지표 데이터 캐시에 저장
             Object.keys(data).forEach(market => {
-                rsiData.set(market, data[market]);
+                indicatorData.set(market, data[market]);
             });
             
-            console.log('📊 RSI 데이터 로드 완료:', rsiData.size);
-            updateComparison(); // RSI 데이터 로드 후 화면 업데이트
+            console.log('📊 지표 데이터 로드 완료:', indicatorData.size);
+            updateComparison(); // 지표 데이터 로드 후 화면 업데이트
         }
     } catch (error) {
-        console.error('❌ RSI 데이터 로드 실패:', error);
+        console.error('❌ 지표 데이터 로드 실패:', error);
     }
 }
 
@@ -359,11 +402,11 @@ document.addEventListener('DOMContentLoaded', () => {
     connectUpbit();
     connectBithumb();
     
-    // RSI 데이터 초기 로드
-    fetchRSIData();
+    // 지표 데이터 초기 로드
+    fetchIndicatorData();
     
-    // 1분마다 RSI 데이터 갱신
-    setInterval(fetchRSIData, 60000);
+    // 1분마다 지표 데이터 갱신
+    setInterval(fetchIndicatorData, 60000);
     
     // 5초 후에도 데이터가 없으면 에러 표시
     setTimeout(() => {

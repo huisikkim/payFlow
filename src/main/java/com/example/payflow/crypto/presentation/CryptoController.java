@@ -89,6 +89,12 @@ public class CryptoController {
         return ResponseEntity.ok(rsiData);
     }
     
+    // 모든 지표 (RSI + 거래량 급증률)
+    @GetMapping("/indicators")
+    public ResponseEntity<?> getAllIndicators() {
+        return ResponseEntity.ok(rsiService.getAllIndicators());
+    }
+    
     // 레거시 호환 (기존 API)
     @GetMapping("/tickers")
     public ResponseEntity<List<CoinTicker>> getAllTickers() {
