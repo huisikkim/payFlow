@@ -1,6 +1,7 @@
 let wsUpbit, wsBithumb;
 const upbitTickers = new Map();
 const bithumbTickers = new Map();
+const rsiData = new Map(); // RSI 데이터 캐시
 let updateInterval;
 
 function connectUpbit() {
@@ -226,6 +227,11 @@ function createComparisonRow(comparison) {
     const initial = comparison.koreanName.charAt(0);
     const hasBithumb = comparison.bithumbPrice !== null;
     
+    // RSI 데이터 가져오기
+    const marketRSI = rsiData.get(comparison.market) || { upbit: 0, bithumb: 0 };
+    const upbitRSI = marketRSI.upbit || 0;
+    const bithumbRSI = marketRSI.bithumb || 0;
+    
     return `
         <div class="comparison-row ${isOpportunity ? 'opportunity' : ''}">
             <div class="market-cell">
@@ -245,11 +251,37 @@ function createComparisonRow(comparison) {
                     <div class="diff-amount">${formatPrice(comparison.priceDiff)}</div>
                 ` : '<span style="color: #666;">-</span>'}
             </div>
-            <div class="cheaper-badge ${comparison.cheaperExchange.toLowerCase()}">
-                ${comparison.cheaperExchange}
+            <div class="rsi-cell">
+                ${formatRSI(upbitRSI)}
+            </div>
+            <div class="rsi-cell">
+                ${formatRSI(bithumbRSI)}
             </div>
             <div class="volume-cell hide-mobile">${formatVolume(comparison.totalVolume)}</div>
         </div>
+    `;
+}
+
+function formatRSI(rsi) {
+    if (!rsi || rsi === 0) {
+        return '<span style="color: #666;">-</span>';
+    }
+    
+    const rsiValue = parseFloat(rsi);
+    let rsiClass = 'neutral';
+    let rsiLabel = '중립';
+    
+    if (rsiValue >= 70) {
+        rsiClass = 'overbought';
+        rsiLabel = '과매수';
+    } else if (rsiValue <= 30) {
+        rsiClass = 'oversold';
+        rsiLabel = '과매도';
+    }
+    
+    return `
+        <div class="rsi-value ${rsiClass}">${rsiValue.toFixed(1)}</div>
+        <div class="rsi-label">${rsiLabel}</div>
     `;
 }
 
@@ -298,6 +330,26 @@ function formatVolume(volume) {
     }
 }
 
+// RSI 데이터 가져오기
+async function fetchRSIData() {
+    try {
+        const response = await fetch('/api/crypto/rsi');
+        if (response.ok) {
+            const data = await response.json();
+            
+            // RSI 데이터 캐시에 저장
+            Object.keys(data).forEach(market => {
+                rsiData.set(market, data[market]);
+            });
+            
+            console.log('📊 RSI 데이터 로드 완료:', rsiData.size);
+            updateComparison(); // RSI 데이터 로드 후 화면 업데이트
+        }
+    } catch (error) {
+        console.error('❌ RSI 데이터 로드 실패:', error);
+    }
+}
+
 // 페이지 로드 시 연결
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🚀 Page loaded, connecting to websockets...');
@@ -306,6 +358,12 @@ document.addEventListener('DOMContentLoaded', () => {
     
     connectUpbit();
     connectBithumb();
+    
+    // RSI 데이터 초기 로드
+    fetchRSIData();
+    
+    // 1분마다 RSI 데이터 갱신
+    setInterval(fetchRSIData, 60000);
     
     // 5초 후에도 데이터가 없으면 에러 표시
     setTimeout(() => {

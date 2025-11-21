@@ -2,6 +2,7 @@ package com.example.payflow.crypto.presentation;
 
 import com.example.payflow.crypto.application.BithumbWebSocketService;
 import com.example.payflow.crypto.application.ExchangeComparisonService;
+import com.example.payflow.crypto.application.RSIService;
 import com.example.payflow.crypto.application.UpbitWebSocketService;
 import com.example.payflow.crypto.domain.CoinTicker;
 import com.example.payflow.crypto.domain.ExchangeComparison;
@@ -20,6 +21,7 @@ public class CryptoController {
     private final UpbitWebSocketService upbitWebSocketService;
     private final BithumbWebSocketService bithumbWebSocketService;
     private final ExchangeComparisonService comparisonService;
+    private final RSIService rsiService;
     
     // 업비트 시세
     @GetMapping("/upbit/tickers")
@@ -71,6 +73,20 @@ public class CryptoController {
     public ResponseEntity<List<ExchangeComparison>> getArbitrageOpportunities(
             @RequestParam(defaultValue = "1.0") BigDecimal minDiffPercent) {
         return ResponseEntity.ok(comparisonService.getArbitrageOpportunities(minDiffPercent));
+    }
+    
+    // RSI 지표
+    @GetMapping("/rsi")
+    public ResponseEntity<?> getAllRSI() {
+        return ResponseEntity.ok(rsiService.getAllRSI());
+    }
+    
+    @GetMapping("/rsi/{market}")
+    public ResponseEntity<?> getRSI(@PathVariable String market) {
+        java.util.Map<String, BigDecimal> rsiData = new java.util.HashMap<>();
+        rsiData.put("upbit", rsiService.getUpbitRSI(market));
+        rsiData.put("bithumb", rsiService.getBithumbRSI(market));
+        return ResponseEntity.ok(rsiData);
     }
     
     // 레거시 호환 (기존 API)
