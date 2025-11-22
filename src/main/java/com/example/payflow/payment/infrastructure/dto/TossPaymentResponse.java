@@ -1,10 +1,16 @@
 package com.example.payflow.payment.infrastructure.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class TossPaymentResponse {
     private String paymentKey;
     private String orderId;
@@ -12,7 +18,7 @@ public class TossPaymentResponse {
     private Long totalAmount;
     private String method;
     private String status;
-    private String approvedAt;
+    private LocalDateTime approvedAt;
     private VirtualAccountInfo virtualAccount;
     private java.util.List<CancelInfo> cancels;
     

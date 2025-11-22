@@ -64,7 +64,10 @@ class EscrowIntegrationTest {
         // 3. 차량 인도 확인
         DeliveryConfirmRequest deliveryRequest = new DeliveryConfirmRequest(
             escrow.getTransactionId(),
-            "seller1"
+            "seller1",
+            java.time.LocalDateTime.now(),
+            "서울시 강남구",
+            "차량 인도 완료"
         );
         EscrowResponse afterDelivery = verificationService.confirmDelivery(deliveryRequest);
         
@@ -93,7 +96,10 @@ class EscrowIntegrationTest {
             escrow.getTransactionId(),
             "inspector1",
             "DOC-002",
-            "명의 이전 완료"
+            "명의 이전 완료",
+            "buyer001",
+            java.time.LocalDate.now(),
+            "서울시청"
         );
         VerificationResponse ownershipVerification = verificationService.confirmOwnershipTransfer(ownershipRequest);
         
@@ -163,7 +169,10 @@ class EscrowIntegrationTest {
         // 2. 차량 인도
         DeliveryConfirmRequest deliveryRequest = new DeliveryConfirmRequest(
             escrow.getTransactionId(),
-            "seller1"
+            "seller1",
+            java.time.LocalDateTime.now(),
+            "서울시 강남구",
+            "차량 인도 완료"
         );
         verificationService.confirmDelivery(deliveryRequest);
         
