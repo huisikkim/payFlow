@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>단가 학습 & 급등 경고 - PayFlow</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        .alert-card {
+            border-left: 4px solid;
+            margin-bottom: 1rem;
+        }
+        .alert-moderate { border-left-color: #ffc107; }
+        .alert-high { border-left-color: #ff9800; }
+        .alert-extreme { border-left-color: #f44336; }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .price-badge {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        .volatility-low { color: #4caf50; }
+        .volatility-medium { color: #ff9800; }
+        .volatility-high { color: #f44336; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">💰 PayFlow</a>
+            <div class="navbar-nav">
+                <a class="nav-link" href="/ingredient/orders">발주 관리</a>
+                <a class="nav-link active" href="/ingredient/price-learning">단가 학습</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h2>📊 단가 자동 학습 & 급등 경고 시스템</h2>
+        <p class="text-muted">식자재 단가를 자동으로 학습하고 급등 시 실시간 경고를 제공합니다.</p>
+
+        <!-- 탭 메뉴 -->
+        <ul class="nav nav-tabs mt-4" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" data-bs-toggle="tab" href="#alerts">🚨 급등 경고</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#statistics">📈 단가 통계</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#history">📋 단가 이력</a>
+            </li>
+        </ul>
+
+        <div class="tab-content mt-3">
+            <!-- 급등 경고 탭 -->
+            <div id="alerts" class="tab-pane fade show active">
+                <div class="row">
+                    <div class="col-md-12">
+                        <h4>활성 경고</h4>
+                        <div id="activeAlerts"></div>
+                    </div>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                        <h4>최근 경고 내역</h4>
+                        <div id="recentAlerts"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 단가 통계 탭 -->
+            <div id="statistics" class="tab-pane fade">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label>품목 선택</label>
+                        <select id="itemSelect" class="form-select">
+                            <option value="">품목을 선택하세요</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label>기간</label>
+                        <select id="periodSelect" class="form-select">
+                            <option value="7">최근 7일</option>
+                            <option value="30" selected>최근 30일</option>
+                            <option value="90">최근 90일</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div id="statisticsContent"></div>
+                
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                        <canvas id="priceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 단가 이력 탭 -->
+            <div id="history" class="tab-pane fade">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label>품목 선택</label>
+                        <select id="historyItemSelect" class="form-select">
+                            <option value="">품목을 선택하세요</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label>기간</label>
+                        <select id="historyPeriodSelect" class="form-select">
+                            <option value="7">최근 7일</option>
+                            <option value="30" selected>최근 30일</option>
+                            <option value="90">최근 90일</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div id="historyContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let priceChart = null;
+
+        // 페이지 로드 시 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            loadActiveAlerts();
+            loadRecentAlerts();
+            loadItems();
+            
+            // 이벤트 리스너
+            document.getElementById('itemSelect').addEventListener('change', loadStatistics);
+            document.getElementById('periodSelect').addEventListener('change', loadStatistics);
+            document.getElementById('historyItemSelect').addEventListener('change', loadHistory);
+            document.getElementById('historyPeriodSelect').addEventListener('change', loadHistory);
+        });
+
+        // 활성 경고 로드
+        async function loadActiveAlerts() {
+            try {
+                const response = await fetch('/api/price-learning/alerts/active');
+                const alerts = await response.json();
+                
+                const container = document.getElementById('activeAlerts');
+                if (alerts.length === 0) {
+                    container.innerHTML = '<div class="alert alert-success">✅ 현재 활성 경고가 없습니다.</div>';
+                    return;
+                }
+                
+                container.innerHTML = alerts.map(alert => `
+                    <div class="card alert-card alert-${alert.alertType.toLowerCase().replace('_surge', '')}">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h5 class="card-title">${alert.itemName}</h5>
+                                    <p class="card-text">${alert.message}</p>
+                                    <small class="text-muted">
+                                        발주 ID: ${alert.orderId} | 
+                                        유통사: ${alert.distributorId} | 
+                                        ${new Date(alert.createdAt).toLocaleString('ko-KR')}
+                                    </small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-danger">${alert.surgePercentage.toFixed(1)}% 급등</span>
+                                    <div class="mt-2">
+                                        <button class="btn btn-sm btn-warning" onclick="acknowledgeAlert('${alert.alertId}')">확인</button>
+                                        <button class="btn btn-sm btn-success" onclick="resolveAlert('${alert.alertId}')">해결</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('활성 경고 로드 실패:', error);
+            }
+        }
+
+        // 최근 경고 로드
+        async function loadRecentAlerts() {
+            try {
+                const response = await fetch('/api/price-learning/alerts/recent');
+                const alerts = await response.json();
+                
+                const container = document.getElementById('recentAlerts');
+                if (alerts.length === 0) {
+                    container.innerHTML = '<div class="alert alert-info">경고 내역이 없습니다.</div>';
+                    return;
+                }
+                
+                container.innerHTML = `
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>품목</th>
+                                <th>급등률</th>
+                                <th>평균 단가</th>
+                                <th>현재 단가</th>
+                                <th>상태</th>
+                                <th>발생 시간</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${alerts.map(alert => `
+                                <tr>
+                                    <td>${alert.itemName}</td>
+                                    <td><span class="badge bg-danger">${alert.surgePercentage.toFixed(1)}%</span></td>
+                                    <td>${alert.averagePrice.toLocaleString()}원</td>
+                                    <td>${alert.currentPrice.toLocaleString()}원</td>
+                                    <td><span class="badge bg-${getStatusColor(alert.status)}">${getStatusText(alert.status)}</span></td>
+                                    <td>${new Date(alert.createdAt).toLocaleString('ko-KR')}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } catch (error) {
+                console.error('최근 경고 로드 실패:', error);
+            }
+        }
+
+        // 품목 목록 로드
+        async function loadItems() {
+            try {
+                const response = await fetch('/api/price-learning/items');
+                const items = await response.json();
+                
+                const itemSelect = document.getElementById('itemSelect');
+                const historyItemSelect = document.getElementById('historyItemSelect');
+                
+                items.forEach(item => {
+                    itemSelect.add(new Option(item, item));
+                    historyItemSelect.add(new Option(item, item));
+                });
+            } catch (error) {
+                console.error('품목 목록 로드 실패:', error);
+            }
+        }
+
+        // 단가 통계 로드
+        async function loadStatistics() {
+            const itemName = document.getElementById('itemSelect').value;
+            const days = document.getElementById('periodSelect').value;
+            
+            if (!itemName) return;
+            
+            try {
+                const response = await fetch(`/api/price-learning/items/${encodeURIComponent(itemName)}/statistics?days=${days}`);
+                const stats = await response.json();
+                
+                const container = document.getElementById('statisticsContent');
+                container.innerHTML = `
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="stat-card">
+                                <h6>평균 단가</h6>
+                                <div class="price-badge">${stats.averagePrice.toLocaleString()}원</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card">
+                                <h6>추천 단가</h6>
+                                <div class="price-badge">${stats.recommendedPrice.toLocaleString()}원</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card">
+                                <h6>최근 단가</h6>
+                                <div class="price-badge">${stats.recentPrice.toLocaleString()}원</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card">
+                                <h6>변동성</h6>
+                                <div class="price-badge volatility-${stats.volatilityLevel.toLowerCase()}">
+                                    ${stats.volatility.toFixed(1)}%
+                                </div>
+                                <small>${stats.volatilityLevel}</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-body">
+                                    <p><strong>최저가:</strong> ${stats.minPrice.toLocaleString()}원</p>
+                                    <p><strong>최고가:</strong> ${stats.maxPrice.toLocaleString()}원</p>
+                                    <p><strong>데이터 포인트:</strong> ${stats.dataPoints}개</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // 차트 그리기
+                await drawPriceChart(itemName, days);
+                
+            } catch (error) {
+                console.error('통계 로드 실패:', error);
+            }
+        }
+
+        // 단가 차트 그리기
+        async function drawPriceChart(itemName, days) {
+            try {
+                const response = await fetch(`/api/price-learning/items/${encodeURIComponent(itemName)}/history?days=${days}`);
+                const history = await response.json();
+                
+                const ctx = document.getElementById('priceChart').getContext('2d');
+                
+                if (priceChart) {
+                    priceChart.destroy();
+                }
+                
+                priceChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: history.map(h => new Date(h.recordedAt).toLocaleDateString('ko-KR')).reverse(),
+                        datasets: [{
+                            label: '단가 추이',
+                            data: history.map(h => h.unitPrice).reverse(),
+                            borderColor: 'rgb(75, 192, 192)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: `${itemName} 단가 추이`
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value.toLocaleString() + '원';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('차트 그리기 실패:', error);
+            }
+        }
+
+        // 단가 이력 로드
+        async function loadHistory() {
+            const itemName = document.getElementById('historyItemSelect').value;
+            const days = document.getElementById('historyPeriodSelect').value;
+            
+            if (!itemName) return;
+            
+            try {
+                const response = await fetch(`/api/price-learning/items/${encodeURIComponent(itemName)}/history?days=${days}`);
+                const history = await response.json();
+                
+                const container = document.getElementById('historyContent');
+                if (history.length === 0) {
+                    container.innerHTML = '<div class="alert alert-info">이력이 없습니다.</div>';
+                    return;
+                }
+                
+                container.innerHTML = `
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>품목</th>
+                                <th>단가</th>
+                                <th>단위</th>
+                                <th>발주 ID</th>
+                                <th>유통사</th>
+                                <th>매장</th>
+                                <th>기록 시간</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${history.map(h => `
+                                <tr>
+                                    <td>${h.itemName}</td>
+                                    <td>${h.unitPrice.toLocaleString()}원</td>
+                                    <td>${h.unit}</td>
+                                    <td>${h.orderId}</td>
+                                    <td>${h.distributorId}</td>
+                                    <td>${h.storeId}</td>
+                                    <td>${new Date(h.recordedAt).toLocaleString('ko-KR')}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } catch (error) {
+                console.error('이력 로드 실패:', error);
+            }
+        }
+
+        // 경고 확인
+        async function acknowledgeAlert(alertId) {
+            try {
+                await fetch(`/api/price-learning/alerts/${alertId}/acknowledge`, { method: 'POST' });
+                alert('경고를 확인했습니다.');
+                loadActiveAlerts();
+                loadRecentAlerts();
+            } catch (error) {
+                console.error('경고 확인 실패:', error);
+                alert('경고 확인에 실패했습니다.');
+            }
+        }
+
+        // 경고 해결
+        async function resolveAlert(alertId) {
+            try {
+                await fetch(`/api/price-learning/alerts/${alertId}/resolve`, { method: 'POST' });
+                alert('경고를 해결했습니다.');
+                loadActiveAlerts();
+                loadRecentAlerts();
+            } catch (error) {
+                console.error('경고 해결 실패:', error);
+                alert('경고 해결에 실패했습니다.');
+            }
+        }
+
+        // 상태 색상
+        function getStatusColor(status) {
+            switch(status) {
+                case 'ACTIVE': return 'danger';
+                case 'ACKNOWLEDGED': return 'warning';
+                case 'RESOLVED': return 'success';
+                default: return 'secondary';
+            }
+        }
+
+        // 상태 텍스트
+        function getStatusText(status) {
+            switch(status) {
+                case 'ACTIVE': return '활성';
+                case 'ACKNOWLEDGED': return '확인됨';
+                case 'RESOLVED': return '해결됨';
+                default: return status;
+            }
+        }
+    </script>
+</body>
+</html>

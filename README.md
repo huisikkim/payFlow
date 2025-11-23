@@ -1745,3 +1745,188 @@ store/
 - **매장**: STORE_001 (맛있는 식당), STORE_002 (행복한 카페)
 - **유통사**: DIST_001 (신선식자재), DIST_002 (프리미엄푸드)
 
+## 🤖 단가 자동 학습 & 급등 경고 시스템 (신규 추가!)
+
+**AI 없이 통계 기반으로 구현한 지능형 단가 학습 및 급등 경고 시스템**
+
+### 주요 특징
+
+#### 1. 단가 자동 학습
+- ✅ **이력 자동 수집**: 발주 생성 시 품목별 단가 자동 저장
+- ✅ **통계 분석**: 평균, 최저가, 최고가, 변동성 계산
+- ✅ **추천 단가**: 최근 7일 70% + 30일 평균 30% 가중치
+- ✅ **유통사별 분석**: 유통사별 평균 단가 비교
+
+#### 2. 급등 감지 알고리즘
+- ✅ **실시간 모니터링**: 발주 생성 시 자동 체크
+- ✅ **3단계 경고**:
+  - 그저그런 급등 (20-50%)
+  - 크레이지 급등 (50-100%)
+  - 지옥 급등 (100% 이상)
+- ✅ **Kafka 이벤트**: 급등 감지 시 실시간 알림
+- ✅ **경고 관리**: 확인/해결 처리
+
+#### 3. 단가 통계 대시보드
+- ✅ **품목별 통계**: 평균, 최저, 최고, 추천 단가
+- ✅ **변동성 분석**: LOW/MEDIUM/HIGH 3단계
+- ✅ **단가 추이 차트**: Chart.js 기반 시각화
+- ✅ **이력 조회**: 품목별 단가 이력 테이블
+
+### 웹 UI
+
+```
+http://localhost:8080/ingredient/price-learning
+```
+
+**주요 화면:**
+- **급등 경고 탭**: 활성 경고, 최근 경고 내역
+- **단가 통계 탭**: 품목별 통계, 추이 차트
+- **단가 이력 탭**: 품목별 이력 테이블
+
+### API 엔드포인트
+
+#### 단가 통계
+```bash
+# 품목별 단가 통계 (30일 기준)
+GET /api/price-learning/items/{itemName}/statistics?days=30
+
+# 응답 예시
+{
+  "itemName": "양파",
+  "averagePrice": 5100,
+  "minPrice": 5000,
+  "maxPrice": 7500,
+  "recentPrice": 7500,
+  "recommendedPrice": 5800,
+  "dataPoints": 3,
+  "volatility": 22.5,
+  "volatilityLevel": "MEDIUM"
+}
+
+# 품목별 단가 이력
+GET /api/price-learning/items/{itemName}/history?days=30
+
+# 추천 단가 조회
+GET /api/price-learning/items/{itemName}/recommended-price
+
+# 모든 품목 목록
+GET /api/price-learning/items
+```
+
+#### 급등 경고
+```bash
+# 활성 경고 목록
+GET /api/price-learning/alerts/active
+
+# 최근 경고 목록 (최대 10개)
+GET /api/price-learning/alerts/recent
+
+# 경고 상세 조회
+GET /api/price-learning/alerts/{alertId}
+
+# 경고 확인 처리
+POST /api/price-learning/alerts/{alertId}/acknowledge
+
+# 경고 해결 처리
+POST /api/price-learning/alerts/{alertId}/resolve
+```
+
+### 테스트
+
+```bash
+./test-price-learning.sh
+```
+
+이 스크립트는 다음을 테스트합니다:
+1. 정상 단가로 발주 생성 (기준 데이터)
+2. 비슷한 단가로 발주 생성 (학습 데이터)
+3. 급등 단가로 발주 생성 (경고 발생!)
+4. 활성 경고 조회
+5. 품목별 통계 조회
+6. 추천 단가 조회
+7. 단가 이력 조회
+8. 경고 확인/해결 처리
+
+### 급등 감지 알고리즘
+
+```java
+// 최근 30일 평균 단가 계산
+Double avgPrice = calculateAveragePrice(itemName, 30);
+
+// 급등률 계산
+double surgePercentage = ((currentPrice - avgPrice) / avgPrice) * 100;
+
+// 급등 기준
+if (surgePercentage >= 100%) → EXTREME_SURGE (그저그런)
+if (surgePercentage >= 50%)  → HIGH_SURGE (크레이지 급등)
+if (surgePercentage >= 20%)  → MODERATE_SURGE (지옥 급등)
+```
+
+### 추천 단가 계산
+
+```java
+// 최근 7일 평균
+Double recentAvg = calculateAveragePrice(itemName, 7);
+
+// 최근 30일 평균
+Double monthlyAvg = calculateAveragePrice(itemName, 30);
+
+// 가중 평균 (최근 70%, 월평균 30%)
+Long recommendedPrice = Math.round(recentAvg * 0.7 + monthlyAvg * 0.3);
+```
+
+### Kafka 이벤트 플로우
+
+```
+발주 생성 → IngredientOrderCreated
+    ↓
+PriceHistoryCollector (Kafka Listener)
+    ↓
+단가 이력 저장 + 급등 체크
+    ↓
+급등 감지 시 → PriceSurgeAlertEvent 발행
+    ↓
+이벤트 로그 시스템에 기록
+```
+
+### 도메인 모델
+
+```
+pricelearning/
+├── domain/
+│   ├── ItemPriceHistory.java       # 단가 이력
+│   ├── PriceAlert.java             # 급등 경고
+│   ├── PriceAlertType.java         # 경고 유형
+│   ├── PriceAlertStatus.java       # 경고 상태
+│   ├── PriceStatistics.java        # 단가 통계
+│   └── event/
+│       └── PriceSurgeAlertEvent.java
+├── application/
+│   ├── PriceLearningService.java   # 단가 학습 서비스
+│   └── PriceAlertService.java      # 급등 경고 서비스
+├── infrastructure/
+│   └── PriceHistoryCollector.java  # Kafka 리스너
+└── presentation/
+    ├── PriceLearningController.java
+    ├── PriceLearningWebController.java
+    └── dto/
+        ├── PriceStatisticsResponse.java
+        ├── PriceAlertResponse.java
+        └── PriceHistoryResponse.java
+```
+
+**확장 가능성**
+   - ML 모델 추가 가능 (시계열 예측)
+   - 외부 시세 API 연동
+   - 자동 발주 시스템 연계
+   - 계절별 패턴 학습
+
+### 실무로 쓴다면
+
+유통 플랫폼에서 다음과 같이 활용 가능:
+- 매장의 과다 청구 방지
+- 유통사의 적정 단가 제시
+- 시장 가격 모니터링
+- 원가 관리 및 절감
+- 구매 담당자 의사결정 지원
+
