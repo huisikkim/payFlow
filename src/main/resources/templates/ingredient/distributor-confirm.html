@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>발주 확인 - 유통사</title>
+    <link rel="stylesheet" href="/css/ingredient/common.css">
+</head>
+<body>
+    <!-- 헤더 -->
+    <header class="header">
+        <div class="header-container">
+            <a href="/ingredient/distributor" class="logo">
+                <span class="logo-icon">🚚</span>
+                <span>키친보드 - 유통사</span>
+            </a>
+            <nav class="nav">
+                <a href="/ingredient/distributor" class="nav-link active">발주 확인</a>
+                <a href="/ingredient/distributor/settlements" class="nav-link">정산 관리</a>
+                <span class="nav-link" id="distributorName">신선식자재</span>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 메인 컨테이너 -->
+    <div class="container">
+        <!-- 페이지 헤더 -->
+        <div class="page-header">
+            <h1 class="page-title">발주 확인</h1>
+            <p class="page-subtitle">매장에서 요청한 발주를 확인하고 처리하세요</p>
+        </div>
+
+        <!-- 통계 -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">대기 중인 발주</div>
+                <div class="stat-value" id="pendingCount">0</div>
+                <div class="stat-icon">⏳</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">오늘 확인한 발주</div>
+                <div class="stat-value" id="todayConfirmedCount">0</div>
+                <div class="stat-icon">✅</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">이번 달 발주 금액</div>
+                <div class="stat-value" id="monthlyAmount">0원</div>
+                <div class="stat-icon">💰</div>
+            </div>
+        </div>
+
+        <!-- 탭 -->
+        <div style="margin-bottom: 1.5rem; border-bottom: 2px solid var(--gray-200);">
+            <button class="tab-btn active" onclick="switchTab('pending')" id="pendingTab">
+                대기 중 (<span id="pendingTabCount">0</span>)
+            </button>
+            <button class="tab-btn" onclick="switchTab('all')" id="allTab">
+                전체 발주
+            </button>
+        </div>
+
+        <!-- 발주 목록 -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title" id="listTitle">대기 중인 발주</h2>
+                <div>
+                    <button class="btn btn-outline" onclick="loadOrders()">
+                        🔄 새로고침
+                    </button>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>발주번호</th>
+                            <th>매장</th>
+                            <th>발주일시</th>
+                            <th>품목 수</th>
+                            <th>총액</th>
+                            <th>상태</th>
+                            <th>작업</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orderTableBody">
+                        <tr>
+                            <td colspan="7" class="empty-state">
+                                <div class="loading"></div>
+                                <div style="margin-top: 1rem;">로딩 중...</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 발주 상세 & 확인 모달 -->
+    <div class="modal" id="orderModal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h3 class="modal-title">발주 상세 및 확인</h3>
+                <button class="modal-close" onclick="closeOrderModal()">✕</button>
+            </div>
+            <div id="orderContent"></div>
+        </div>
+    </div>
+
+    <!-- 거절 모달 -->
+    <div class="modal" id="rejectModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">발주 거절</h3>
+                <button class="modal-close" onclick="closeRejectModal()">✕</button>
+            </div>
+            
+            <form id="rejectForm" onsubmit="submitReject(event)">
+                <div class="form-group">
+                    <label class="form-label">거절 사유</label>
+                    <textarea class="form-textarea" id="rejectReason" required placeholder="거절 사유를 입력하세요"></textarea>
+                </div>
+
+                <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 2rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closeRejectModal()">취소</button>
+                    <button type="submit" class="btn btn-danger">거절하기</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <style>
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--gray-600);
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+        }
+        
+        .tab-btn:hover {
+            color: var(--primary-color);
+        }
+        
+        .tab-btn.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+        
+        .price-edit-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 100px;
+            gap: 0.5rem;
+            align-items: center;
+            padding: 0.5rem;
+            background: var(--gray-50);
+            border-radius: var(--border-radius);
+            margin-bottom: 0.5rem;
+        }
+    </style>
+
+    <script src="/js/ingredient/distributor-confirm.js"></script>
+</body>
+</html>

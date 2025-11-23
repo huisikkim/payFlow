@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>식자재 발주 - 매장</title>
+    <link rel="stylesheet" href="/css/ingredient/common.css">
+</head>
+<body>
+    <!-- 헤더 -->
+    <header class="header">
+        <div class="header-container">
+            <a href="/ingredient/store" class="logo">
+                <span class="logo-icon">🏪</span>
+                <span>키친보드 - 매장</span>
+            </a>
+            <nav class="nav">
+                <a href="/ingredient/store" class="nav-link active">발주 관리</a>
+                <a href="/ingredient/store/settlements" class="nav-link">정산 내역</a>
+                <span class="nav-link" id="storeName">맛있는 식당</span>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 메인 컨테이너 -->
+    <div class="container">
+        <!-- 페이지 헤더 -->
+        <div class="page-header">
+            <h1 class="page-title">식자재 발주</h1>
+            <p class="page-subtitle">유통사에 식자재를 발주하고 관리하세요</p>
+        </div>
+
+        <!-- 통계 -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">이번 달 발주</div>
+                <div class="stat-value" id="monthlyOrderCount">0</div>
+                <div class="stat-icon">📦</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">대기 중인 발주</div>
+                <div class="stat-value" id="pendingOrderCount">0</div>
+                <div class="stat-icon">⏳</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">이번 달 발주 금액</div>
+                <div class="stat-value" id="monthlyOrderAmount">0원</div>
+                <div class="stat-icon">💰</div>
+            </div>
+        </div>
+
+        <!-- 새 발주 버튼 -->
+        <div style="margin-bottom: 1.5rem;">
+            <button class="btn btn-primary" onclick="openNewOrderModal()">
+                ➕ 새 발주 작성
+            </button>
+        </div>
+
+        <!-- 발주 목록 -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">발주 내역</h2>
+                <div>
+                    <select class="form-select" id="statusFilter" onchange="filterOrders()" style="width: auto;">
+                        <option value="">전체</option>
+                        <option value="PENDING">대기중</option>
+                        <option value="CONFIRMED">확인됨</option>
+                        <option value="COMPLETED">완료</option>
+                        <option value="REJECTED">거절됨</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>발주번호</th>
+                            <th>유통사</th>
+                            <th>발주일시</th>
+                            <th>총액</th>
+                            <th>상태</th>
+                            <th>작업</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orderTableBody">
+                        <tr>
+                            <td colspan="6" class="empty-state">
+                                <div class="empty-state-icon">📦</div>
+                                <div class="empty-state-text">발주 내역이 없습니다</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 새 발주 모달 -->
+    <div class="modal" id="newOrderModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">새 발주 작성</h3>
+                <button class="modal-close" onclick="closeNewOrderModal()">✕</button>
+            </div>
+            
+            <form id="newOrderForm" onsubmit="submitNewOrder(event)">
+                <div class="form-group">
+                    <label class="form-label">유통사 선택</label>
+                    <select class="form-select" id="distributorId" required>
+                        <option value="">유통사를 선택하세요</option>
+                        <option value="DIST_001">신선식자재</option>
+                        <option value="DIST_002">프리미엄푸드</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">발주 품목</label>
+                    <div id="orderItems">
+                        <div class="order-item" style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 40px; gap: 0.5rem; margin-bottom: 0.5rem;">
+                            <input type="text" class="form-input" placeholder="품목명" name="itemName[]" required>
+                            <input type="number" class="form-input" placeholder="수량" name="quantity[]" min="1" required>
+                            <input type="number" class="form-input" placeholder="단가" name="unitPrice[]" min="0" required>
+                            <input type="text" class="form-input" placeholder="단위" name="unit[]" value="개">
+                            <button type="button" class="btn btn-danger" onclick="removeOrderItem(this)" style="padding: 0.625rem;">✕</button>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-secondary" onclick="addOrderItem()" style="margin-top: 0.5rem;">
+                        ➕ 품목 추가
+                    </button>
+                </div>
+
+                <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 2rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closeNewOrderModal()">취소</button>
+                    <button type="submit" class="btn btn-primary">발주 생성</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 발주 상세 모달 -->
+    <div class="modal" id="orderDetailModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">발주 상세</h3>
+                <button class="modal-close" onclick="closeOrderDetailModal()">✕</button>
+            </div>
+            <div id="orderDetailContent"></div>
+        </div>
+    </div>
+
+    <script src="/js/ingredient/store-order.js"></script>
+</body>
+</html>

@@ -1541,3 +1541,207 @@ bash test-recruitment-api.sh
 - 지원자 경험 개선 (적합 공고 추천)
 - 채용 데이터 분석
 
+## 🍽️ 식자재 발주 명세서 자동처리
+
+**식자재 발주**
+
+### 주요 특징
+
+#### 1. 매장 발주 시스템
+- ✅ **발주 작성**: 품목별 수량, 단가, 단위 입력
+- ✅ **유통사 선택**: 신선식자재, 프리미엄푸드 등
+- ✅ **발주 내역 관리**: 상태별 필터링, 상세 조회
+- ✅ **실시간 통계**: 이번 달 발주, 대기 중인 발주, 발주 금액
+
+#### 2. 유통사 확인 시스템
+- ✅ **발주 확인**: 대기 중인 발주 목록
+- ✅ **단가 조정**: 품목별 단가 수정 기능
+- ✅ **발주 승인/거절**: 사유 입력 및 처리
+- ✅ **실시간 통계**: 대기 중, 오늘 확인, 월별 금액
+
+#### 3. 명세서 자동 파싱
+- ✅ **CSV 업로드**: 명세서 파일 업로드
+- ✅ **자동 파싱**: 품목명, 수량, 단가 자동 추출
+- ✅ **Kafka 이벤트**: 업로드 시 자동 파싱 트리거
+- ✅ **파싱 결과 조회**: 품목별 내역 확인
+
+#### 4. 정산 및 미수금 관리
+- ✅ **자동 정산 생성**: 발주 확인 시 자동 생성
+- ✅ **정산 완료 처리**: 지불 금액 입력
+- ✅ **미수금 자동 계산**: 정산금액 - 지불금액
+- ✅ **매장/유통사별 조회**: 보기 전환 기능
+
+### 웹 UI
+
+**매장 화면:**
+```
+발주 관리: http://localhost:8080/ingredient/store
+정산 내역: http://localhost:8080/ingredient/store/settlements
+```
+
+**유통사 화면:**
+```
+발주 확인: http://localhost:8080/ingredient/distributor
+정산 관리: http://localhost:8080/ingredient/distributor/settlements
+```
+
+**통합 정산 대시보드:**
+```
+http://localhost:8080/ingredient/settlement
+```
+
+### API 엔드포인트
+
+#### 매장 발주
+```bash
+# 발주 생성
+POST /api/ingredient-orders
+{
+  "storeId": "STORE_001",
+  "distributorId": "DIST_001",
+  "items": [
+    {
+      "itemName": "양파",
+      "quantity": 10,
+      "unitPrice": 5000,
+      "unit": "kg"
+    }
+  ]
+}
+
+# 발주 조회
+GET /api/ingredient-orders/{orderId}
+GET /api/ingredient-orders/store/{storeId}
+```
+
+#### 유통사 확인
+```bash
+# 대기 중인 발주
+GET /api/distributor/orders/pending?distributorId=DIST_001
+
+# 발주 확인
+POST /api/distributor/orders/{orderId}/confirm
+
+# 발주 거절
+POST /api/distributor/orders/{orderId}/reject
+{
+  "reason": "재고 부족"
+}
+
+# 품목 단가 수정
+PUT /api/distributor/orders/{orderId}/items/{itemId}/price
+{
+  "newPrice": 5500
+}
+```
+
+#### 명세서 관리
+```bash
+# 명세서 업로드
+POST /api/invoices/upload
+Content-Type: multipart/form-data
+orderId: INGR_ORDER_xxx
+file: @sample-invoice.csv
+
+# 명세서 조회
+GET /api/invoices/{invoiceId}
+GET /api/invoices/order/{orderId}
+```
+
+#### 정산 관리
+```bash
+# 매장별 정산 내역
+GET /api/settlements/store/{storeId}
+
+# 유통사별 정산 내역
+GET /api/settlements/distributor/{distributorId}
+
+# 정산 완료
+POST /api/settlements/{settlementId}/complete
+{
+  "paidAmount": 100000
+}
+
+# 총 미수금 조회
+GET /api/settlements/store/{storeId}/outstanding
+```
+
+### E2E 테스트
+
+```bash
+./test-ingredient-order-flow.sh
+```
+
+이 스크립트는 전체 플로우를 자동으로 테스트합니다:
+1. 매장 발주 생성
+2. 유통사 발주 확인
+3. 명세서 업로드 및 파싱
+4. 정산 생성 및 완료
+5. 미수금 확인
+
+### Kafka 이벤트 플로우
+
+```
+매장 발주 생성 → IngredientOrderCreated
+    ↓
+유통사 확인 → IngredientOrderConfirmed
+    ↓
+정산 자동 생성 → SettlementCreated
+    ↓
+명세서 업로드 → InvoiceUploaded
+    ↓
+자동 파싱 → InvoiceParsed
+    ↓
+정산 완료 → SettlementCompleted
+```
+
+### 도메인 모델
+
+```
+ingredientorder/
+├── domain/
+│   ├── IngredientOrder.java        # 발주
+│   ├── IngredientOrderItem.java    # 발주 품목
+│   ├── IngredientOrderStatus.java  # 발주 상태
+│   └── event/
+│       ├── IngredientOrderCreatedEvent.java
+│       └── IngredientOrderConfirmedEvent.java
+├── application/
+│   └── IngredientOrderService.java
+└── presentation/
+    ├── IngredientOrderController.java
+    └── IngredientWebController.java
+
+distributor/
+├── domain/
+│   └── Distributor.java            # 유통사
+└── application/
+    └── DistributorOrderService.java
+
+invoice/
+├── domain/
+│   ├── Invoice.java                # 명세서
+│   ├── InvoiceItem.java            # 명세서 품목
+│   └── InvoiceStatus.java
+└── application/
+    ├── InvoiceService.java
+    └── InvoiceParsingService.java  # CSV 파싱
+
+settlement/
+├── domain/
+│   ├── IngredientSettlement.java   # 정산
+│   └── SettlementStatus.java
+└── application/
+    └── IngredientSettlementService.java
+
+store/
+└── domain/
+    └── Store.java                  # 매장
+```
+
+### 초기 데이터
+
+시스템 시작 시 자동으로 생성:
+- **매장**: STORE_001 (맛있는 식당), STORE_002 (행복한 카페)
+- **유통사**: DIST_001 (신선식자재), DIST_002 (프리미엄푸드)
+

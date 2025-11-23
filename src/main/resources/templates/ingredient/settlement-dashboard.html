@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>정산 관리 - 키친보드</title>
+    <link rel="stylesheet" href="/css/ingredient/common.css">
+</head>
+<body>
+    <!-- 헤더 -->
+    <header class="header">
+        <div class="header-container">
+            <a href="/ingredient/settlement" class="logo">
+                <span class="logo-icon">💰</span>
+                <span>키친보드 - 정산</span>
+            </a>
+            <nav class="nav">
+                <a href="/ingredient/settlement" class="nav-link active">정산 대시보드</a>
+                <select class="form-select" id="viewType" onchange="switchView()" style="width: auto;">
+                    <option value="store">매장별 보기</option>
+                    <option value="distributor">유통사별 보기</option>
+                </select>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 메인 컨테이너 -->
+    <div class="container">
+        <!-- 페이지 헤더 -->
+        <div class="page-header">
+            <h1 class="page-title">정산 관리</h1>
+            <p class="page-subtitle">발주 정산 및 미수금을 관리하세요</p>
+        </div>
+
+        <!-- 통계 -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">총 정산 금액</div>
+                <div class="stat-value" id="totalSettlement">0원</div>
+                <div class="stat-icon">💵</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">총 미수금</div>
+                <div class="stat-value" id="totalOutstanding" style="color: var(--danger-color);">0원</div>
+                <div class="stat-icon">⚠️</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">완료된 정산</div>
+                <div class="stat-value" id="completedCount">0</div>
+                <div class="stat-icon">✅</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">대기 중인 정산</div>
+                <div class="stat-value" id="pendingCount">0</div>
+                <div class="stat-icon">⏳</div>
+            </div>
+        </div>
+
+        <!-- 매장/유통사 선택 -->
+        <div class="card" style="margin-bottom: 1.5rem;">
+            <div class="form-group" style="margin: 0;">
+                <label class="form-label" id="selectLabel">매장 선택</label>
+                <select class="form-select" id="entitySelect" onchange="loadSettlements()">
+                    <option value="">전체</option>
+                    <option value="STORE_001">맛있는 식당 (STORE_001)</option>
+                    <option value="STORE_002">행복한 카페 (STORE_002)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- 정산 목록 -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">정산 내역</h2>
+                <div style="display: flex; gap: 0.5rem;">
+                    <select class="form-select" id="statusFilter" onchange="filterSettlements()" style="width: auto;">
+                        <option value="">전체 상태</option>
+                        <option value="PENDING">대기중</option>
+                        <option value="PROCESSING">처리중</option>
+                        <option value="COMPLETED">완료</option>
+                        <option value="FAILED">실패</option>
+                    </select>
+                    <button class="btn btn-outline" onclick="loadSettlements()">
+                        🔄 새로고침
+                    </button>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>정산번호</th>
+                            <th>발주번호</th>
+                            <th id="entityHeader">매장</th>
+                            <th>정산금액</th>
+                            <th>지불금액</th>
+                            <th>미수금</th>
+                            <th>상태</th>
+                            <th>정산일</th>
+                            <th>작업</th>
+                        </tr>
+                    </thead>
+                    <tbody id="settlementTableBody">
+                        <tr>
+                            <td colspan="9" class="empty-state">
+                                <div class="loading"></div>
+                                <div style="margin-top: 1rem;">로딩 중...</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 정산 상세 모달 -->
+    <div class="modal" id="settlementModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">정산 상세</h3>
+                <button class="modal-close" onclick="closeSettlementModal()">✕</button>
+            </div>
+            <div id="settlementContent"></div>
+        </div>
+    </div>
+
+    <!-- 정산 완료 모달 -->
+    <div class="modal" id="completeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">정산 완료 처리</h3>
+                <button class="modal-close" onclick="closeCompleteModal()">✕</button>
+            </div>
+            
+            <form id="completeForm" onsubmit="submitComplete(event)">
+                <div class="alert alert-info">
+                    정산 금액: <strong id="settlementAmountDisplay">0원</strong><br>
+                    현재 미수금: <strong id="currentOutstandingDisplay">0원</strong>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">지불 금액</label>
+                    <input type="number" class="form-input" id="paidAmount" required min="0" placeholder="지불할 금액을 입력하세요">
+                    <div style="margin-top: 0.5rem; font-size: 0.875rem; color: var(--gray-600);">
+                        남은 미수금: <strong id="remainingOutstanding">0원</strong>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 2rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closeCompleteModal()">취소</button>
+                    <button type="submit" class="btn btn-success">정산 완료</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/js/ingredient/settlement-dashboard.js"></script>
+</body>
+</html>

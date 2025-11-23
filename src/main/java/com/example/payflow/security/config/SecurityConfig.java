@@ -84,6 +84,12 @@ public class SecurityConfig {
                         .requestMatchers("/crypto/**").permitAll()  // 코인 시세 웹 페이지 허용
                         .requestMatchers("/api/crypto/**").permitAll()  // 코인 시세 API 허용
                         .requestMatchers("/ws/crypto", "/ws/crypto/**").permitAll()  // 코인 시세 웹소켓 허용
+                        .requestMatchers("/ingredient/**").permitAll()  // 식자재 발주 웹 페이지 허용 (개발용)
+                        .requestMatchers("/api/ingredient-orders/**").permitAll()  // 식자재 발주 API 허용 (개발용)
+                        .requestMatchers("/api/distributor/**").permitAll()  // 유통사 API 허용 (개발용)
+                        .requestMatchers("/api/invoices/**").permitAll()  // 명세서 API 허용 (개발용)
+                        .requestMatchers("/api/settlements/**").permitAll()  // 정산 API 허용 (개발용)
+                        // TODO: 프로덕션에서는 역할별 권한 설정 필요
                         .requestMatchers("/api/stages/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
