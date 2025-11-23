@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Par Level 설정</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f7fa; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 12px; margin-bottom: 30px; }
+        .header h1 { font-size: 28px; margin-bottom: 10px; }
+        .back-btn { display: inline-block; padding: 10px 20px; background: rgba(255,255,255,0.2); color: white; text-decoration: none; border-radius: 6px; margin-top: 15px; }
+        .back-btn:hover { background: rgba(255,255,255,0.3); }
+        .section { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .section h2 { font-size: 20px; margin-bottom: 20px; color: #1e293b; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th { background: #f8fafc; font-weight: 600; color: #64748b; }
+        .badge { padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+        .badge-success { background: #d1fae5; color: #065f46; }
+        .badge-danger { background: #fee2e2; color: #991b1b; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚙️ Par Level 설정</h1>
+            <p th:text="'매장: ' + ${storeId}"></p>
+            <a href="/parlevel/dashboard" class="back-btn">← 대시보드로 돌아가기</a>
+        </div>
+        
+        <div class="section">
+            <h2>Par Level 목록</h2>
+            <div id="parLevelList">
+                <p>데이터를 불러오는 중...</p>
+            </div>
+        </div>
+    </div>
+    
+    <script th:inline="javascript">
+        const storeId = /*[[${storeId}]]*/ 'STORE_001';
+        
+        async function loadParLevels() {
+            try {
+                const response = await fetch(`/api/parlevel/settings/${storeId}`);
+                const parLevels = await response.json();
+                
+                if (parLevels.length === 0) {
+                    document.getElementById('parLevelList').innerHTML = '<p>설정된 Par Level이 없습니다.</p>';
+                    return;
+                }
+                
+                const html = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>품목명</th>
+                                <th>단위</th>
+                                <th>최소 재고</th>
+                                <th>최대 재고</th>
+                                <th>안전 재고</th>
+                                <th>리드타임</th>
+                                <th>자동 발주</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${parLevels.map(p => `
+                                <tr>
+                                    <td>${p.itemName}</td>
+                                    <td>${p.unit}</td>
+                                    <td>${p.minLevel}</td>
+                                    <td>${p.maxLevel}</td>
+                                    <td>${p.safetyStock}</td>
+                                    <td>${p.leadTimeDays}일</td>
+                                    <td>
+                                        <span class="badge ${p.autoOrderEnabled ? 'badge-success' : 'badge-danger'}">
+                                            ${p.autoOrderEnabled ? '활성화' : '비활성화'}
+                                        </span>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+                
+                document.getElementById('parLevelList').innerHTML = html;
+            } catch (error) {
+                console.error('Par Level 로드 실패:', error);
+                document.getElementById('parLevelList').innerHTML = '<p>데이터를 불러오는데 실패했습니다.</p>';
+            }
+        }
+        
+        loadParLevels();
+    </script>
+</body>
+</html>

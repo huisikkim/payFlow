@@ -57,6 +57,8 @@ public class SecurityConfig {
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()  // Static 리소스 허용
                         .requestMatchers("/", "/index", "/payment", "/success", "/fail").permitAll()
+                        .requestMatchers("/parlevel/**", "/parlevel").permitAll()  // Par Level 웹 페이지 허용 (개발용) - 먼저 선언
+                        .requestMatchers("/api/parlevel/**", "/api/parlevel").permitAll()  // Par Level API 허용 (개발용) - 먼저 선언
                         .requestMatchers("/stages", "/stages/**").permitAll()
                         .requestMatchers("/chatbot", "/api/chatbot/**").permitAll()
                         .requestMatchers("/logs/dashboard", "/api/logs/**").permitAll()  // 로그 대시보드 허용
@@ -93,7 +95,7 @@ public class SecurityConfig {
                         // TODO: 프로덕션에서는 역할별 권한 설정 필요
                         .requestMatchers("/api/stages/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()  // 개발용: 모든 요청 허용 (TODO: 프로덕션에서는 authenticated()로 변경)
                 )
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

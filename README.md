@@ -1930,3 +1930,256 @@ pricelearning/
 - 원가 관리 및 절감
 - 구매 담당자 의사결정 지원
 
+
+## 🎯 Dynamic Par Level - 재고 예측 발주
+
+**규칙 기반 통계로 구현한 지능형 재고 예측 및 자동 발주 시스템**
+
+### 주요 특징
+
+#### 1. Par Level 관리
+- ✅ **최소/최대 재고 설정**: 품목별 적정 재고 수준 관리
+- ✅ **안전 재고**: 리드타임 동안 소진 방지
+- ✅ **리드타임 설정**: 발주 후 입고까지 소요 시간
+- ✅ **자동 발주 활성화**: 품목별 자동 발주 ON/OFF
+
+#### 2. 소비 패턴 분석
+- ✅ **일별 소비 기록**: 품목별 소비량 자동 수집
+- ✅ **이동 평균**: 최근 7일/30일 평균 소비량 계산
+- ✅ **요일별 패턴**: 주말 vs 평일 소비 차이 반영
+- ✅ **변동성 분석**: 표준편차 기반 변동성 계산
+
+#### 3. 발주 예측 엔진
+- ✅ **재고 예측**: 리드타임 동안 예상 소비량 계산
+- ✅ **재발주 시점 감지**: 현재 재고 < 최소 재고
+- ✅ **발주량 계산**: 최대 재고 - 현재 재고
+- ✅ **예측 근거 제공**: 투명한 의사결정 지원
+
+#### 4. 자동 발주 실행
+- ✅ **단가 연동**: 단가 학습 시스템과 연계하여 최적 가격 적용
+- ✅ **일괄 발주**: 모든 예측 품목 한 번에 발주
+- ✅ **발주 이력 추적**: 예측 → 실제 발주 연결
+- ✅ **스케줄러**: 매일 오전 6시 자동 체크
+
+### 예측 알고리즘 (규칙 기반)
+
+#### 1. 이동 평균 (Moving Average)
+```java
+// 최근 7일 평균 소비량
+Double avg7Days = calculateAverageDailyConsumption(storeId, itemName, 7);
+
+// 최근 30일 평균 소비량
+Double avg30Days = calculateAverageDailyConsumption(storeId, itemName, 30);
+
+// 가중 평균: 최근 7일 70%, 30일 30%
+double weightedAvg = (avg7Days * 0.7) + (avg30Days * 0.3);
+```
+
+#### 2. 안전 재고 계산
+```java
+// 표준편차 (변동성)
+Double stdDev = calculateStandardDeviation(storeId, itemName, 30);
+
+// 안전 재고 = 리드타임 소비량 + (표준편차 * 1.65)
+// 1.65 = 95% 신뢰수준
+int safetyStock = (int) Math.ceil((avgDaily * leadTimeDays) + (stdDev * 1.65));
+```
+
+#### 3. Par Level 자동 계산
+```java
+// 최소 재고 = 리드타임 소비량 + 안전 재고
+int minLevel = (int) Math.ceil(avgDaily * leadTimeDays) + safetyStock;
+
+// 최대 재고 = 최소 재고 + (평균 일일 소비량 * 7일)
+int maxLevel = minLevel + (int) Math.ceil(avgDaily * 7);
+```
+
+#### 4. 발주 예측
+```java
+// 리드타임 동안 예상 소비량
+int predictedConsumption = predictConsumption(storeId, itemName, leadTimeDays);
+
+// 예상 잔여 재고
+int projectedStock = currentStock - predictedConsumption;
+
+// 재발주 필요 여부
+if (projectedStock <= minLevel) {
+    int orderQuantity = maxLevel - currentStock;
+    // 자동 발주 생성
+}
+```
+
+### 웹 UI
+
+```
+http://localhost:8080/parlevel/dashboard
+```
+
+**주요 화면:**
+- **대시보드**: 통계, 대기 중인 예측, 자동 발주 실행
+- **Par Level 설정**: 품목별 최소/최대 재고 관리
+- **발주 예측**: 예측 목록, 자동 발주, 건너뛰기
+- **소비 패턴**: 품목별 소비 이력 및 통계
+
+### API 엔드포인트
+
+#### Par Level 관리
+```bash
+# Par Level 생성
+POST /api/parlevel/settings
+{
+  "storeId": "STORE_001",
+  "itemName": "양파",
+  "unit": "kg",
+  "minLevel": 50,
+  "maxLevel": 150,
+  "safetyStock": 30,
+  "leadTimeDays": 2,
+  "autoOrderEnabled": true
+}
+
+# Par Level 수정
+PUT /api/parlevel/settings/{id}
+{
+  "minLevel": 60,
+  "maxLevel": 180,
+  "safetyStock": 35,
+  "leadTimeDays": 2
+}
+
+# 자동 발주 활성화/비활성화
+POST /api/parlevel/settings/{id}/enable-auto-order
+POST /api/parlevel/settings/{id}/disable-auto-order
+
+# Par Level 조회
+GET /api/parlevel/settings/{storeId}
+GET /api/parlevel/settings/{storeId}/{itemName}
+
+# Par Level 자동 계산
+POST /api/parlevel/settings/auto-calculate?storeId=STORE_001&itemName=양파&unit=kg&leadTimeDays=2
+```
+
+#### 발주 예측
+```bash
+# 예측 생성
+POST /api/parlevel/predictions/{storeId}/generate
+
+# 대기 중인 예측 조회
+GET /api/parlevel/predictions/{storeId}/pending
+
+# 전체 예측 조회
+GET /api/parlevel/predictions/{storeId}
+
+# 예측 건너뛰기
+POST /api/parlevel/predictions/{predictionId}/skip
+```
+
+#### 자동 발주
+```bash
+# 단일 자동 발주
+POST /api/parlevel/auto-order/{predictionId}?distributorId=DIST_001
+
+# 전체 자동 발주
+POST /api/parlevel/auto-order/{storeId}/execute-all?distributorId=DIST_001
+```
+
+#### 소비 패턴 분석
+```bash
+# 소비 이력 조회
+GET /api/parlevel/consumption/{storeId}/{itemName}?days=30
+
+# 소비 통계
+GET /api/parlevel/consumption/{storeId}/{itemName}/statistics?days=30
+
+# 응답 예시
+{
+  "averageDailyConsumption": 25.5,
+  "standardDeviation": 5.2,
+  "predicted7DaysConsumption": 180,
+  "analysisWindow": "30 days"
+}
+```
+
+### 테스트
+
+```bash
+./test-parlevel-api.sh
+```
+
+이 스크립트는 다음을 테스트합니다:
+1. Par Level 설정 조회
+2. 소비 패턴 통계 (양파)
+3. 소비 이력 조회 (최근 7일)
+4. 발주 예측 생성
+5. 대기 중인 예측 조회
+6. 자동 발주 실행
+7. Par Level 자동 계산 (새 품목)
+8. 전체 예측 조회
+
+### 시스템 통합
+
+#### 1. 식자재 발주 시스템 연동
+```
+[Par Level 체크] → 재발주 필요 감지
+    ↓
+[발주 예측 생성] → 권장 발주량 계산
+    ↓
+[자동 발주 실행] → IngredientOrderService 호출
+    ↓
+[발주 생성] → 기존 발주 시스템 활용
+```
+
+#### 2. 단가 학습 시스템 연동
+```
+[자동 발주] → 최적 단가 조회
+    ↓
+[PriceLearningService] → 추천 단가 반환
+    ↓
+[발주 생성] → 최적 가격으로 발주
+```
+
+#### 3. 소비 데이터 수집
+```
+[발주 완료] → IngredientOrderCompleted 이벤트
+    ↓
+[ConsumptionDataCollector] → Kafka Listener
+    ↓
+[소비 패턴 기록] → 품목별 소비량 저장
+    ↓
+[예측 정확도 향상] → 데이터 축적
+```
+
+### 초기 데이터
+
+시스템 시작 시 자동으로 생성:
+- **Par Level 설정**: 양파, 당근, 감자, 대파, 마늘 (5개 품목)
+- **소비 패턴**: 최근 30일 소비 데이터 (주말 20% 증가 반영)
+
+### 스케줄러
+
+```java
+@Scheduled(cron = "0 0 6 * * *")  // 매일 오전 6시
+public void checkParLevelsAndGeneratePredictions() {
+    // 모든 매장의 Par Level 체크
+    // 재발주 필요 품목 예측 생성
+}
+```
+
+### 실무 적용 가능성
+
+유통/외식 플랫폼에서 다음과 같이 활용 가능:
+- **재고 최적화**: 과다/부족 재고 방지
+- **운영 효율화**: 수동 발주 업무 자동화
+- **원가 절감**: 적정 재고 유지로 폐기 손실 감소
+- **현금 흐름 개선**: 과다 재고 방지로 자금 효율화
+- **데이터 기반 의사결정**: 소비 패턴 분석 기반 구매 전략
+
+### 차별화 포인트
+
+기존 시스템과의 통합:
+- ✅ **단가 학습 + 재고 예측**: 최적 가격 + 최적 수량
+- ✅ **급등 경고 + 자동 발주**: 가격 급등 시 발주 보류
+- ✅ **이벤트 기반**: 실시간 소비 데이터 수집
+- ✅ **DDD 패턴**: 명확한 도메인 로직 분리
+- ✅ **규칙 기반 추론**: AI 없이도 지능형 예측
+
