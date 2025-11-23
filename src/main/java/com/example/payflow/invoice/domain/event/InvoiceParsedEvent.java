@@ -1,20 +1,24 @@
 package com.example.payflow.invoice.domain.event;
 
 import com.example.payflow.common.event.DomainEvent;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class InvoiceParsedEvent implements DomainEvent {
     
-    private final String eventId;
-    private final String invoiceId;
-    private final String orderId;
-    private final Integer itemCount;
-    private final Long totalAmount;
-    private final LocalDateTime occurredOn;
+    private String eventId;
+    private String invoiceId;
+    private String orderId;
+    private Integer itemCount;
+    private Long totalAmount;
+    private LocalDateTime occurredOn;
     
     public InvoiceParsedEvent(String invoiceId, String orderId, Integer itemCount, Long totalAmount) {
         this.eventId = UUID.randomUUID().toString();

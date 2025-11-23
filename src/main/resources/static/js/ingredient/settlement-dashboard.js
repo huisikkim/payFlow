@@ -7,6 +7,8 @@ let currentSettlement = null;
 
 // 페이지 로드 시 초기화
 document.addEventListener('DOMContentLoaded', function() {
+    // 기본적으로 STORE_001 선택
+    document.getElementById('entitySelect').value = 'STORE_001';
     loadSettlements();
     
     // 지불 금액 입력 시 남은 미수금 계산

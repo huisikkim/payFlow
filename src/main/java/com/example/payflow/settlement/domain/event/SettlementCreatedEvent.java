@@ -1,21 +1,25 @@
 package com.example.payflow.settlement.domain.event;
 
 import com.example.payflow.common.event.DomainEvent;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class SettlementCreatedEvent implements DomainEvent {
     
-    private final String eventId;
-    private final String settlementId;
-    private final String orderId;
-    private final String storeId;
-    private final String distributorId;
-    private final Long settlementAmount;
-    private final LocalDateTime occurredOn;
+    private String eventId;
+    private String settlementId;
+    private String orderId;
+    private String storeId;
+    private String distributorId;
+    private Long settlementAmount;
+    private LocalDateTime occurredOn;
     
     public SettlementCreatedEvent(String settlementId, String orderId, String storeId, 
                                  String distributorId, Long settlementAmount) {
