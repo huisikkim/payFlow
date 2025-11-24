@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>명세표 상세</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f7fa;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            color: #333;
+            font-size: 28px;
+        }
+        
+        .btn-back {
+            background: #f0f0f0;
+            color: #333;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-back:hover {
+            background: #e0e0e0;
+        }
+        
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card h2 {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .info-group {
+            margin-bottom: 20px;
+        }
+        
+        .info-label {
+            color: #999;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        
+        .info-value {
+            color: #333;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        
+        .status-uploaded {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status-extracted {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .status-parsed {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .status-error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .table th {
+            background: #f5f7fa;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .table td {
+            padding: 12px;
+            border-bottom: 1px solid #e0e0e0;
+            color: #666;
+        }
+        
+        .table tr:hover {
+            background: #f9f9f9;
+        }
+        
+        .code-block {
+            background: #f5f7fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 15px;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            color: #333;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .error-message {
+            background: #fee2e2;
+            border-left: 4px solid #ef4444;
+            padding: 15px;
+            border-radius: 6px;
+            color: #991b1b;
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 명세표 상세</h1>
+            <a href="/specification" class="btn-back">← 목록으로</a>
+        </div>
+        
+        <div th:if="${error}" class="error-message" th:text="${error}"></div>
+        
+        <div th:if="${specification}" class="content">
+            <!-- 기본 정보 -->
+            <div class="card">
+                <h2>📌 기본 정보</h2>
+                
+                <div th:class="'status-badge status-' + ${specification.status.toLowerCase()}" 
+                     th:text="${specification.status}"></div>
+                
+                <div class="info-group">
+                    <div class="info-label">상품명</div>
+                    <div class="info-value" th:text="${specification.productName ?: '미확인'}"></div>
+                </div>
+                
+                <div class="info-group">
+                    <div class="info-label">카테고리</div>
+                    <div class="info-value" th:text="${specification.category ?: '미확인'}"></div>
+                </div>
+                
+                <div class="info-group">
+                    <div class="info-label">가격</div>
+                    <div class="info-value" th:text="${specification.price != null ? '₩' + #numbers.formatInteger(specification.price, 0) : '미확인'}"></div>
+                </div>
+                
+                <div class="info-group">
+                    <div class="info-label">수량</div>
+                    <div class="info-value" th:text="${specification.quantity ?: '미확인'}"></div>
+                </div>
+                
+                <div class="info-group">
+                    <div class="info-label">생성일시</div>
+                    <div class="info-value" th:text="${#temporals.format(specification.createdAt, 'yyyy-MM-dd HH:mm:ss')}"></div>
+                </div>
+            </div>
+            
+            <!-- 이미지 -->
+            <div class="card">
+                <h2>🖼️ 원본 이미지</h2>
+                <div style="text-align: center; padding: 20px;">
+                    <img th:src="'/' + ${specification.imagePath}" 
+                         alt="명세표 이미지" 
+                         style="max-width: 100%; max-height: 400px; border-radius: 6px;">
+                </div>
+            </div>
+            
+            <!-- 추출된 텍스트 -->
+            <div class="card full-width">
+                <h2>📝 추출된 텍스트 (OCR)</h2>
+                <div class="code-block" th:text="${specification.extractedText ?: '텍스트 없음'}"></div>
+            </div>
+            
+            <!-- 명세 항목 -->
+            <div class="card full-width" th:if="${specification.items != null and specification.items.size() > 0}">
+                <h2>📊 명세 항목</h2>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>항목명</th>
+                            <th>값</th>
+                            <th>단위</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="item : ${specification.items}">
+                            <td th:text="${item.itemName}"></td>
+                            <td th:text="${item.itemValue}"></td>
+                            <td th:text="${item.unit ?: '-'}"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- 파싱된 JSON -->
+            <div class="card full-width" th:if="${specification.parsedJson}">
+                <h2>🔍 파싱된 JSON</h2>
+                <div class="code-block" th:text="${specification.parsedJson}"></div>
+            </div>
+            
+            <!-- 에러 메시지 -->
+            <div class="card full-width" th:if="${specification.errorMessage}">
+                <h2>⚠️ 오류 정보</h2>
+                <div class="error-message" th:text="${specification.errorMessage}"></div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -2183,3 +2183,290 @@ public void checkParLevelsAndGeneratePredictions() {
 - ✅ **DDD 패턴**: 명확한 도메인 로직 분리
 - ✅ **규칙 기반 추론**: AI 없이도 지능형 예측
 
+
+
+## 📸 명세표 OCR + LLM 파싱 시스템
+
+PayFlow는 **PaddleOCR + Ollama LLM을 이용한 명세표 자동 파싱 시스템**을 제공합니다.
+
+### 주요 기능
+
+#### 1. 이미지 OCR 추출
+- ✅ **PaddleOCR**: 한글 지원 고정확도 OCR
+- ✅ **자동 텍스트 추출**: 이미지에서 텍스트 자동 인식
+- ✅ **신뢰도 필터링**: 70% 이상 신뢰도 텍스트만 추출
+- ✅ **다양한 형식 지원**: JPG, PNG, GIF 등
+
+#### 2. LLM 기반 파싱
+- ✅ **Ollama + Qwen2.5:7b**: 무료 오픈소스 LLM
+- ✅ **자동 JSON 생성**: 정규화된 JSON 구조 자동 생성
+- ✅ **필드 추출**: 상품명, 카테고리, 가격, 수량, 명세 항목
+- ✅ **구조화된 데이터**: 데이터베이스 저장 가능한 형식
+
+#### 3. 데이터 저장 및 조회
+- ✅ **DB 저장**: H2/MySQL에 명세표 정보 저장
+- ✅ **이미지 보관**: 원본 이미지 저장
+- ✅ **텍스트 보관**: 추출된 텍스트 저장
+- ✅ **JSON 보관**: 파싱된 JSON 저장
+- ✅ **상태 추적**: 업로드 → 추출 → 파싱 → 완료
+
+#### 4. 웹 UI
+- ✅ **업로드 페이지**: 드래그 앤 드롭 지원
+- ✅ **목록 페이지**: 모든 명세표 조회
+- ✅ **상세 페이지**: 원본 이미지, 추출 텍스트, 파싱 결과 표시
+
+### 도메인 모델
+
+```
+specification/
+├── domain/
+│   ├── Specification.java           # 명세표 엔티티
+│   ├── SpecificationItem.java       # 명세 항목
+│   ├── ProcessingStatus.java        # 처리 상태
+│   └── SpecificationRepository.java
+├── application/
+│   ├── OCRService.java              # PaddleOCR 호출
+│   ├── LLMParsingService.java       # Ollama LLM 호출
+│   └── SpecificationService.java    # 비즈니스 로직
+└── presentation/
+    ├── SpecificationController.java # REST API
+    ├── SpecificationWebController.java # 웹 페이지
+    └── dto/
+        ├── SpecificationResponse.java
+        └── ParsedSpecificationDto.java
+```
+
+### API 엔드포인트
+
+#### 명세표 관리
+```bash
+# 명세표 업로드 및 처리
+POST /api/specifications/upload
+Content-Type: multipart/form-data
+- file: 이미지 파일
+
+# 명세표 상세 조회
+GET /api/specifications/{id}
+
+# 모든 명세표 조회
+GET /api/specifications
+
+# 상태별 조회
+GET /api/specifications/status/{status}
+# 상태: UPLOADED, TEXT_EXTRACTED, PARSING, PARSED, ERROR
+
+# 상품명으로 검색
+GET /api/specifications/search?productName=검색어
+```
+
+### 웹 UI
+
+```
+http://localhost:8080/specification              # 목록
+http://localhost:8080/specification/upload       # 업로드
+http://localhost:8080/specification/{id}         # 상세
+```
+
+### 처리 흐름
+
+```
+1. 사용자가 명세표 이미지 업로드
+   ↓
+2. Spring Boot가 이미지 저장
+   ↓
+3. PaddleOCR 호출 → 텍스트 추출
+   ↓
+4. 추출된 텍스트 → Ollama LLM 전송
+   ↓
+5. LLM이 JSON 생성
+   {
+     "productName": "상품명",
+     "category": "카테고리",
+     "price": 50000,
+     "quantity": 10,
+     "specifications": [
+       {"name": "크기", "value": "100x100mm", "unit": "mm"}
+     ]
+   }
+   ↓
+6. JSON 파싱 → DB 저장
+   ↓
+7. Kafka 이벤트 발행
+   ↓
+8. 프론트에서 결과 표시
+```
+
+### 처리 상태
+
+- `UPLOADED`: 이미지 업로드됨
+- `TEXT_EXTRACTED`: OCR 텍스트 추출 완료
+- `PARSING`: LLM 파싱 중
+- `PARSED`: 파싱 완료
+- `ERROR`: 처리 중 오류 발생
+
+### Docker 설정
+
+```yaml
+# docker-compose.yml
+services:
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+
+  paddleocr:
+    image: paddlepaddle/paddleocr:latest-en
+    ports:
+      - "8501:8501"
+```
+
+### 설치 및 실행
+
+#### 1단계: Docker 서비스 시작
+
+```bash
+# Ollama 실행
+docker run -d --name ollama -p 11434:11434 ollama/ollama:latest
+
+# Qwen2.5:7b 모델 다운로드 (약 4.7GB)
+docker exec ollama ollama pull qwen2.5:7b
+
+# 또는 더 가벼운 Phi-3 (약 2.3GB)
+docker exec ollama ollama pull phi:3
+
+# PaddleOCR 실행
+docker run -d --name paddleocr -p 8501:8501 paddlepaddle/paddleocr:latest-en
+
+# 또는 전체 docker-compose 실행
+docker-compose up -d
+```
+
+#### 2단계: 애플리케이션 빌드 및 실행
+
+```bash
+./gradlew clean build
+./gradlew bootRun
+```
+
+#### 3단계: 웹 접속
+
+```
+http://localhost:8080/specification/upload
+```
+
+### 테스트
+
+```bash
+./test-specification-api.sh
+```
+
+이 스크립트는 다음을 테스트합니다:
+- 명세표 목록 조회
+- 테스트 이미지 생성
+- 명세표 업로드 및 처리
+- 명세표 상세 조회
+- 상태별 조회
+- 상품명 검색
+
+### 응답 예시
+
+#### 업로드 성공
+
+```json
+{
+  "id": 1,
+  "imagePath": "uploads/specifications/uuid_filename.png",
+  "extractedText": "상품명: 테스트 명세표\n카테고리: 전자제품\n...",
+  "parsedJson": "{\"productName\": \"테스트 명세표\", ...}",
+  "items": [
+    {
+      "id": 1,
+      "itemName": "크기",
+      "itemValue": "100x100mm",
+      "unit": "mm",
+      "sequence": 0
+    }
+  ],
+  "productName": "테스트 명세표",
+  "category": "전자제품",
+  "price": 50000,
+  "quantity": 10,
+  "status": "PARSED",
+  "createdAt": "2025-11-24T12:00:00",
+  "updatedAt": "2025-11-24T12:00:05"
+}
+```
+
+### 기술 스택
+
+- **OCR**: PaddleOCR (Python)
+- **LLM**: Ollama + Qwen2.5:7b
+- **백엔드**: Spring Boot 3.5.7
+- **데이터베이스**: H2 (또는 MySQL)
+- **메시징**: Kafka
+- **프론트엔드**: Thymeleaf + Vanilla JS
+
+### 성능 지표
+
+| 항목 | 시간 |
+|------|------|
+| OCR 추출 | 1-3초 |
+| LLM 파싱 | 2-5초 |
+| 총 처리 시간 | 3-8초 |
+| 메모리 사용 | ~2GB (Qwen2.5:7b) |
+
+### 비용
+
+- **PaddleOCR**: 무료 (오픈소스)
+- **Ollama**: 무료 (오픈소스)
+- **Qwen2.5:7b**: 무료 (오픈소스)
+- **Docker**: 무료
+- **Spring Boot**: 무료
+
+**총 비용: 0원** ✅
+
+### 확장 가능성
+
+#### 1. 다양한 LLM 모델 지원
+```bash
+# Phi-3 (더 빠름, 약 2.3GB)
+ollama pull phi:3
+
+# Mistral (더 강력함, 약 4.1GB)
+ollama pull mistral:7b
+
+# Llama2 (다목적, 약 3.8GB)
+ollama pull llama2:7b
+```
+
+#### 2. 배치 처리
+```java
+@Scheduled(cron = "0 0 * * * *")  // 매시간
+public void processPendingSpecifications() {
+    // 대기 중인 명세표 일괄 처리
+}
+```
+
+#### 3. 이미지 전처리
+```java
+// 회전, 크롭, 명도 조정 등
+BufferedImage preprocessed = preprocessImage(originalImage);
+```
+
+#### 4. 정확도 개선
+```java
+// 여러 LLM 모델 앙상블
+String result1 = callOllama(text, "qwen2.5:7b");
+String result2 = callOllama(text, "phi:3");
+// 결과 병합 및 검증
+```
+
+### 실무 활용
+
+- **전자상거래**: 상품 명세표 자동 파싱
+- **유통**: 발주 명세표 자동 처리
+- **제조**: 부품 명세서 자동 입력
+- **물류**: 송장 정보 자동 추출
+- **금융**: 영수증/청구서 자동 처리

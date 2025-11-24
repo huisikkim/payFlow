@@ -56,6 +56,9 @@ dependencies {
     // WebSocket
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
     
+    // File upload
+    implementation 'commons-io:commons-io:2.13.0'
+    
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'com.h2database:h2'
     annotationProcessor 'org.projectlombok:lombok'

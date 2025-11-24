@@ -92,6 +92,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/invoices/**").permitAll()  // 명세서 API 허용 (개발용)
                         .requestMatchers("/api/settlements/**").permitAll()  // 정산 API 허용 (개발용)
                         .requestMatchers("/api/price-learning/**").permitAll()  // 단가 학습 API 허용 (개발용)
+                        .requestMatchers("/specification/**").permitAll()  // 명세표 웹 페이지 허용
+                        .requestMatchers("/api/specifications/**").permitAll()  // 명세표 API 허용 (개발용)
                         // TODO: 프로덕션에서는 역할별 권한 설정 필요
                         .requestMatchers("/api/stages/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
