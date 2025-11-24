@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>메뉴 추가 - PayFlow</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .header { background: white; padding: 30px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .back-btn { display: inline-block; padding: 8px 16px; background: #6c757d; color: white; text-decoration: none; border-radius: 6px; margin-bottom: 15px; }
+        .back-btn:hover { background: #5a6268; }
+        h1 { color: #333; margin-bottom: 10px; }
+        .form-section { background: white; padding: 25px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-weight: 600; color: #495057; margin-bottom: 8px; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+        .form-group textarea { min-height: 100px; resize: vertical; }
+        .ingredient-list { margin-top: 15px; }
+        .ingredient-item { display: grid; grid-template-columns: 2fr 1fr 1fr 2fr auto; gap: 10px; margin-bottom: 10px; align-items: end; }
+        .ingredient-item input { margin-bottom: 0; }
+        .btn { padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-primary:hover { background: #0056b3; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-success:hover { background: #218838; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-danger:hover { background: #c82333; }
+        .btn-secondary { background: #6c757d; color: white; }
+        .btn-secondary:hover { background: #5a6268; }
+        .actions { display: flex; gap: 10px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="/menu" class="back-btn">← 목록으로</a>
+            <h1>➕ 메뉴 추가</h1>
+        </div>
+
+        <form id="menuForm">
+            <div class="form-section">
+                <h3 style="margin-bottom: 20px;">기본 정보</h3>
+                
+                <div class="form-group">
+                    <label for="name">메뉴명 *</label>
+                    <input type="text" id="name" required placeholder="예: 김치찌개">
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">설명</label>
+                    <textarea id="description" placeholder="메뉴 설명을 입력하세요"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="category">카테고리 *</label>
+                    <input type="text" id="category" required placeholder="예: 한식">
+                </div>
+                
+                <div class="form-group">
+                    <label for="storeId">매장 ID *</label>
+                    <input type="text" id="storeId" required placeholder="예: STORE-001" value="STORE-001">
+                </div>
+                
+                <div class="form-group">
+                    <label for="sellingPrice">판매가 (원) *</label>
+                    <input type="number" id="sellingPrice" required placeholder="예: 8000">
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 style="margin-bottom: 20px;">레시피 재료</h3>
+                
+                <div id="ingredientList" class="ingredient-list">
+                    <div class="ingredient-item">
+                        <input type="text" placeholder="재료명" class="ingredient-name" required>
+                        <input type="number" step="0.001" placeholder="사용량" class="ingredient-quantity" required>
+                        <input type="text" placeholder="단위" class="ingredient-unit" required>
+                        <input type="text" placeholder="비고" class="ingredient-notes">
+                        <button type="button" class="btn btn-danger" onclick="removeIngredient(this)">삭제</button>
+                    </div>
+                </div>
+                
+                <button type="button" class="btn btn-secondary" onclick="addIngredient()" style="margin-top: 10px;">+ 재료 추가</button>
+            </div>
+
+            <div class="actions">
+                <button type="submit" class="btn btn-success">✅ 메뉴 생성</button>
+                <a href="/menu" class="btn btn-primary" style="text-decoration: none; display: inline-block; text-align: center;">취소</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function addIngredient() {
+            const list = document.getElementById('ingredientList');
+            const item = document.createElement('div');
+            item.className = 'ingredient-item';
+            item.innerHTML = `
+                <input type="text" placeholder="재료명" class="ingredient-name" required>
+                <input type="number" step="0.001" placeholder="사용량" class="ingredient-quantity" required>
+                <input type="text" placeholder="단위" class="ingredient-unit" required>
+                <input type="text" placeholder="비고" class="ingredient-notes">
+                <button type="button" class="btn btn-danger" onclick="removeIngredient(this)">삭제</button>
+            `;
+            list.appendChild(item);
+        }
+
+        function removeIngredient(btn) {
+            const list = document.getElementById('ingredientList');
+            if (list.children.length > 1) {
+                btn.parentElement.remove();
+            } else {
+                alert('최소 1개의 재료가 필요합니다.');
+            }
+        }
+
+        document.getElementById('menuForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const ingredients = [];
+            document.querySelectorAll('.ingredient-item').forEach(item => {
+                const name = item.querySelector('.ingredient-name').value;
+                const quantity = parseFloat(item.querySelector('.ingredient-quantity').value);
+                const unit = item.querySelector('.ingredient-unit').value;
+                const notes = item.querySelector('.ingredient-notes').value;
+                
+                if (name && quantity && unit) {
+                    ingredients.push({ ingredientName: name, quantity, unit, notes });
+                }
+            });
+
+            const data = {
+                name: document.getElementById('name').value,
+                description: document.getElementById('description').value,
+                category: document.getElementById('category').value,
+                storeId: document.getElementById('storeId').value,
+                sellingPrice: parseInt(document.getElementById('sellingPrice').value),
+                recipeIngredients: ingredients
+            };
+
+            try {
+                const response = await fetch('/api/menu', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    alert('메뉴가 생성되었습니다!');
+                    location.href = '/menu/' + result.id;
+                } else {
+                    alert('메뉴 생성 실패: ' + response.statusText);
+                }
+            } catch (err) {
+                alert('오류 발생: ' + err.message);
+            }
+        });
+    </script>
+</body>
+</html>

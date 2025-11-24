@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${menu.name} + ' - 마진 시뮬레이터'">마진 시뮬레이터</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .header { background: white; padding: 30px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .back-btn { display: inline-block; padding: 8px 16px; background: #6c757d; color: white; text-decoration: none; border-radius: 6px; margin-bottom: 15px; }
+        .back-btn:hover { background: #5a6268; }
+        h1 { color: #333; margin-bottom: 10px; }
+        .subtitle { color: #666; font-size: 14px; }
+        .current-info { background: #e3f2fd; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .current-info h3 { color: #1976d2; margin-bottom: 10px; }
+        .current-info p { color: #333; line-height: 1.8; }
+        .simulator-section { background: white; padding: 25px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .section-title { font-size: 18px; font-weight: bold; color: #333; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #007bff; }
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; font-weight: 600; color: #495057; margin-bottom: 8px; }
+        .input-group input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 16px; }
+        .input-group input:focus { outline: none; border-color: #007bff; }
+        .btn { display: inline-block; padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; margin-right: 10px; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-primary:hover { background: #0056b3; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-success:hover { background: #218838; }
+        .result-box { background: #f8f9fa; padding: 20px; border-radius: 8px; margin-top: 20px; display: none; }
+        .result-box.show { display: block; }
+        .result-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #dee2e6; }
+        .result-item:last-child { border-bottom: none; }
+        .result-label { font-weight: 600; color: #495057; }
+        .result-value { font-weight: bold; color: #333; }
+        .result-value.positive { color: #2e7d32; }
+        .result-value.negative { color: #c62828; }
+        .comparison { background: #fff3cd; padding: 15px; border-radius: 6px; margin-top: 15px; }
+        .comparison h4 { color: #856404; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a th:href="@{/menu/{id}(id=${menu.id})}" class="back-btn">← 원가 분석으로</a>
+            <h1>💰 마진 시뮬레이터</h1>
+            <p class="subtitle" th:text="${menu.name}">메뉴명</p>
+        </div>
+
+        <div class="current-info">
+            <h3>📊 현재 정보</h3>
+            <p>
+                <strong>총 원가:</strong> <span th:text="${#numbers.formatInteger(analysis.totalCost, 0, 'COMMA')} + '원'">0원</span><br>
+                <strong>현재 판매가:</strong> <span th:text="${#numbers.formatInteger(analysis.sellingPrice, 0, 'COMMA')} + '원'">0원</span><br>
+                <strong>현재 마진율:</strong> <span th:text="${#numbers.formatDecimal(analysis.marginRate, 1, 2)} + '%'">0%</span><br>
+                <strong>현재 순이익:</strong> <span th:text="${#numbers.formatInteger(analysis.grossProfit, 0, 'COMMA')} + '원'">0원</span>
+            </p>
+        </div>
+
+        <div class="simulator-section">
+            <h2 class="section-title">💵 가격 기반 시뮬레이션</h2>
+            <p style="color: #666; margin-bottom: 20px;">목표 판매가를 입력하면 예상 마진율을 계산합니다.</p>
+            
+            <div class="input-group">
+                <label for="targetPrice">목표 판매가 (원)</label>
+                <input type="number" id="targetPrice" placeholder="예: 10000" th:value="${analysis.sellingPrice}">
+            </div>
+            
+            <button class="btn btn-primary" onclick="simulateByPrice()">계산하기</button>
+            
+            <div id="priceResult" class="result-box">
+                <div class="result-item">
+                    <span class="result-label">목표 판매가</span>
+                    <span class="result-value" id="priceResultPrice">0원</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">예상 마진율</span>
+                    <span class="result-value" id="priceResultMargin">0%</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">예상 순이익</span>
+                    <span class="result-value positive" id="priceResultProfit">0원</span>
+                </div>
+                <div class="comparison">
+                    <h4>📈 현재 대비 변화</h4>
+                    <p>
+                        <strong>가격 차이:</strong> <span id="priceDiff">0원</span><br>
+                        <strong>마진율 차이:</strong> <span id="marginDiff">0%</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="simulator-section">
+            <h2 class="section-title">📊 마진율 기반 시뮬레이션</h2>
+            <p style="color: #666; margin-bottom: 20px;">목표 마진율을 입력하면 필요한 판매가를 계산합니다.</p>
+            
+            <div class="input-group">
+                <label for="targetMargin">목표 마진율 (%)</label>
+                <input type="number" id="targetMargin" placeholder="예: 35" step="0.1" th:value="${analysis.marginRate}">
+            </div>
+            
+            <button class="btn btn-success" onclick="simulateByMargin()">계산하기</button>
+            
+            <div id="marginResult" class="result-box">
+                <div class="result-item">
+                    <span class="result-label">목표 마진율</span>
+                    <span class="result-value" id="marginResultMargin">0%</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">필요 판매가</span>
+                    <span class="result-value" id="marginResultPrice">0원</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">예상 순이익</span>
+                    <span class="result-value positive" id="marginResultProfit">0원</span>
+                </div>
+                <div class="comparison">
+                    <h4>📈 현재 대비 변화</h4>
+                    <p>
+                        <strong>가격 차이:</strong> <span id="marginPriceDiff">0원</span><br>
+                        <strong>마진율 차이:</strong> <span id="marginMarginDiff">0%</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        const menuId = /*[[${menu.id}]]*/ 0;
+        const totalCost = /*[[${analysis.totalCost}]]*/ 0;
+
+        function simulateByPrice() {
+            const targetPrice = parseInt(document.getElementById('targetPrice').value);
+            if (!targetPrice || targetPrice <= 0) {
+                alert('올바른 판매가를 입력하세요.');
+                return;
+            }
+
+            fetch(`/api/menu/${menuId}/simulate/price?targetPrice=${targetPrice}`)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('priceResultPrice').textContent = formatNumber(data.targetSellingPrice) + '원';
+                    document.getElementById('priceResultMargin').textContent = data.targetMarginRate.toFixed(2) + '%';
+                    document.getElementById('priceResultProfit').textContent = formatNumber(data.targetSellingPrice - totalCost) + '원';
+                    
+                    const priceDiff = data.priceDifference;
+                    const marginDiff = data.marginDifference;
+                    
+                    document.getElementById('priceDiff').textContent = (priceDiff >= 0 ? '+' : '') + formatNumber(priceDiff) + '원';
+                    document.getElementById('priceDiff').style.color = priceDiff >= 0 ? '#2e7d32' : '#c62828';
+                    
+                    document.getElementById('marginDiff').textContent = (marginDiff >= 0 ? '+' : '') + marginDiff.toFixed(2) + '%';
+                    document.getElementById('marginDiff').style.color = marginDiff >= 0 ? '#2e7d32' : '#c62828';
+                    
+                    document.getElementById('priceResult').classList.add('show');
+                })
+                .catch(err => alert('시뮬레이션 실패: ' + err.message));
+        }
+
+        function simulateByMargin() {
+            const targetMargin = parseFloat(document.getElementById('targetMargin').value);
+            if (!targetMargin || targetMargin < 0 || targetMargin >= 100) {
+                alert('올바른 마진율을 입력하세요 (0-100).');
+                return;
+            }
+
+            fetch(`/api/menu/${menuId}/simulate/margin?targetMargin=${targetMargin}`)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('marginResultMargin').textContent = data.targetMarginRate.toFixed(2) + '%';
+                    document.getElementById('marginResultPrice').textContent = formatNumber(data.targetSellingPrice) + '원';
+                    document.getElementById('marginResultProfit').textContent = formatNumber(data.targetSellingPrice - totalCost) + '원';
+                    
+                    const priceDiff = data.priceDifference;
+                    const marginDiff = data.marginDifference;
+                    
+                    document.getElementById('marginPriceDiff').textContent = (priceDiff >= 0 ? '+' : '') + formatNumber(priceDiff) + '원';
+                    document.getElementById('marginPriceDiff').style.color = priceDiff >= 0 ? '#2e7d32' : '#c62828';
+                    
+                    document.getElementById('marginMarginDiff').textContent = (marginDiff >= 0 ? '+' : '') + marginDiff.toFixed(2) + '%';
+                    document.getElementById('marginMarginDiff').style.color = marginDiff >= 0 ? '#2e7d32' : '#c62828';
+                    
+                    document.getElementById('marginResult').classList.add('show');
+                })
+                .catch(err => alert('시뮬레이션 실패: ' + err.message));
+        }
+
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+    </script>
+</body>
+</html>

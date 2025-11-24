@@ -2470,3 +2470,300 @@ String result2 = callOllama(text, "phi:3");
 - **제조**: 부품 명세서 자동 입력
 - **물류**: 송장 정보 자동 추출
 - **금융**: 영수증/청구서 자동 처리
+
+
+## 🍽️ 메뉴 원가 자동 계산 + 마진 시뮬레이터
+
+**식자재 단가 학습 데이터를 활용한 메뉴 원가 자동 계산 및 마진 시뮬레이션 시스템**
+
+### 주요 특징
+
+#### 1. 메뉴 레시피 관리
+- ✅ **메뉴 등록**: 메뉴명, 설명, 카테고리, 판매가 설정
+- ✅ **레시피 구성**: 메뉴별 재료 및 사용량 관리
+- ✅ **재료 단위**: kg, g, L, ml, 개, 모 등 다양한 단위 지원
+- ✅ **메뉴 활성화**: 판매 중/중지 상태 관리
+
+#### 2. 자동 원가 계산
+- ✅ **실시간 단가 연동**: 단가 학습 시스템에서 최신 추천 단가 조회
+- ✅ **재료별 원가**: 사용량 × 단가로 재료별 원가 자동 계산
+- ✅ **총 원가**: 모든 재료 원가의 합계
+- ✅ **원가 비율**: 각 재료가 전체 원가에서 차지하는 비율
+
+#### 3. 마진 분석
+```
+마진율 = (판매가 - 원가) / 판매가 × 100
+마크업율 = (판매가 - 원가) / 원가 × 100
+매출 총이익 = 판매가 - 원가
+```
+
+#### 4. 마진 시뮬레이터
+- ✅ **가격 기반 시뮬레이션**: 목표 판매가 입력 → 예상 마진율 계산
+- ✅ **마진율 기반 시뮬레이션**: 목표 마진율 입력 → 필요 판매가 계산
+- ✅ **실시간 비교**: 현재 대비 가격/마진율 차이 표시
+- ✅ **의사결정 지원**: 가격 정책 수립에 필요한 데이터 제공
+
+### DDD 패턴 적용
+
+```
+menu/
+├── domain/
+│   ├── Menu.java                # 메뉴 집합 루트
+│   ├── RecipeIngredient.java    # 레시피 재료 엔티티
+│   ├── MenuCostAnalysis.java    # 원가 분석 VO
+│   ├── MarginSimulation.java    # 마진 시뮬레이션 VO
+│   └── MenuRepository.java
+├── application/
+│   ├── MenuService.java         # 메뉴 관리
+│   ├── MenuCostCalculator.java  # 원가 계산 엔진
+│   └── MarginSimulator.java     # 마진 시뮬레이터
+├── presentation/
+│   ├── MenuController.java      # REST API
+│   ├── MenuWebController.java   # 웹 UI
+│   └── dto/
+└── infrastructure/
+    └── MenuDataInitializer.java # 초기 데이터
+```
+
+### API 엔드포인트
+
+#### 메뉴 관리
+```bash
+# 메뉴 생성
+POST /api/menu
+{
+  "name": "김치찌개",
+  "description": "묵은지와 돼지고기로 끓인 얼큰한 김치찌개",
+  "category": "한식",
+  "storeId": "STORE-001",
+  "sellingPrice": 8000,
+  "recipeIngredients": [
+    {
+      "ingredientName": "김치",
+      "quantity": 0.3,
+      "unit": "kg",
+      "notes": "묵은지 사용"
+    },
+    {
+      "ingredientName": "돼지고기",
+      "quantity": 0.15,
+      "unit": "kg",
+      "notes": "삼겹살"
+    }
+  ]
+}
+
+# 메뉴 조회
+GET /api/menu/{menuId}
+
+# 전체 메뉴 조회
+GET /api/menu
+
+# 매장별 메뉴 조회
+GET /api/menu/store/{storeId}
+
+# 카테고리별 메뉴 조회
+GET /api/menu/category/{category}
+
+# 메뉴 수정
+PUT /api/menu/{menuId}
+
+# 메뉴 삭제
+DELETE /api/menu/{menuId}
+
+# 메뉴 활성화/비활성화
+POST /api/menu/{menuId}/activate
+POST /api/menu/{menuId}/deactivate
+```
+
+#### 원가 계산
+```bash
+# 메뉴 원가 계산
+GET /api/menu/{menuId}/cost
+
+# 응답 예시
+{
+  "menuId": 1,
+  "menuName": "김치찌개",
+  "totalCost": 2650,
+  "sellingPrice": 8000,
+  "grossProfit": 5350,
+  "marginRate": 66.88,
+  "markupRate": 201.89,
+  "ingredientCosts": [
+    {
+      "ingredientName": "김치",
+      "quantity": 0.3,
+      "unit": "kg",
+      "unitPrice": 3000,
+      "cost": 900,
+      "costRatio": 33.96
+    },
+    {
+      "ingredientName": "돼지고기",
+      "quantity": 0.15,
+      "unit": "kg",
+      "unitPrice": 8000,
+      "cost": 1200,
+      "costRatio": 45.28
+    }
+  ]
+}
+
+# 매장 전체 메뉴 원가 분석
+GET /api/menu/store/{storeId}/costs
+```
+
+#### 마진 시뮬레이션
+```bash
+# 가격 기반 시뮬레이션
+GET /api/menu/{menuId}/simulate/price?targetPrice=10000
+
+# 응답 예시
+{
+  "menuId": 1,
+  "menuName": "김치찌개",
+  "totalCost": 2650,
+  "currentSellingPrice": 8000,
+  "currentMarginRate": 66.88,
+  "targetSellingPrice": 10000,
+  "targetMarginRate": 73.50,
+  "priceDifference": 2000,
+  "marginDifference": 6.62
+}
+
+# 마진율 기반 시뮬레이션
+GET /api/menu/{menuId}/simulate/margin?targetMargin=35
+
+# 응답 예시
+{
+  "menuId": 1,
+  "menuName": "김치찌개",
+  "totalCost": 2650,
+  "currentSellingPrice": 8000,
+  "currentMarginRate": 66.88,
+  "targetSellingPrice": 4077,
+  "targetMarginRate": 35.00,
+  "priceDifference": -3923,
+  "marginDifference": -31.88
+}
+```
+
+### 웹 UI
+
+```
+http://localhost:8080/menu
+```
+
+**주요 페이지:**
+- **메뉴 목록** (`/menu`): 전체 메뉴 조회, 필터링, 검색
+- **메뉴 상세** (`/menu/{id}`): 원가 분석, 재료별 원가 비율
+- **메뉴 추가** (`/menu/create`): 새 메뉴 및 레시피 등록
+- **마진 시뮬레이터** (`/menu/{id}/simulator`): 가격/마진율 시뮬레이션
+- **매장 원가 분석** (`/menu/store/{storeId}/costs`): 매장 전체 메뉴 원가 현황
+
+### 테스트
+
+```bash
+./test-menu-api.sh
+```
+
+이 스크립트는 다음을 테스트합니다:
+- 전체 메뉴 조회
+- 매장별 메뉴 조회
+- 메뉴 상세 조회
+- 메뉴 원가 계산
+- 매장 전체 원가 분석
+- 가격 기반 마진 시뮬레이션
+- 마진율 기반 시뮬레이션
+- 새 메뉴 생성
+
+### 초기 데이터
+
+시스템 시작 시 자동으로 생성되는 샘플 메뉴:
+
+1. **김치찌개** (8,000원)
+   - 김치 0.3kg, 돼지고기 0.15kg, 두부 0.5모, 대파 0.05kg, 고춧가루 0.01kg
+   - 예상 원가: 약 2,650원
+   - 예상 마진율: 약 67%
+
+2. **된장찌개** (7,000원)
+   - 된장 0.05kg, 두부 0.5모, 감자 0.1kg, 애호박 0.1kg, 양파 0.05kg, 대파 0.03kg
+   - 예상 원가: 약 1,510원
+   - 예상 마진율: 약 78%
+
+3. **불고기** (15,000원)
+   - 소고기 0.2kg, 양파 0.1kg, 대파 0.05kg, 간장 0.03L, 설탕 0.02kg, 참기름 0.01L, 마늘 0.01kg
+   - 예상 원가: 약 5,470원
+   - 예상 마진율: 약 64%
+
+4. **비빔밥** (9,000원)
+   - 쌀 0.15kg, 소고기 0.05kg, 시금치 0.05kg, 콩나물 0.05kg, 고사리 0.03kg, 애호박 0.05kg, 당근 0.03kg, 계란 1개, 고추장 0.03kg, 참기름 0.01L
+   - 예상 원가: 약 2,380원
+   - 예상 마진율: 약 74%
+
+### 실무 활용 시나리오
+
+#### 1. 신메뉴 개발
+```
+1. 레시피 구성 → 2. 원가 계산 → 3. 목표 마진율 설정 → 4. 판매가 결정
+```
+
+#### 2. 가격 정책 수립
+```
+- 현재 마진율 분석
+- 경쟁사 가격 비교
+- 목표 마진율 시뮬레이션
+- 최적 판매가 도출
+```
+
+#### 3. 원가 절감
+```
+- 재료별 원가 비율 분석
+- 고비용 재료 파악
+- 대체 재료 검토
+- 원가 절감 효과 시뮬레이션
+```
+
+#### 4. 메뉴 포트폴리오 관리
+```
+- 매장 전체 메뉴 원가 분석
+- 저마진 메뉴 파악
+- 메뉴 구성 최적화
+- 수익성 개선
+```
+
+### 확장 가능성
+
+#### 1. 고급 원가 분석
+```java
+// 인건비, 임대료 등 간접비 포함
+public MenuCostAnalysis calculateFullCost(Long menuId) {
+    // 재료비 + 인건비 + 간접비
+}
+```
+
+#### 2. 시즌별 단가 변동
+```java
+// 계절별 재료 단가 변동 반영
+public Long getSeasonalPrice(String ingredient, LocalDate date) {
+    // 시즌별 가중치 적용
+}
+```
+
+#### 3. 메뉴 추천
+```java
+// 고마진 메뉴 추천
+public List<Menu> recommendHighMarginMenus(String storeId) {
+    // 마진율 기준 정렬
+}
+```
+
+#### 4. 원가 알림
+```java
+// 원가 급등 알림
+@Scheduled(cron = "0 0 9 * * *")
+public void checkCostIncrease() {
+    // 전일 대비 원가 상승률 체크
+}
+```

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>메뉴 목록 - PayFlow</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { background: white; padding: 30px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        h1 { color: #333; margin-bottom: 10px; }
+        .subtitle { color: #666; font-size: 14px; }
+        .filters { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .filter-group { display: flex; gap: 10px; align-items: center; }
+        .filter-group input, .filter-group select { padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+        .filter-group button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 6px; cursor: pointer; }
+        .filter-group button:hover { background: #0056b3; }
+        .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .menu-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: transform 0.2s; cursor: pointer; }
+        .menu-card:hover { transform: translateY(-4px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .menu-name { font-size: 20px; font-weight: bold; color: #333; margin-bottom: 8px; }
+        .menu-description { color: #666; font-size: 14px; margin-bottom: 12px; line-height: 1.5; }
+        .menu-info { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee; }
+        .menu-category { display: inline-block; padding: 4px 12px; background: #e3f2fd; color: #1976d2; border-radius: 12px; font-size: 12px; }
+        .menu-price { font-size: 18px; font-weight: bold; color: #2e7d32; }
+        .menu-status { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; margin-left: 8px; }
+        .status-active { background: #c8e6c9; color: #2e7d32; }
+        .status-inactive { background: #ffcdd2; color: #c62828; }
+        .empty-state { text-align: center; padding: 60px 20px; background: white; border-radius: 12px; }
+        .empty-state h3 { color: #666; margin-bottom: 10px; }
+        .btn-create { display: inline-block; padding: 12px 24px; background: #28a745; color: white; text-decoration: none; border-radius: 6px; margin-top: 20px; }
+        .btn-create:hover { background: #218838; }
+        .actions { display: flex; gap: 10px; margin-top: 15px; }
+        .btn-small { padding: 6px 12px; font-size: 12px; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-primary:hover { background: #0056b3; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-success:hover { background: #218838; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍽️ 메뉴 관리</h1>
+            <p class="subtitle">메뉴별 원가 계산 및 마진 시뮬레이션</p>
+        </div>
+
+        <div class="filters">
+            <div class="filter-group">
+                <input type="text" id="storeId" placeholder="매장 ID" th:value="${storeId}">
+                <input type="text" id="category" placeholder="카테고리" th:value="${category}">
+                <button onclick="applyFilters()">🔍 검색</button>
+                <button onclick="clearFilters()" style="background: #6c757d;">초기화</button>
+                <a href="/menu/create" class="btn-create" style="margin: 0; margin-left: auto;">➕ 메뉴 추가</a>
+            </div>
+        </div>
+
+        <div class="menu-grid" th:if="${menus != null and !menus.isEmpty()}">
+            <div class="menu-card" th:each="menu : ${menus}" th:onclick="'location.href=\'/menu/' + ${menu.id} + '\''">
+                <div class="menu-name" th:text="${menu.name}">메뉴명</div>
+                <div class="menu-description" th:text="${menu.description}">메뉴 설명</div>
+                <div class="menu-info">
+                    <div>
+                        <span class="menu-category" th:text="${menu.category}">카테고리</span>
+                        <span class="menu-status" th:classappend="${menu.active ? 'status-active' : 'status-inactive'}" 
+                              th:text="${menu.active ? '판매중' : '판매중지'}">상태</span>
+                    </div>
+                    <div class="menu-price" th:text="${#numbers.formatInteger(menu.sellingPrice, 0, 'COMMA')} + '원'">가격</div>
+                </div>
+                <div class="actions" onclick="event.stopPropagation();">
+                    <a th:href="@{/menu/{id}(id=${menu.id})}" class="btn-small btn-primary">📊 원가 분석</a>
+                    <a th:href="@{/menu/{id}/simulator(id=${menu.id})}" class="btn-small btn-success">💰 마진 시뮬레이터</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="empty-state" th:if="${menus == null or menus.isEmpty()}">
+            <h3>📭 등록된 메뉴가 없습니다</h3>
+            <p>새로운 메뉴를 추가해보세요!</p>
+            <a href="/menu/create" class="btn-create">➕ 메뉴 추가</a>
+        </div>
+    </div>
+
+    <script>
+        function applyFilters() {
+            const storeId = document.getElementById('storeId').value;
+            const category = document.getElementById('category').value;
+            let url = '/menu?';
+            if (storeId) url += 'storeId=' + storeId + '&';
+            if (category) url += 'category=' + category;
+            location.href = url;
+        }
+
+        function clearFilters() {
+            location.href = '/menu';
+        }
+    </script>
+</body>
+</html>
