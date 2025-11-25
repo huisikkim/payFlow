@@ -1,0 +1,790 @@
+# 백엔드 API 문서
+
+## 🚀 서버 정보
+- **Base URL**: `http://localhost:8080`
+- **프로덕션 URL**: `http://YOUR_SERVER_IP:8080`
+
+---
+
+## 📋 API 목록
+
+### 1. 인증 API
+
+#### 1.1 회원가입
+```
+POST /api/auth/signup
+Content-Type: application/json
+```
+
+**요청 Body:**
+```json
+{
+  "username": "store_owner1",
+  "password": "password123",
+  "email": "store1@example.com",
+  "userType": "STORE_OWNER",  // STORE_OWNER 또는 DISTRIBUTOR
+  "businessNumber": "123-45-67890",
+  "businessName": "맛있는 식당",
+  "ownerName": "김사장",
+  "phoneNumber": "010-1234-5678",
+  "address": "서울시 강남구"
+}
+```
+
+**응답:**
+```
+200 OK
+"User registered successfully"
+```
+
+**에러:**
+- `400`: Username already exists
+- `400`: Email already exists
+- `400`: Business number already exists
+
+---
+
+#### 1.2 로그인
+```
+POST /api/auth/login
+Content-Type: application/json
+```
+
+**요청 Body:**
+```json
+{
+  "username": "store_owner1",
+  "password": "password123"
+}
+```
+
+**응답:**
+```json
+{
+  "accessToken": "eyJhbGci...",
+  "tokenType": "Bearer",
+  "username": "store_owner1",
+  "userId": 1,
+  "userType": "STORE_OWNER",
+  "businessName": "맛있는 식당"
+}
+```
+
+---
+
+### 2. 사용자 프로필 API
+
+#### 2.1 내 프로필 조회
+```
+GET /api/user/profile
+Authorization: Bearer {token}
+```
+
+**응답:**
+```json
+{
+  "userId": 1,
+  "username": "store_owner1",
+  "email": "store1@example.com",
+  "userType": "STORE_OWNER",
+  "businessNumber": "123-45-67890",
+  "businessName": "맛있는 식당",
+  "ownerName": "김사장",
+  "phoneNumber": "010-1234-5678",
+  "address": "서울시 강남구",
+  "roles": ["ROLE_STORE_OWNER"],
+  "enabled": true,
+  "createdAt": "2025-11-25T20:48:13"
+}
+```
+
+---
+
+### 3. 매장 정보 API
+
+#### 3.1 매장 정보 등록/수정
+```
+POST /api/store/info
+Authorization: Bearer {token}
+Content-Type: application/json
+```
+
+**권한**: ROLE_STORE_OWNER
+
+**요청 Body:**
+```json
+{
+  "storeName": "맛있는 한식당",
+  "businessType": "한식",
+  "region": "서울 강남구",
+  "mainProducts": "쌀/곡물,채소,육류",
+  "description": "정성을 다하는 한식당입니다",
+  "employeeCount": 5,
+  "operatingHours": "09:00-22:00",
+  "phoneNumber": "010-1234-5678",
+  "address": "서울시 강남구 테헤란로 123"
+}
+```
+
+**응답:**
+```json
+{
+  "id": 10,
+  "storeId": "store_owner1",
+  "storeName": "맛있는 한식당",
+  "ownerName": "store_owner1",
+  "phoneNumber": "010-1234-5678",
+  "address": "서울시 강남구 테헤란로 123",
+  "businessType": "한식",
+  "region": "서울 강남구",
+  "mainProducts": "쌀/곡물,채소,육류",
+  "description": "정성을 다하는 한식당입니다",
+  "employeeCount": 5,
+  "operatingHours": "09:00-22:00",
+  "isActive": true,
+  "createdAt": "2025-11-25T21:01:34",
+  "updatedAt": "2025-11-25T21:01:34"
+}
+```
+
+---
+
+#### 3.2 내 매장 정보 조회
+```
+GET /api/store/info
+Authorization: Bearer {token}
+```
+
+**권한**: ROLE_STORE_OWNER
+
+**응답**: 3.1과 동일
+
+**에러:**
+- `404`: 매장 정보 없음
+
+---
+
+#### 3.3 특정 매장 정보 조회
+```
+GET /api/store/info/{storeId}
+Authorization: Bearer {token}
+```
+
+**권한**: ROLE_STORE_OWNER, ROLE_DISTRIBUTOR
+
+**응답**: 3.1과 동일
+
+---
+
+#### 3.4 매장 활성화/비활성화
+```
+PUT /api/store/status?activate=true
+Authorization: Bearer {token}
+```
+
+**권한**: ROLE_STORE_OWNER
+
+**파라미터:**
+- `activate`: true (활성화) / false (비활성화)
+
+**응답:**
+```
+200 OK
+"매장이 활성화되었습니다."
+```
+
+---
+
+### 4. 유통업체 정보 API
+
+#### 4.1 유통업체 정보 등록/수정
+```
+POST /api/distributor/info
+Authorization: Bearer {token}
+Content-Type: application/json
+```
+
+**권한**: ROLE_DISTRIBUTOR
+
+**요청 Body:**
+```json
+{
+  "distributorName": "신선식자재 유통",
+  "supplyProducts": "쌀/곡물,채소,과일,육류,수산물",
+  "serviceRegions": "서울,경기,인천",
+  "deliveryAvailable": true,
+  "deliveryInfo": "배송비 무료 (10만원 이상), 익일 배송",
+  "description": "신선한 식자재를 공급하는 전문 유통업체입니다",
+  "certifications": "HACCP,ISO22000",
+  "minOrderAmount": 100000,
+  "operatingHours": "09:00-18:00",
+  "phoneNumber": "010-9876-5432",
+  "email": "distributor1@example.com",
+  "address": "서울시 송파구 올림픽로 456"
+}
+```
+
+**응답:**
+```json
+{
+  "id": 15,
+  "distributorId": "distributor1",
+  "distributorName": "신선식자재 유통",
+  "phoneNumber": "010-9876-5432",
+  "email": "distributor1@example.com",
+  "supplyProducts": "쌀/곡물,채소,과일,육류,수산물",
+  "serviceRegions": "서울,경기,인천",
+  "deliveryAvailable": true,
+  "deliveryInfo": "배송비 무료 (10만원 이상), 익일 배송",
+  "description": "신선한 식자재를 공급하는 전문 유통업체입니다",
+  "certifications": "HACCP,ISO22000",
+  "minOrderAmount": 100000,
+  "operatingHours": "09:00-18:00",
+  "address": "서울시 송파구 올림픽로 456",
+  "isActive": true,
+  "createdAt": "2025-11-25T21:35:58",
+  "updatedAt": "2025-11-25T21:35:58"
+}
+```
+
+---
+
+#### 4.2 내 유통업체 정보 조회
+```
+GET /api/distributor/info
+Authorization: Bearer {token}
+```
+
+**권한**: ROLE_DISTRIBUTOR
+
+**응답**: 4.1과 동일
+
+**에러:**
+- `404`: 유통업체 정보 없음
+
+---
+
+#### 4.3 특정 유통업체 정보 조회
+```
+GET /api/distributor/info/{distributorId}
+Authorization: Bearer {token}
+```
+
+**권한**: ROLE_STORE_OWNER, ROLE_DISTRIBUTOR
+
+**응답**: 4.1과 동일
+
+---
+
+#### 4.4 유통업체 활성화/비활성화
+```
+PUT /api/distributor/status?activate=true
+Authorization: Bearer {token}
+```
+
+**권한**: ROLE_DISTRIBUTOR
+
+**파라미터:**
+- `activate`: true (활성화) / false (비활성화)
+
+**응답:**
+```
+200 OK
+"유통업체가 활성화되었습니다."
+```
+
+---
+
+### 5. 매칭 및 추천 API ⭐
+
+#### 5.1 맞춤 유통업체 추천
+```
+GET /api/matching/recommend?limit=10
+Authorization: Bearer {token}
+```
+
+**권한**: ROLE_STORE_OWNER
+
+**파라미터:**
+- `limit` (선택): 추천 개수 (기본값: 10)
+
+**응답:**
+```json
+[
+  {
+    "distributorId": "distributor1",
+    "distributorName": "신선식자재 유통",
+    "totalScore": 87.50,
+    "regionScore": 100.00,
+    "productScore": 85.71,
+    "deliveryScore": 100.00,
+    "certificationScore": 85.00,
+    "matchReason": "서비스 지역 완벽 일치, 필요 품목 대부분 공급 가능, 배송 서비스 우수, 인증 보유",
+    "supplyProducts": "쌀/곡물,채소,과일,육류,수산물",
+    "serviceRegions": "서울,경기,인천",
+    "deliveryAvailable": true,
+    "deliveryInfo": "배송비 무료 (10만원 이상), 익일 배송",
+    "certifications": "HACCP,ISO22000",
+    "minOrderAmount": 100000,
+    "phoneNumber": "010-9876-5432",
+    "email": "distributor1@example.com"
+  }
+]
+```
+
+**매칭 점수 계산:**
+- 지역 매칭: 40%
+- 품목 매칭: 35%
+- 배송 서비스: 15%
+- 인증 정보: 10%
+
+**에러:**
+- `404`: 매장 정보 없음 (매장 정보를 먼저 등록해야 함)
+- `200` + `[]`: 활성화된 유통업체 없음
+
+---
+
+#### 5.2 품목별 유통업체 검색
+```
+GET /api/matching/search/product?keyword=쌀
+Authorization: Bearer {token}
+```
+
+**권한**: ROLE_STORE_OWNER
+
+**파라미터:**
+- `keyword` (필수): 검색할 품목 (예: "쌀", "채소", "육류")
+
+**응답**: 5.1과 동일 (매칭 점수 포함)
+
+---
+
+#### 5.3 지역별 유통업체 검색
+```
+GET /api/matching/search/region?keyword=서울
+Authorization: Bearer {token}
+```
+
+**권한**: ROLE_STORE_OWNER
+
+**파라미터:**
+- `keyword` (필수): 검색할 지역 (예: "서울", "경기", "부산")
+
+**응답**: 5.1과 동일 (매칭 점수 포함)
+
+---
+
+### 6. 견적 요청 API ⭐ NEW
+
+**견적 요청 워크플로우:**
+```
+[매장] 견적 요청 생성 (PENDING)
+   ↓
+[유통업체] 견적 요청 확인
+   ↓
+[유통업체] 견적 응답
+   ├─ ACCEPTED (수락) → [매장] 완료 처리 → COMPLETED
+   └─ REJECTED (거절) → 종료
+   
+[매장] 대기중 요청 취소 가능 (PENDING 상태만)
+```
+
+#### 6.1 견적 요청 생성 (매장 → 유통업체)
+```
+POST /api/matching/quote-request
+Authorization: Bearer {token}
+Content-Type: application/json
+```
+
+**권한**: ROLE_STORE_OWNER
+
+**요청 Body:**
+```json
+{
+  "distributorId": "distributor1",
+  "requestedProducts": "쌀/곡물,채소,육류",
+  "message": "매주 월요일 오전 배송 가능한지 확인 부탁드립니다."
+}
+```
+
+**응답:**
+```json
+{
+  "id": 1,
+  "storeId": "store_owner1",
+  "storeName": "맛있는 한식당",
+  "distributorId": "distributor1",
+  "distributorName": "신선식자재 유통",
+  "requestedProducts": "쌀/곡물,채소,육류",
+  "message": "매주 월요일 오전 배송 가능한지 확인 부탁드립니다.",
+  "status": "PENDING",
+  "estimatedAmount": null,
+  "distributorResponse": null,
+  "requestedAt": "2025-11-26T10:30:00",
+  "respondedAt": null
+}
+```
+
+**견적 상태 (status):**
+- `PENDING`: 대기중
+- `ACCEPTED`: 수락됨
+- `REJECTED`: 거절됨
+- `COMPLETED`: 완료됨
+
+---
+
+#### 6.2 매장의 견적 요청 목록 조회
+```
+GET /api/matching/quote-requests/store
+Authorization: Bearer {token}
+```
+
+**권한**: ROLE_STORE_OWNER
+
+**응답:**
+```json
+[
+  {
+    "id": 1,
+    "storeId": "store_owner1",
+    "storeName": "맛있는 한식당",
+    "distributorId": "distributor1",
+    "distributorName": "신선식자재 유통",
+    "requestedProducts": "쌀/곡물,채소,육류",
+    "message": "매주 월요일 오전 배송 가능한지 확인 부탁드립니다.",
+    "status": "ACCEPTED",
+    "estimatedAmount": 500000,
+    "distributorResponse": "매주 월요일 오전 8시 배송 가능합니다. 최소 주문금액은 10만원입니다.",
+    "requestedAt": "2025-11-26T10:30:00",
+    "respondedAt": "2025-11-26T11:00:00"
+  }
+]
+```
+
+---
+
+#### 6.3 유통업체의 견적 요청 목록 조회
+```
+GET /api/matching/quote-requests/distributor
+Authorization: Bearer {token}
+```
+
+**권한**: ROLE_DISTRIBUTOR
+
+**응답**: 6.2와 동일
+
+---
+
+#### 6.4 견적 요청 상세 조회
+```
+GET /api/matching/quote-request/{id}
+Authorization: Bearer {token}
+```
+
+**권한**: ROLE_STORE_OWNER, ROLE_DISTRIBUTOR
+
+**응답**: 6.1과 동일
+
+---
+
+#### 6.5 견적 요청 응답 (유통업체)
+```
+PUT /api/matching/quote-request/{id}/respond
+Authorization: Bearer {token}
+Content-Type: application/json
+```
+
+**권한**: ROLE_DISTRIBUTOR
+
+**요청 Body:**
+```json
+{
+  "status": "ACCEPTED",
+  "estimatedAmount": 500000,
+  "response": "매주 월요일 오전 8시 배송 가능합니다. 최소 주문금액은 10만원입니다."
+}
+```
+
+**status 값:**
+- `ACCEPTED`: 견적 수락
+- `REJECTED`: 견적 거절
+
+**응답:**
+```json
+{
+  "id": 1,
+  "storeId": "store_owner1",
+  "storeName": "맛있는 한식당",
+  "distributorId": "distributor1",
+  "distributorName": "신선식자재 유통",
+  "requestedProducts": "쌀/곡물,채소,육류",
+  "message": "매주 월요일 오전 배송 가능한지 확인 부탁드립니다.",
+  "status": "ACCEPTED",
+  "estimatedAmount": 500000,
+  "distributorResponse": "매주 월요일 오전 8시 배송 가능합니다. 최소 주문금액은 10만원입니다.",
+  "requestedAt": "2025-11-26T10:30:00",
+  "respondedAt": "2025-11-26T11:00:00"
+}
+```
+
+**에러:**
+- `403`: 권한 없음 (다른 유통업체의 견적 요청)
+- `400`: 이미 응답한 견적 요청
+
+---
+
+#### 6.6 견적 요청 취소 (매장)
+```
+DELETE /api/matching/quote-request/{id}
+Authorization: Bearer {token}
+```
+
+**권한**: ROLE_STORE_OWNER
+
+**응답:**
+```
+200 OK
+"견적 요청이 취소되었습니다."
+```
+
+**에러:**
+- `403`: 권한 없음 (다른 매장의 견적 요청)
+- `400`: 대기중인 요청만 취소 가능
+
+---
+
+#### 6.7 견적 완료 처리 (매장)
+```
+PUT /api/matching/quote-request/{id}/complete
+Authorization: Bearer {token}
+```
+
+**권한**: ROLE_STORE_OWNER
+
+**응답:**
+```json
+{
+  "id": 1,
+  "storeId": "store_owner1",
+  "storeName": "맛있는 한식당",
+  "distributorId": "distributor1",
+  "distributorName": "신선식자재 유통",
+  "requestedProducts": "쌀/곡물,채소,육류",
+  "message": "매주 월요일 오전 배송 가능한지 확인 부탁드립니다.",
+  "status": "COMPLETED",
+  "estimatedAmount": 500000,
+  "distributorResponse": "매주 월요일 오전 8시 배송 가능합니다. 최소 주문금액은 10만원입니다.",
+  "requestedAt": "2025-11-26T10:30:00",
+  "respondedAt": "2025-11-26T11:00:00"
+}
+```
+
+**에러:**
+- `403`: 권한 없음 (다른 매장의 견적 요청)
+- `400`: 수락된 요청만 완료 가능
+
+---
+
+## 🔐 인증 및 권한
+
+### JWT 토큰 사용
+모든 인증이 필요한 API는 헤더에 JWT 토큰을 포함해야 합니다:
+```
+Authorization: Bearer {accessToken}
+```
+
+### 역할(Role)
+- `ROLE_USER`: 일반 사용자
+- `ROLE_ADMIN`: 관리자
+- `ROLE_STORE_OWNER`: 매장 사장님
+- `ROLE_DISTRIBUTOR`: 유통업체
+
+### 권한 체크
+- 매장 정보 API: `ROLE_STORE_OWNER` 필요
+- 유통업체 정보 API: `ROLE_DISTRIBUTOR` 필요
+- 매칭 API: `ROLE_STORE_OWNER` 필요
+
+---
+
+## 📊 데이터 형식
+
+### UserType
+- `STORE_OWNER`: 매장 사장님
+- `DISTRIBUTOR`: 유통업체
+
+### 콤마로 구분되는 필드
+- `mainProducts`: "쌀/곡물,채소,육류"
+- `supplyProducts`: "쌀/곡물,채소,과일,육류,수산물"
+- `serviceRegions`: "서울,경기,인천"
+- `certifications`: "HACCP,ISO22000,유기농인증"
+
+---
+
+## 🧪 테스트 스크립트
+
+### 전체 테스트
+```bash
+# 매장 정보 API 테스트
+./test-store-api.sh
+
+# 유통업체 정보 API 테스트
+./test-distributor-api.sh
+
+# 매칭 API 테스트
+./test-matching-api.sh
+
+# 견적 요청 API 테스트
+./test-quote-request-api.sh
+```
+
+### 개별 테스트
+```bash
+# 회원가입
+curl -X POST http://localhost:8080/api/auth/signup \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "test_store",
+    "password": "password123",
+    "email": "test@example.com",
+    "userType": "STORE_OWNER",
+    "businessNumber": "123-45-67890",
+    "businessName": "테스트 매장",
+    "ownerName": "김사장",
+    "phoneNumber": "010-1234-5678",
+    "address": "서울시 강남구"
+  }'
+
+# 로그인
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "test_store",
+    "password": "password123"
+  }'
+
+# 매장 정보 등록 (토큰 필요)
+curl -X POST http://localhost:8080/api/store/info \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer {TOKEN}" \
+  -d '{
+    "storeName": "테스트 매장",
+    "businessType": "한식",
+    "region": "서울 강남구",
+    "mainProducts": "쌀/곡물,채소,육류",
+    "phoneNumber": "010-1234-5678",
+    "address": "서울시 강남구"
+  }'
+
+# 추천 유통업체 조회 (토큰 필요)
+curl -X GET "http://localhost:8080/api/matching/recommend?limit=10" \
+  -H "Authorization: Bearer {TOKEN}"
+
+# 견적 요청 생성 (토큰 필요)
+curl -X POST http://localhost:8080/api/matching/quote-request \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer {TOKEN}" \
+  -d '{
+    "distributorId": "distributor1",
+    "requestedProducts": "쌀/곡물,채소,육류",
+    "message": "매주 월요일 오전 배송 가능한지 확인 부탁드립니다."
+  }'
+
+# 매장의 견적 요청 목록 조회 (토큰 필요)
+curl -X GET http://localhost:8080/api/matching/quote-requests/store \
+  -H "Authorization: Bearer {TOKEN}"
+
+# 견적 요청 응답 (유통업체, 토큰 필요)
+curl -X PUT http://localhost:8080/api/matching/quote-request/1/respond \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer {DISTRIBUTOR_TOKEN}" \
+  -d '{
+    "status": "ACCEPTED",
+    "estimatedAmount": 500000,
+    "response": "매주 월요일 오전 8시 배송 가능합니다."
+  }'
+```
+
+---
+
+## 🚨 에러 코드
+
+| 상태 코드 | 설명 |
+|----------|------|
+| 200 | 성공 |
+| 400 | 잘못된 요청 (중복 데이터, 유효성 검증 실패) |
+| 401 | 인증 실패 (토큰 없음 또는 만료) |
+| 403 | 권한 없음 (역할 불일치) |
+| 404 | 리소스 없음 (매장/유통업체 정보 없음) |
+| 500 | 서버 오류 |
+
+---
+
+## 📝 프론트엔드 개발자를 위한 참고사항
+
+### 1. 토큰 관리
+- 로그인 후 받은 `accessToken`을 로컬 스토리지에 저장
+- 모든 API 요청 시 헤더에 포함
+- 토큰 만료 시 재로그인 필요 (만료 시간: 24시간)
+
+### 2. 회원가입 후 흐름
+
+**매장 사장님:**
+```
+회원가입 → 로그인 → 매장 정보 등록 → 추천 유통업체 조회 → 견적 요청 → 응답 확인 → 완료 처리
+```
+
+**유통업체:**
+```
+회원가입 → 로그인 → 유통업체 정보 등록 → 견적 요청 수신 → 견적 응답 (수락/거절)
+```
+
+### 3. 견적 요청 흐름
+1. 매장이 추천 유통업체 목록에서 원하는 유통업체 선택
+2. 견적 요청 생성 (요청 품목, 메시지 포함)
+3. 유통업체가 견적 요청 목록에서 확인
+4. 유통업체가 견적 응답 (수락/거절, 예상 금액, 응답 메시지)
+5. 매장이 수락된 견적 확인 후 완료 처리
+
+### 4. 빈 응답 처리
+- 추천 API가 `[]` 반환 시: "아직 등록된 유통업체가 없습니다" 메시지 표시
+- 매장 정보 조회 시 404: "매장 정보를 먼저 등록해주세요" 메시지 표시
+- 견적 요청 목록이 `[]`: "아직 견적 요청이 없습니다" 메시지 표시
+
+### 5. 에러 처리
+```javascript
+try {
+  const response = await fetch('/api/matching/recommend', {
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  });
+  
+  if (response.status === 404) {
+    // 매장 정보 없음 → 매장 정보 등록 화면으로 이동
+  } else if (response.status === 401) {
+    // 토큰 만료 → 로그인 화면으로 이동
+  } else if (response.ok) {
+    const data = await response.json();
+    if (data.length === 0) {
+      // 유통업체 없음 → 안내 메시지 표시
+    }
+  }
+} catch (error) {
+  // 네트워크 오류 처리
+}
+```
+
+---
+
+## 🔄 데이터베이스 초기화
+
+개발 중 데이터베이스를 초기화하려면:
+```bash
+./reset-database.sh
+```
+
+---
+
+## 📞 문의
+
+백엔드 API 관련 문의사항이 있으면 백엔드 팀에 연락주세요.
