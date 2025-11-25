@@ -31,6 +31,21 @@ public class User {
     @Column(unique = true, nullable = false)
     private String email;
     
+    @Enumerated(EnumType.STRING)
+    private UserType userType;  // 회원 유형 (매장/유통업체) - 기존 데이터 호환을 위해 nullable
+    
+    // 사업자 정보
+    @Column(unique = true)
+    private String businessNumber;  // 사업자등록번호
+    
+    private String businessName;    // 상호명
+    
+    private String ownerName;       // 대표자명
+    
+    private String phoneNumber;     // 연락처
+    
+    private String address;         // 주소
+    
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
     @Enumerated(EnumType.STRING)

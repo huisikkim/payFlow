@@ -22,7 +22,7 @@ import java.util.List;
  * 업비트 캔들 데이터 조회 클라이언트
  */
 @Slf4j
-@Component
+//@Component  // 🔒 코인 비교 기능 비활성화 - 나중에 다시 활성화하려면 주석 해제
 public class UpbitCandleClient {
     
     private static final String UPBIT_API_URL = "https://api.upbit.com/v1/candles/minutes/1";

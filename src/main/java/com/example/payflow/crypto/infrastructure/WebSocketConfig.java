@@ -6,8 +6,8 @@ import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 
-@Configuration
-@EnableWebSocket
+//@Configuration  // 🔒 코인 비교 기능 비활성화 - 나중에 다시 활성화하려면 주석 해제
+//@EnableWebSocket
 @RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketConfigurer {
     

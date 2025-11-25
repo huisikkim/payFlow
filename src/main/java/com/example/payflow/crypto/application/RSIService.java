@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
  * RSI 계산 및 캐싱 서비스
  */
 @Slf4j
-@Service
+//@Service  // 🔒 코인 비교 기능 비활성화 - 나중에 다시 활성화하려면 주석 해제
 @RequiredArgsConstructor
 public class RSIService {
     

@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
-@Service
+//@Service  // 🔒 코인 비교 기능 비활성화 - 나중에 다시 활성화하려면 주석 해제
 @RequiredArgsConstructor
 public class ExchangeComparisonService {
     
