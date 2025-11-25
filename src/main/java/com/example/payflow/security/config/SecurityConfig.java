@@ -52,6 +52,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/user/**").authenticated()  // 사용자 프로필 API (인증 필요)
+                        .requestMatchers("/api/store/**").authenticated()  // 매장 정보 API (인증 필요)
                         .requestMatchers("/login", "/signup").permitAll()  // 로그인/회원가입 페이지 허용
                         .requestMatchers("/api/saga/**").permitAll()  // Saga 테스트 API 허용
                         .requestMatchers("/api/test/**").permitAll()  // 카프카 테스트 API 허용
