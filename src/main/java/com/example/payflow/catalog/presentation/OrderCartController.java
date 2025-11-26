@@ -3,6 +3,7 @@ package com.example.payflow.catalog.presentation;
 import com.example.payflow.catalog.application.OrderCartService;
 import com.example.payflow.catalog.domain.OrderCart;
 import com.example.payflow.catalog.presentation.dto.AddToCartRequest;
+import com.example.payflow.catalog.presentation.dto.CartResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +27,7 @@ public class OrderCartController {
      */
     @PostMapping("/add")
     @PreAuthorize("hasRole('STORE_OWNER')")
-    public ResponseEntity<OrderCart> addToCart(@Valid @RequestBody AddToCartRequest request) {
+    public ResponseEntity<CartResponse> addToCart(@Valid @RequestBody AddToCartRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         
         log.info("=== 장바구니 추가 요청 ===");
@@ -40,7 +41,7 @@ public class OrderCartController {
         
         OrderCart cart = cartService.addToCart(storeId, request);
         log.info("장바구니 추가 성공: productId={}, quantity={}", request.getProductId(), request.getQuantity());
-        return ResponseEntity.ok(cart);
+        return ResponseEntity.ok(CartResponse.from(cart));
     }
     
     /**
@@ -49,7 +50,7 @@ public class OrderCartController {
      */
     @GetMapping("/{distributorId}")
     @PreAuthorize("hasRole('STORE_OWNER')")
-    public ResponseEntity<OrderCart> getCart(@PathVariable String distributorId) {
+    public ResponseEntity<CartResponse> getCart(@PathVariable String distributorId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         
         log.info("=== 장바구니 조회 요청 ===");
@@ -64,7 +65,7 @@ public class OrderCartController {
         
         OrderCart cart = cartService.getCart(storeId, distributorId);
         log.info("장바구니 조회 성공: {} items", cart.getItems().size());
-        return ResponseEntity.ok(cart);
+        return ResponseEntity.ok(CartResponse.from(cart));
     }
     
     /**
@@ -73,7 +74,7 @@ public class OrderCartController {
      */
     @PutMapping("/{distributorId}/items/{itemId}")
     @PreAuthorize("hasRole('STORE_OWNER')")
-    public ResponseEntity<OrderCart> updateItemQuantity(
+    public ResponseEntity<CartResponse> updateItemQuantity(
             @PathVariable String distributorId,
             @PathVariable Long itemId,
             @RequestParam Integer quantity) {
@@ -81,7 +82,7 @@ public class OrderCartController {
         String storeId = authentication.getName();
         
         OrderCart cart = cartService.updateItemQuantity(storeId, distributorId, itemId, quantity);
-        return ResponseEntity.ok(cart);
+        return ResponseEntity.ok(CartResponse.from(cart));
     }
     
     /**
@@ -90,14 +91,14 @@ public class OrderCartController {
      */
     @DeleteMapping("/{distributorId}/items/{itemId}")
     @PreAuthorize("hasRole('STORE_OWNER')")
-    public ResponseEntity<OrderCart> removeItem(
+    public ResponseEntity<CartResponse> removeItem(
             @PathVariable String distributorId,
             @PathVariable Long itemId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String storeId = authentication.getName();
         
         OrderCart cart = cartService.removeItem(storeId, distributorId, itemId);
-        return ResponseEntity.ok(cart);
+        return ResponseEntity.ok(CartResponse.from(cart));
     }
     
     /**
