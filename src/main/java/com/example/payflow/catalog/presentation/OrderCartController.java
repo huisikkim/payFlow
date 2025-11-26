@@ -28,9 +28,18 @@ public class OrderCartController {
     @PreAuthorize("hasRole('STORE_OWNER')")
     public ResponseEntity<OrderCart> addToCart(@Valid @RequestBody AddToCartRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        
+        log.info("=== 장바구니 추가 요청 ===");
+        log.info("Request: {}", request);
+        log.info("Authentication: {}", authentication);
+        log.info("Principal: {}", authentication != null ? authentication.getPrincipal() : "null");
+        log.info("Authorities: {}", authentication != null ? authentication.getAuthorities() : "null");
+        
         String storeId = authentication.getName();
+        log.info("storeId: {}", storeId);
         
         OrderCart cart = cartService.addToCart(storeId, request);
+        log.info("장바구니 추가 성공: productId={}, quantity={}", request.getProductId(), request.getQuantity());
         return ResponseEntity.ok(cart);
     }
     
@@ -42,9 +51,19 @@ public class OrderCartController {
     @PreAuthorize("hasRole('STORE_OWNER')")
     public ResponseEntity<OrderCart> getCart(@PathVariable String distributorId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        
+        log.info("=== 장바구니 조회 요청 ===");
+        log.info("distributorId: {}", distributorId);
+        log.info("Authentication: {}", authentication);
+        log.info("Principal: {}", authentication != null ? authentication.getPrincipal() : "null");
+        log.info("Authorities: {}", authentication != null ? authentication.getAuthorities() : "null");
+        log.info("IsAuthenticated: {}", authentication != null ? authentication.isAuthenticated() : "false");
+        
         String storeId = authentication.getName();
+        log.info("storeId: {}", storeId);
         
         OrderCart cart = cartService.getCart(storeId, distributorId);
+        log.info("장바구니 조회 성공: {} items", cart.getItems().size());
         return ResponseEntity.ok(cart);
     }
     
