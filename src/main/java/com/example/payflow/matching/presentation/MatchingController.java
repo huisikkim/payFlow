@@ -1,7 +1,9 @@
 package com.example.payflow.matching.presentation;
 
+import com.example.payflow.matching.application.DistributorComparisonService;
 import com.example.payflow.matching.application.MatchingService;
 import com.example.payflow.matching.application.QuoteRequestService;
+import com.example.payflow.matching.domain.DistributorComparison;
 import com.example.payflow.matching.domain.MatchingScore;
 import com.example.payflow.matching.domain.QuoteRequest;
 import com.example.payflow.matching.presentation.dto.QuoteRequestDto;
@@ -14,6 +16,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/matching")
@@ -22,6 +25,7 @@ public class MatchingController {
     
     private final MatchingService matchingService;
     private final QuoteRequestService quoteRequestService;
+    private final DistributorComparisonService comparisonService;
     
     /**
      * 맞춤 유통업체 추천
@@ -174,5 +178,50 @@ public class MatchingController {
         
         QuoteRequest completed = quoteRequestService.completeQuoteRequest(storeId, id);
         return ResponseEntity.ok(completed);
+    }
+    
+    /**
+     * 유통업체 비교 (특정 업체들)
+     * POST /api/matching/compare
+     */
+    @PostMapping("/compare")
+    @PreAuthorize("hasRole('STORE_OWNER')")
+    public ResponseEntity<List<DistributorComparison>> compareDistributors(
+            @RequestBody List<String> distributorIds) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String storeId = authentication.getName();
+        
+        List<DistributorComparison> comparisons = comparisonService.compareDistributors(storeId, distributorIds);
+        return ResponseEntity.ok(comparisons);
+    }
+    
+    /**
+     * 추천 유통업체 비교 (Top N)
+     * GET /api/matching/compare/top?topN=5
+     */
+    @GetMapping("/compare/top")
+    @PreAuthorize("hasRole('STORE_OWNER')")
+    public ResponseEntity<List<DistributorComparison>> compareTopDistributors(
+            @RequestParam(defaultValue = "5") int topN) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String storeId = authentication.getName();
+        
+        List<DistributorComparison> comparisons = comparisonService.compareTopDistributors(storeId, topN);
+        return ResponseEntity.ok(comparisons);
+    }
+    
+    /**
+     * 카테고리별 최고 유통업체
+     * POST /api/matching/compare/best-by-category
+     */
+    @PostMapping("/compare/best-by-category")
+    @PreAuthorize("hasRole('STORE_OWNER')")
+    public ResponseEntity<Map<String, DistributorComparison>> findBestByCategory(
+            @RequestBody List<String> distributorIds) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String storeId = authentication.getName();
+        
+        Map<String, DistributorComparison> bestByCategory = comparisonService.findBestByCategory(storeId, distributorIds);
+        return ResponseEntity.ok(bestByCategory);
     }
 }

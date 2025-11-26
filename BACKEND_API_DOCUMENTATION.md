@@ -374,7 +374,149 @@ Authorization: Bearer {token}
 
 ---
 
-### 6. 견적 요청 API ⭐ NEW
+### 6. 유통업체 비교 API ⭐ NEW
+
+**비교 항목:**
+- 가격 (최소 주문 금액, 가격대)
+- 배송 (배송 가능 여부, 배송 속도, 배송비)
+- 서비스 (서비스 지역, 공급 품목)
+- 품질 (품질 등급, 신뢰도 점수)
+- 인증 (인증 개수, 인증 종류)
+- 종합 (매칭 점수, 순위, 강점/약점)
+
+#### 6.1 추천 유통업체 비교 (Top N)
+```
+GET /api/matching/compare/top?topN=5
+Authorization: Bearer {token}
+```
+
+**권한**: ROLE_STORE_OWNER
+
+**파라미터:**
+- `topN` (선택): 비교할 유통업체 수 (기본값: 5)
+
+**응답:**
+```json
+[
+  {
+    "distributorId": "distributor1",
+    "distributorName": "신선식자재 유통",
+    "phoneNumber": "010-9876-5432",
+    "email": "distributor1@example.com",
+    "totalScore": 98.5,
+    "regionScore": 100,
+    "productScore": 100.0,
+    "deliveryScore": 100,
+    "certificationScore": 85,
+    "minOrderAmount": 100000,
+    "priceLevel": "MEDIUM",
+    "priceNote": "최소 주문 금액: 100,000원",
+    "deliveryAvailable": true,
+    "deliveryInfo": "배송비 무료 (10만원 이상), 익일 배송",
+    "deliverySpeed": "NEXT_DAY",
+    "deliveryFee": 0,
+    "deliveryRegions": "서울,경기,인천",
+    "serviceRegions": "서울,경기,인천",
+    "supplyProducts": "쌀/곡물,채소,과일,육류,수산물",
+    "certifications": "HACCP,ISO22000",
+    "certificationCount": 2,
+    "operatingHours": "09:00-18:00",
+    "qualityRating": "EXCELLENT",
+    "reliabilityScore": 86.0,
+    "description": "신선한 식자재를 공급하는 전문 유통업체",
+    "strengths": [
+      "서비스 지역 완벽 일치",
+      "필요 품목 대부분 공급 가능",
+      "배송 서비스 제공",
+      "다수 인증 보유"
+    ],
+    "weaknesses": [],
+    "rank": 1,
+    "bestCategory": "SERVICE"
+  }
+]
+```
+
+**비교 지표 설명:**
+- `priceLevel`: LOW(저렴), MEDIUM(보통), HIGH(비쌈)
+- `deliverySpeed`: SAME_DAY(당일), NEXT_DAY(익일), TWO_TO_THREE_DAYS(2-3일), OVER_THREE_DAYS(3일 이상)
+- `qualityRating`: EXCELLENT(최상), GOOD(상), AVERAGE(중), BELOW_AVERAGE(하)
+- `reliabilityScore`: 신뢰도 점수 (0-100)
+- `rank`: 종합 순위
+- `bestCategory`: PRICE(가격), DELIVERY(배송), QUALITY(품질), SERVICE(서비스), CERTIFICATION(인증)
+
+---
+
+#### 6.2 특정 유통업체 비교
+```
+POST /api/matching/compare
+Authorization: Bearer {token}
+Content-Type: application/json
+```
+
+**권한**: ROLE_STORE_OWNER
+
+**요청 Body:**
+```json
+["distributor1", "distributor2", "distributor3"]
+```
+
+**응답:** 6.1과 동일 (선택한 유통업체들의 비교 정보)
+
+---
+
+#### 6.3 카테고리별 최고 유통업체
+```
+POST /api/matching/compare/best-by-category
+Authorization: Bearer {token}
+Content-Type: application/json
+```
+
+**권한**: ROLE_STORE_OWNER
+
+**요청 Body:**
+```json
+["distributor1", "distributor2", "distributor3"]
+```
+
+**응답:**
+```json
+{
+  "PRICE": {
+    "distributorId": "distributor2",
+    "distributorName": "저렴한 유통",
+    "minOrderAmount": 50000,
+    "priceLevel": "LOW",
+    ...
+  },
+  "DELIVERY": {
+    "distributorId": "distributor1",
+    "distributorName": "빠른 배송",
+    "deliverySpeed": "SAME_DAY",
+    ...
+  },
+  "QUALITY": {
+    "distributorId": "distributor3",
+    "distributorName": "프리미엄 유통",
+    "qualityRating": "EXCELLENT",
+    ...
+  },
+  "CERTIFICATION": {
+    "distributorId": "distributor1",
+    "certificationCount": 3,
+    ...
+  },
+  "OVERALL": {
+    "distributorId": "distributor1",
+    "totalScore": 98.5,
+    ...
+  }
+}
+```
+
+---
+
+### 7. 견적 요청 API ⭐
 
 **견적 요청 워크플로우:**
 ```
@@ -389,7 +531,7 @@ Authorization: Bearer {token}
 [매장] 대기중 요청 취소 가능 (PENDING 상태만)
 ```
 
-#### 6.1 견적 요청 생성 (매장 → 유통업체)
+#### 7.1 견적 요청 생성 (매장 → 유통업체)
 ```
 POST /api/matching/quote-request
 Authorization: Bearer {token}
@@ -433,7 +575,7 @@ Content-Type: application/json
 
 ---
 
-#### 6.2 매장의 견적 요청 목록 조회
+#### 7.2 매장의 견적 요청 목록 조회
 ```
 GET /api/matching/quote-requests/store
 Authorization: Bearer {token}
@@ -463,7 +605,7 @@ Authorization: Bearer {token}
 
 ---
 
-#### 6.3 유통업체의 견적 요청 목록 조회
+#### 7.3 유통업체의 견적 요청 목록 조회
 ```
 GET /api/matching/quote-requests/distributor
 Authorization: Bearer {token}
@@ -475,7 +617,7 @@ Authorization: Bearer {token}
 
 ---
 
-#### 6.4 견적 요청 상세 조회
+#### 7.4 견적 요청 상세 조회
 ```
 GET /api/matching/quote-request/{id}
 Authorization: Bearer {token}
@@ -487,7 +629,7 @@ Authorization: Bearer {token}
 
 ---
 
-#### 6.5 견적 요청 응답 (유통업체)
+#### 7.5 견적 요청 응답 (유통업체)
 ```
 PUT /api/matching/quote-request/{id}/respond
 Authorization: Bearer {token}
@@ -533,7 +675,7 @@ Content-Type: application/json
 
 ---
 
-#### 6.6 견적 요청 취소 (매장)
+#### 7.6 견적 요청 취소 (매장)
 ```
 DELETE /api/matching/quote-request/{id}
 Authorization: Bearer {token}
@@ -553,7 +695,7 @@ Authorization: Bearer {token}
 
 ---
 
-#### 6.7 견적 완료 처리 (매장)
+#### 7.7 견적 완료 처리 (매장)
 ```
 PUT /api/matching/quote-request/{id}/complete
 Authorization: Bearer {token}

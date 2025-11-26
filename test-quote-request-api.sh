@@ -29,7 +29,11 @@ STORE_SIGNUP=$(curl -s -X POST "$BASE_URL/api/auth/signup" \
     "address": "서울시 강남구"
   }')
 
-echo "회원가입 응답: $STORE_SIGNUP"
+if echo "$STORE_SIGNUP" | grep -q "already exists"; then
+    echo "회원가입 응답: 이미 존재하는 사용자 (스킵)"
+else
+    echo "회원가입 응답: $STORE_SIGNUP"
+fi
 
 STORE_LOGIN=$(curl -s -X POST "$BASE_URL/api/auth/login" \
   -H "Content-Type: application/json" \
@@ -59,7 +63,11 @@ DIST_SIGNUP=$(curl -s -X POST "$BASE_URL/api/auth/signup" \
     "address": "서울시 송파구"
   }')
 
-echo "회원가입 응답: $DIST_SIGNUP"
+if echo "$DIST_SIGNUP" | grep -q "already exists"; then
+    echo "회원가입 응답: 이미 존재하는 사용자 (스킵)"
+else
+    echo "회원가입 응답: $DIST_SIGNUP"
+fi
 
 DIST_LOGIN=$(curl -s -X POST "$BASE_URL/api/auth/login" \
   -H "Content-Type: application/json" \
