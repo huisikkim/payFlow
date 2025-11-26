@@ -30,7 +30,7 @@ public class ProductCatalogController {
      * POST /api/catalog/products
      */
     @PostMapping("/products")
-    @PreAuthorize("hasRole('DISTRIBUTOR')")
+    @PreAuthorize("hasAuthority('ROLE_DISTRIBUTOR')")
     public ResponseEntity<ProductCatalog> createProduct(@Valid @RequestBody CreateProductRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String distributorId = authentication.getName();
@@ -44,7 +44,7 @@ public class ProductCatalogController {
      * PUT /api/catalog/products/{productId}
      */
     @PutMapping("/products/{productId}")
-    @PreAuthorize("hasRole('DISTRIBUTOR')")
+    @PreAuthorize("hasAuthority('ROLE_DISTRIBUTOR')")
     public ResponseEntity<ProductCatalog> updateProduct(
             @PathVariable Long productId,
             @Valid @RequestBody UpdateProductRequest request) {
@@ -60,7 +60,7 @@ public class ProductCatalogController {
      * DELETE /api/catalog/products/{productId}
      */
     @DeleteMapping("/products/{productId}")
-    @PreAuthorize("hasRole('DISTRIBUTOR')")
+    @PreAuthorize("hasAuthority('ROLE_DISTRIBUTOR')")
     public ResponseEntity<String> deleteProduct(@PathVariable Long productId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String distributorId = authentication.getName();
@@ -74,7 +74,7 @@ public class ProductCatalogController {
      * GET /api/catalog/my-products
      */
     @GetMapping("/my-products")
-    @PreAuthorize("hasRole('DISTRIBUTOR')")
+    @PreAuthorize("hasAuthority('ROLE_DISTRIBUTOR')")
     public ResponseEntity<List<ProductCatalog>> getMyProducts() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String distributorId = authentication.getName();
@@ -88,7 +88,7 @@ public class ProductCatalogController {
      * GET /api/catalog/distributor/{distributorId}
      */
     @GetMapping("/distributor/{distributorId}")
-    @PreAuthorize("hasRole('STORE_OWNER')")
+    @PreAuthorize("hasAuthority('ROLE_STORE_OWNER')")
     public ResponseEntity<List<ProductCatalog>> getDistributorCatalog(@PathVariable String distributorId) {
         List<ProductCatalog> products = catalogService.getAvailableProducts(distributorId);
         return ResponseEntity.ok(products);
@@ -99,7 +99,7 @@ public class ProductCatalogController {
      * GET /api/catalog/distributor/{distributorId}/category/{category}
      */
     @GetMapping("/distributor/{distributorId}/category/{category}")
-    @PreAuthorize("hasRole('STORE_OWNER')")
+    @PreAuthorize("hasAuthority('ROLE_STORE_OWNER')")
     public ResponseEntity<List<ProductCatalog>> getProductsByCategory(
             @PathVariable String distributorId,
             @PathVariable String category) {
@@ -112,7 +112,7 @@ public class ProductCatalogController {
      * GET /api/catalog/distributor/{distributorId}/search?keyword=쌀
      */
     @GetMapping("/distributor/{distributorId}/search")
-    @PreAuthorize("hasRole('STORE_OWNER')")
+    @PreAuthorize("hasAuthority('ROLE_STORE_OWNER')")
     public ResponseEntity<List<ProductCatalog>> searchProducts(
             @PathVariable String distributorId,
             @RequestParam String keyword) {
@@ -125,7 +125,7 @@ public class ProductCatalogController {
      * GET /api/catalog/distributor/{distributorId}/price-range?minPrice=1000&maxPrice=10000
      */
     @GetMapping("/distributor/{distributorId}/price-range")
-    @PreAuthorize("hasRole('STORE_OWNER')")
+    @PreAuthorize("hasAuthority('ROLE_STORE_OWNER')")
     public ResponseEntity<List<ProductCatalog>> searchByPriceRange(
             @PathVariable String distributorId,
             @RequestParam Long minPrice,
@@ -139,7 +139,7 @@ public class ProductCatalogController {
      * GET /api/catalog/distributor/{distributorId}/in-stock
      */
     @GetMapping("/distributor/{distributorId}/in-stock")
-    @PreAuthorize("hasRole('STORE_OWNER')")
+    @PreAuthorize("hasAuthority('ROLE_STORE_OWNER')")
     public ResponseEntity<List<ProductCatalog>> getProductsWithStock(@PathVariable String distributorId) {
         List<ProductCatalog> products = catalogService.getProductsWithStock(distributorId);
         return ResponseEntity.ok(products);
@@ -150,7 +150,7 @@ public class ProductCatalogController {
      * GET /api/catalog/products/{productId}
      */
     @GetMapping("/products/{productId}")
-    @PreAuthorize("hasAnyRole('STORE_OWNER', 'DISTRIBUTOR')")
+    @PreAuthorize("hasAnyAuthority('ROLE_STORE_OWNER', 'ROLE_DISTRIBUTOR')")
     public ResponseEntity<ProductCatalog> getProduct(@PathVariable Long productId) {
         ProductCatalog product = catalogService.getProduct(productId);
         return ResponseEntity.ok(product);
@@ -161,7 +161,7 @@ public class ProductCatalogController {
      * PUT /api/catalog/products/{productId}/stock
      */
     @PutMapping("/products/{productId}/stock")
-    @PreAuthorize("hasRole('DISTRIBUTOR')")
+    @PreAuthorize("hasAuthority('ROLE_DISTRIBUTOR')")
     public ResponseEntity<ProductCatalog> updateStock(
             @PathVariable Long productId,
             @RequestParam Integer quantity) {
@@ -177,7 +177,7 @@ public class ProductCatalogController {
      * PUT /api/catalog/products/{productId}/toggle-availability
      */
     @PutMapping("/products/{productId}/toggle-availability")
-    @PreAuthorize("hasRole('DISTRIBUTOR')")
+    @PreAuthorize("hasAuthority('ROLE_DISTRIBUTOR')")
     public ResponseEntity<ProductCatalog> toggleAvailability(@PathVariable Long productId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String distributorId = authentication.getName();
@@ -191,7 +191,7 @@ public class ProductCatalogController {
      * GET /api/catalog/products/{productId}/detail
      */
     @GetMapping("/products/{productId}/detail")
-    @PreAuthorize("hasAnyRole('STORE_OWNER', 'DISTRIBUTOR')")
+    @PreAuthorize("hasAnyAuthority('ROLE_STORE_OWNER', 'ROLE_DISTRIBUTOR')")
     public ResponseEntity<ProductDetailResponse> getProductDetail(@PathVariable Long productId) {
         ProductDetailResponse detail = catalogService.getProductDetail(productId);
         return ResponseEntity.ok(detail);
@@ -202,7 +202,7 @@ public class ProductCatalogController {
      * POST /api/catalog/products/{productId}/delivery-info
      */
     @PostMapping("/products/{productId}/delivery-info")
-    @PreAuthorize("hasRole('DISTRIBUTOR')")
+    @PreAuthorize("hasAuthority('ROLE_DISTRIBUTOR')")
     public ResponseEntity<ProductDeliveryInfo> saveDeliveryInfo(
             @PathVariable Long productId,
             @Valid @RequestBody ProductDeliveryInfo deliveryInfo) {

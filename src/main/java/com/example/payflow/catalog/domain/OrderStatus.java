@@ -1,0 +1,20 @@
+package com.example.payflow.catalog.domain;
+
+public enum OrderStatus {
+    PENDING("주문대기"),
+    CONFIRMED("주문확정"),
+    PREPARING("상품준비중"),
+    SHIPPED("배송중"),
+    DELIVERED("배송완료"),
+    CANCELLED("주문취소");
+    
+    private final String description;
+    
+    OrderStatus(String description) {
+        this.description = description;
+    }
+    
+    public String getDescription() {
+        return description;
+    }
+}

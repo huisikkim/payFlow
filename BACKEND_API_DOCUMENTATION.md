@@ -788,7 +788,93 @@ Authorization: Bearer {token}
 
 ---
 
-### 8. 견적 요청 API ⭐
+### 8. 주문 장바구니 API ⭐ NEW
+
+매장이 유통업체의 상품을 장바구니에 담아 주문 리스트를 작성하는 기능입니다.
+
+#### 8.1 장바구니에 상품 추가
+```
+POST /api/cart/add
+Authorization: Bearer {token}
+Content-Type: application/json
+```
+
+**권한**: ROLE_STORE_OWNER
+
+**요청 Body:**
+```json
+{
+  "productId": 1,
+  "quantity": 5
+}
+```
+
+**응답:**
+```json
+{
+  "id": 1,
+  "storeId": "test_store",
+  "distributorId": "distributor1",
+  "items": [
+    {
+      "id": 1,
+      "productId": 1,
+      "productName": "경기미 20kg",
+      "unitPrice": 48000,
+      "unit": "포",
+      "quantity": 5,
+      "subtotal": 240000,
+      "imageUrl": "https://example.com/rice.jpg"
+    }
+  ],
+  "totalAmount": 240000,
+  "totalQuantity": 5
+}
+```
+
+---
+
+#### 8.2 장바구니 조회
+```
+GET /api/cart/{distributorId}
+Authorization: Bearer {token}
+```
+
+**권한**: ROLE_STORE_OWNER
+
+---
+
+#### 8.3 장바구니 아이템 수량 변경
+```
+PUT /api/cart/{distributorId}/items/{itemId}?quantity=10
+Authorization: Bearer {token}
+```
+
+**권한**: ROLE_STORE_OWNER
+
+---
+
+#### 8.4 장바구니 아이템 삭제
+```
+DELETE /api/cart/{distributorId}/items/{itemId}
+Authorization: Bearer {token}
+```
+
+**권한**: ROLE_STORE_OWNER
+
+---
+
+#### 8.5 장바구니 비우기
+```
+DELETE /api/cart/{distributorId}
+Authorization: Bearer {token}
+```
+
+**권한**: ROLE_STORE_OWNER
+
+---
+
+### 9. 견적 요청 API ⭐
 
 **견적 요청 워크플로우:**
 ```
@@ -803,7 +889,7 @@ Authorization: Bearer {token}
 [매장] 대기중 요청 취소 가능 (PENDING 상태만)
 ```
 
-#### 8.1 견적 요청 생성 (매장 → 유통업체)
+#### 9.1 견적 요청 생성 (매장 → 유통업체)
 ```
 POST /api/matching/quote-request
 Authorization: Bearer {token}
@@ -847,7 +933,7 @@ Content-Type: application/json
 
 ---
 
-#### 8.2 매장의 견적 요청 목록 조회
+#### 9.2 매장의 견적 요청 목록 조회
 ```
 GET /api/matching/quote-requests/store
 Authorization: Bearer {token}
@@ -877,7 +963,7 @@ Authorization: Bearer {token}
 
 ---
 
-#### 8.3 유통업체의 견적 요청 목록 조회
+#### 9.3 유통업체의 견적 요청 목록 조회
 ```
 GET /api/matching/quote-requests/distributor
 Authorization: Bearer {token}
@@ -889,7 +975,7 @@ Authorization: Bearer {token}
 
 ---
 
-#### 8.4 견적 요청 상세 조회
+#### 9.4 견적 요청 상세 조회
 ```
 GET /api/matching/quote-request/{id}
 Authorization: Bearer {token}
@@ -901,7 +987,7 @@ Authorization: Bearer {token}
 
 ---
 
-#### 8.5 견적 요청 응답 (유통업체)
+#### 9.5 견적 요청 응답 (유통업체)
 ```
 PUT /api/matching/quote-request/{id}/respond
 Authorization: Bearer {token}
@@ -947,7 +1033,7 @@ Content-Type: application/json
 
 ---
 
-#### 8.6 견적 요청 취소 (매장)
+#### 9.6 견적 요청 취소 (매장)
 ```
 DELETE /api/matching/quote-request/{id}
 Authorization: Bearer {token}
@@ -967,7 +1053,7 @@ Authorization: Bearer {token}
 
 ---
 
-#### 8.7 견적 완료 처리 (매장)
+#### 9.7 견적 완료 처리 (매장)
 ```
 PUT /api/matching/quote-request/{id}/complete
 Authorization: Bearer {token}

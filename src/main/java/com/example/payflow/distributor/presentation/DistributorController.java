@@ -23,7 +23,7 @@ public class DistributorController {
      * POST /api/distributor/info
      */
     @PostMapping("/info")
-    @PreAuthorize("hasRole('DISTRIBUTOR')")
+    @PreAuthorize("hasAuthority('ROLE_DISTRIBUTOR')")
     public ResponseEntity<DistributorInfoResponse> registerDistributorInfo(@RequestBody DistributorInfoRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
@@ -55,7 +55,7 @@ public class DistributorController {
      * GET /api/distributor/info
      */
     @GetMapping("/info")
-    @PreAuthorize("hasRole('DISTRIBUTOR')")
+    @PreAuthorize("hasAuthority('ROLE_DISTRIBUTOR')")
     public ResponseEntity<DistributorInfoResponse> getDistributorInfo() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
@@ -74,7 +74,7 @@ public class DistributorController {
      * GET /api/distributor/info/{distributorId}
      */
     @GetMapping("/info/{distributorId}")
-    @PreAuthorize("hasAnyRole('STORE_OWNER', 'DISTRIBUTOR')")
+    @PreAuthorize("hasAnyAuthority('ROLE_STORE_OWNER', 'ROLE_DISTRIBUTOR')")
     public ResponseEntity<DistributorInfoResponse> getDistributorInfoById(@PathVariable String distributorId) {
         try {
             Distributor distributor = distributorService.getDistributor(distributorId);
@@ -89,7 +89,7 @@ public class DistributorController {
      * PUT /api/distributor/status
      */
     @PutMapping("/status")
-    @PreAuthorize("hasRole('DISTRIBUTOR')")
+    @PreAuthorize("hasAuthority('ROLE_DISTRIBUTOR')")
     public ResponseEntity<String> toggleDistributorStatus(@RequestParam boolean activate) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();

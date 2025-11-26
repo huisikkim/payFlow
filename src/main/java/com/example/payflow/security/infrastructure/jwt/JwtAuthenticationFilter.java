@@ -31,6 +31,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return path.startsWith("/parlevel") || 
                path.startsWith("/api/parlevel") ||
                path.startsWith("/api/auth") ||
+               // path.startsWith("/api/catalog") ||  // 제거: 인증이 필요한 API
+               path.startsWith("/api/cart") ||
+               path.startsWith("/api/catalog-orders") ||
                path.startsWith("/login") ||
                path.startsWith("/signup") ||
                path.startsWith("/h2-console") ||

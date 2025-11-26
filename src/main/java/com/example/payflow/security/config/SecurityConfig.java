@@ -71,10 +71,8 @@ public class SecurityConfig {
                         .requestMatchers("/sourcing", "/api/sourcing/**").permitAll()  // 토탈소싱기 허용
                         .requestMatchers("/escrow/**").permitAll()  // 에스크로 웹 페이지 허용 (API보다 먼저)
                         .requestMatchers("/api/escrow/**").permitAll()  // 에스크로 API 허용 (개발용)
-                        // TODO: 프로덕션에서는 .requestMatchers("/api/escrow/**").hasAnyRole("USER", "ADMIN")으로 변경
-                        .requestMatchers("/api/orders/**").permitAll()  // 주문 API 허용 (개발용)
                         .requestMatchers("/api/payments/**").permitAll()  // 결제 API 허용 (개발용)
-                        // TODO: 프로덕션에서는 .requestMatchers("/api/orders/**", "/api/payments/**").hasAnyRole("USER", "ADMIN")으로 변경
+                        // TODO: 프로덕션에서는 .requestMatchers("/api/escrow/**", "/api/payments/**").hasAnyRole("USER", "ADMIN")으로 변경
                         .requestMatchers("/hr/**").permitAll()  // HR 웹 페이지 허용 (개발용)
                         .requestMatchers("/api/hr/**").hasAnyRole("USER", "ADMIN")  // HR API (인증 필요)
                         .requestMatchers("/recruitment/**").permitAll()  // 채용 시스템 웹 페이지 허용 (개발용)
@@ -98,6 +96,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/price-learning/**").permitAll()  // 단가 학습 API 허용 (개발용)
                         .requestMatchers("/specification/**").permitAll()  // 명세표 웹 페이지 허용
                         .requestMatchers("/api/specifications/**").permitAll()  // 명세표 API 허용 (개발용)
+                        .requestMatchers("/api/catalog/**").permitAll()  // 카탈로그 API 허용 (개발용)
+                        .requestMatchers("/api/cart/**").permitAll()  // 장바구니 API 허용 (개발용)
+                        .requestMatchers("/api/catalog-orders/**").permitAll()  // 카탈로그 주문 API 허용 (개발용)
                         // TODO: 프로덕션에서는 역할별 권한 설정 필요
                         .requestMatchers("/api/stages/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
