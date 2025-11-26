@@ -516,7 +516,279 @@ Content-Type: application/json
 
 ---
 
-### 7. 견적 요청 API ⭐
+### 7. 식자재 카탈로그 API ⭐ NEW
+
+유통업체가 자신의 식자재 목록을 등록하고, 매장이 이를 조회하여 주문할 수 있는 기능입니다.
+
+#### 7.1 상품 등록 (유통업체)
+```
+POST /api/catalog/products
+Authorization: Bearer {token}
+Content-Type: application/json
+```
+
+**권한**: ROLE_DISTRIBUTOR
+
+**요청 Body:**
+```json
+{
+  "productName": "경기미 20kg",
+  "category": "쌀/곡물",
+  "description": "경기도에서 생산된 고품질 쌀입니다",
+  "unitPrice": 45000,
+  "unit": "포",
+  "stockQuantity": 100,
+  "origin": "경기도",
+  "brand": "농협",
+  "imageUrl": "https://example.com/rice.jpg",
+  "isAvailable": true,
+  "minOrderQuantity": 1,
+  "maxOrderQuantity": 50,
+  "certifications": "친환경인증"
+}
+```
+
+**응답:**
+```json
+{
+  "id": 1,
+  "distributorId": "distributor1",
+  "productName": "경기미 20kg",
+  "category": "쌀/곡물",
+  "description": "경기도에서 생산된 고품질 쌀입니다",
+  "unitPrice": 45000,
+  "unit": "포",
+  "stockQuantity": 100,
+  "origin": "경기도",
+  "brand": "농협",
+  "imageUrl": "https://example.com/rice.jpg",
+  "isAvailable": true,
+  "minOrderQuantity": 1,
+  "maxOrderQuantity": 50,
+  "certifications": "친환경인증",
+  "createdAt": "2025-11-26T10:43:24",
+  "updatedAt": "2025-11-26T10:43:24"
+}
+```
+
+---
+
+#### 7.2 상품 수정 (유통업체)
+```
+PUT /api/catalog/products/{productId}
+Authorization: Bearer {token}
+Content-Type: application/json
+```
+
+**권한**: ROLE_DISTRIBUTOR
+
+**요청 Body:** (수정할 필드만 포함)
+```json
+{
+  "unitPrice": 48000,
+  "description": "경기도에서 생산된 고품질 쌀입니다 (가격 인상)"
+}
+```
+
+---
+
+#### 7.3 상품 삭제 (유통업체)
+```
+DELETE /api/catalog/products/{productId}
+Authorization: Bearer {token}
+```
+
+**권한**: ROLE_DISTRIBUTOR
+
+---
+
+#### 7.4 내 카탈로그 조회 (유통업체)
+```
+GET /api/catalog/my-products
+Authorization: Bearer {token}
+```
+
+**권한**: ROLE_DISTRIBUTOR
+
+**응답:** 상품 목록 배열
+
+---
+
+#### 7.5 유통업체 카탈로그 조회 (매장)
+```
+GET /api/catalog/distributor/{distributorId}
+Authorization: Bearer {token}
+```
+
+**권한**: ROLE_STORE_OWNER
+
+**응답:** 판매 가능한 상품 목록 (isAvailable=true)
+
+---
+
+#### 7.6 카테고리별 상품 조회 (매장)
+```
+GET /api/catalog/distributor/{distributorId}/category/{category}
+Authorization: Bearer {token}
+```
+
+**권한**: ROLE_STORE_OWNER
+
+**카테고리 예시:** 쌀/곡물, 채소, 과일, 육류, 수산물, 유제품
+
+---
+
+#### 7.7 상품 검색 (매장)
+```
+GET /api/catalog/distributor/{distributorId}/search?keyword=쌀
+Authorization: Bearer {token}
+```
+
+**권한**: ROLE_STORE_OWNER
+
+---
+
+#### 7.8 가격 범위 검색 (매장)
+```
+GET /api/catalog/distributor/{distributorId}/price-range?minPrice=1000&maxPrice=50000
+Authorization: Bearer {token}
+```
+
+**권한**: ROLE_STORE_OWNER
+
+---
+
+#### 7.9 재고 있는 상품만 조회 (매장)
+```
+GET /api/catalog/distributor/{distributorId}/in-stock
+Authorization: Bearer {token}
+```
+
+**권한**: ROLE_STORE_OWNER
+
+---
+
+#### 7.10 상품 상세 조회
+```
+GET /api/catalog/products/{productId}
+Authorization: Bearer {token}
+```
+
+**권한**: ROLE_STORE_OWNER, ROLE_DISTRIBUTOR
+
+---
+
+#### 7.11 재고 업데이트 (유통업체)
+```
+PUT /api/catalog/products/{productId}/stock?quantity=450
+Authorization: Bearer {token}
+```
+
+**권한**: ROLE_DISTRIBUTOR
+
+---
+
+#### 7.12 판매 상태 변경 (유통업체)
+```
+PUT /api/catalog/products/{productId}/toggle-availability
+Authorization: Bearer {token}
+```
+
+**권한**: ROLE_DISTRIBUTOR
+
+**설명:** 판매 가능 ↔ 품절 상태 토글
+
+---
+
+#### 7.13 배송 정보 등록/수정 (유통업체)
+```
+POST /api/catalog/products/{productId}/delivery-info
+Authorization: Bearer {token}
+Content-Type: application/json
+```
+
+**권한**: ROLE_DISTRIBUTOR
+
+**요청 Body:**
+```json
+{
+  "deliveryType": "익일배송",
+  "deliveryFee": 3000,
+  "freeDeliveryThreshold": 50000,
+  "deliveryRegions": "서울,경기,인천",
+  "deliveryDays": "월,화,수,목,금",
+  "deliveryTimeSlots": "오전,오후",
+  "estimatedDeliveryDays": 1,
+  "packagingType": "박스",
+  "isFragile": false,
+  "requiresRefrigeration": false,
+  "specialInstructions": "직사광선을 피해 보관해주세요"
+}
+```
+
+---
+
+#### 7.14 상품 상세 정보 조회 (가격, 재고, 배송 정보 포함) ⭐
+```
+GET /api/catalog/products/{productId}/detail
+Authorization: Bearer {token}
+```
+
+**권한**: ROLE_STORE_OWNER, ROLE_DISTRIBUTOR
+
+**응답:**
+```json
+{
+  "id": 1,
+  "distributorId": "distributor1",
+  "distributorName": "신선식자재 유통",
+  "productName": "경기미 20kg",
+  "category": "쌀/곡물",
+  "description": "경기도에서 생산된 고품질 쌀입니다",
+  "unitPrice": 48000,
+  "unit": "포",
+  "priceInfo": "1포당 48,000원",
+  "hasDiscount": false,
+  "stockQuantity": 100,
+  "stockStatus": "재고 충분",
+  "isAvailable": true,
+  "minOrderQuantity": 1,
+  "maxOrderQuantity": 50,
+  "orderLimitInfo": "최소 1포 ~ 최대 50포",
+  "origin": "경기도",
+  "brand": "농협",
+  "imageUrl": "https://example.com/rice.jpg",
+  "certifications": "친환경인증",
+  "deliveryInfo": {
+    "deliveryType": "익일배송",
+    "deliveryFee": 3000,
+    "freeDeliveryThreshold": 50000,
+    "deliveryFeeInfo": "배송비 3,000원 (50,000원 이상 무료)",
+    "deliveryRegions": "서울,경기,인천",
+    "deliveryDays": "월,화,수,목,금",
+    "deliveryTimeSlots": "오전,오후",
+    "estimatedDeliveryDays": 1,
+    "estimatedDeliveryInfo": "익일 배송",
+    "packagingType": "박스",
+    "isFragile": false,
+    "requiresRefrigeration": false,
+    "specialInstructions": "직사광선을 피해 보관해주세요"
+  },
+  "createdAt": "2025-11-26T10:43:24",
+  "updatedAt": "2025-11-26T10:43:24"
+}
+```
+
+**상세 정보 설명:**
+- `priceInfo`: 사용자 친화적 가격 표시 ("1포당 48,000원")
+- `stockStatus`: "재고 충분", "재고 부족", "품절"
+- `orderLimitInfo`: 주문 수량 제한 정보
+- `deliveryFeeInfo`: 배송비 정보 ("배송비 3,000원 (50,000원 이상 무료)")
+- `estimatedDeliveryInfo`: 예상 배송 일정 ("익일 배송", "주문 후 2일 내 배송")
+
+---
+
+### 8. 견적 요청 API ⭐
 
 **견적 요청 워크플로우:**
 ```
@@ -531,7 +803,7 @@ Content-Type: application/json
 [매장] 대기중 요청 취소 가능 (PENDING 상태만)
 ```
 
-#### 7.1 견적 요청 생성 (매장 → 유통업체)
+#### 8.1 견적 요청 생성 (매장 → 유통업체)
 ```
 POST /api/matching/quote-request
 Authorization: Bearer {token}
@@ -575,7 +847,7 @@ Content-Type: application/json
 
 ---
 
-#### 7.2 매장의 견적 요청 목록 조회
+#### 8.2 매장의 견적 요청 목록 조회
 ```
 GET /api/matching/quote-requests/store
 Authorization: Bearer {token}
@@ -605,7 +877,7 @@ Authorization: Bearer {token}
 
 ---
 
-#### 7.3 유통업체의 견적 요청 목록 조회
+#### 8.3 유통업체의 견적 요청 목록 조회
 ```
 GET /api/matching/quote-requests/distributor
 Authorization: Bearer {token}
@@ -617,7 +889,7 @@ Authorization: Bearer {token}
 
 ---
 
-#### 7.4 견적 요청 상세 조회
+#### 8.4 견적 요청 상세 조회
 ```
 GET /api/matching/quote-request/{id}
 Authorization: Bearer {token}
@@ -629,7 +901,7 @@ Authorization: Bearer {token}
 
 ---
 
-#### 7.5 견적 요청 응답 (유통업체)
+#### 8.5 견적 요청 응답 (유통업체)
 ```
 PUT /api/matching/quote-request/{id}/respond
 Authorization: Bearer {token}
@@ -675,7 +947,7 @@ Content-Type: application/json
 
 ---
 
-#### 7.6 견적 요청 취소 (매장)
+#### 8.6 견적 요청 취소 (매장)
 ```
 DELETE /api/matching/quote-request/{id}
 Authorization: Bearer {token}
@@ -695,7 +967,7 @@ Authorization: Bearer {token}
 
 ---
 
-#### 7.7 견적 완료 처리 (매장)
+#### 8.7 견적 완료 처리 (매장)
 ```
 PUT /api/matching/quote-request/{id}/complete
 Authorization: Bearer {token}
