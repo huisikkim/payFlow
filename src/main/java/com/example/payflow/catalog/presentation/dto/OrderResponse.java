@@ -25,6 +25,7 @@ public class OrderResponse {
     private String deliveryAddress;
     private String deliveryPhone;
     private String deliveryRequest;
+    private LocalDateTime desiredDeliveryDate;
     private LocalDateTime orderedAt;
     private LocalDateTime confirmedAt;
     private LocalDateTime shippedAt;

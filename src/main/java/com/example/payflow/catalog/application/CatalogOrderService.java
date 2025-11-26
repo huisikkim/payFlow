@@ -28,10 +28,12 @@ public class CatalogOrderService {
     public OrderResponse createOrderFromCart(String storeId, CreateOrderRequest request) {
         // 1. 장바구니 조회
         OrderCart cart = cartRepository.findByStoreIdAndDistributorId(storeId, request.getDistributorId())
-                .orElseThrow(() -> new IllegalArgumentException("장바구니가 비어있습니다."));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        String.format("장바구니가 비어있습니다. (매장ID: %s, 유통업체ID: %s)", storeId, request.getDistributorId())));
         
         if (cart.getItems().isEmpty()) {
-            throw new IllegalArgumentException("장바구니에 상품이 없습니다.");
+            throw new IllegalArgumentException(
+                    String.format("장바구니에 상품이 없습니다. (매장ID: %s, 유통업체ID: %s)", storeId, request.getDistributorId()));
         }
         
         // 2. 재고 확인 및 차감
@@ -64,6 +66,7 @@ public class CatalogOrderService {
                 .deliveryAddress(request.getDeliveryAddress())
                 .deliveryPhone(request.getDeliveryPhone())
                 .deliveryRequest(request.getDeliveryRequest())
+                .desiredDeliveryDate(request.getDesiredDeliveryDate())
                 .orderedAt(LocalDateTime.now())
                 .build();
         
@@ -111,6 +114,18 @@ public class CatalogOrderService {
     public List<OrderResponse> getStoreOrdersByDistributor(String storeId, String distributorId) {
         List<DistributorOrder> orders = orderRepository
                 .findByStoreIdAndDistributorIdOrderByOrderedAtDesc(storeId, distributorId);
+        return orders.stream()
+                .map(this::toOrderResponse)
+                .collect(Collectors.toList());
+    }
+    
+    /**
+     * 유통업체에 들어온 주문 목록 조회
+     */
+    @Transactional(readOnly = true)
+    public List<OrderResponse> getDistributorOrders(String distributorId) {
+        List<DistributorOrder> orders = orderRepository
+                .findByDistributorIdOrderByOrderedAtDesc(distributorId);
         return orders.stream()
                 .map(this::toOrderResponse)
                 .collect(Collectors.toList());
@@ -208,6 +223,7 @@ public class CatalogOrderService {
                 .deliveryAddress(order.getDeliveryAddress())
                 .deliveryPhone(order.getDeliveryPhone())
                 .deliveryRequest(order.getDeliveryRequest())
+                .desiredDeliveryDate(order.getDesiredDeliveryDate())
                 .orderedAt(order.getOrderedAt())
                 .confirmedAt(order.getConfirmedAt())
                 .shippedAt(order.getShippedAt())

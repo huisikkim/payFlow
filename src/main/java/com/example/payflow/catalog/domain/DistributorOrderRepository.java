@@ -12,6 +12,8 @@ public interface DistributorOrderRepository extends JpaRepository<DistributorOrd
     
     List<DistributorOrder> findByStoreIdAndDistributorIdOrderByOrderedAtDesc(String storeId, String distributorId);
     
+    List<DistributorOrder> findByDistributorIdOrderByOrderedAtDesc(String distributorId);
+    
     Optional<DistributorOrder> findByOrderNumber(String orderNumber);
     
     List<DistributorOrder> findByStoreIdAndStatusOrderByOrderedAtDesc(String storeId, OrderStatus status);

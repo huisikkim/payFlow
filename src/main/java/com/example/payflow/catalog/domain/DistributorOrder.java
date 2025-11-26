@@ -52,6 +52,9 @@ public class DistributorOrder {
     @Column
     private String deliveryRequest; // 배송 요청사항
     
+    @Column
+    private LocalDateTime desiredDeliveryDate; // 희망 배송일
+    
     @Column(nullable = false)
     private LocalDateTime orderedAt;
     

@@ -6,6 +6,9 @@ import com.example.payflow.catalog.presentation.dto.OrderResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,9 +27,12 @@ public class CatalogOrderController {
      * POST /api/orders/create
      */
     @PostMapping("/create")
+    @PreAuthorize("hasRole('STORE_OWNER')")
     public ResponseEntity<OrderResponse> createOrder(
-            @RequestHeader("X-Store-Id") String storeId,
             @RequestBody CreateOrderRequest request) {
+        
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String storeId = authentication.getName();
         
         log.info("주문 생성 요청: 매장={}, 유통업체={}", storeId, request.getDistributorId());
         
@@ -44,8 +50,10 @@ public class CatalogOrderController {
      * GET /api/orders/my
      */
     @GetMapping("/my")
-    public ResponseEntity<List<OrderResponse>> getMyOrders(
-            @RequestHeader("X-Store-Id") String storeId) {
+    @PreAuthorize("hasRole('STORE_OWNER')")
+    public ResponseEntity<List<OrderResponse>> getMyOrders() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String storeId = authentication.getName();
         
         log.info("주문 목록 조회: 매장={}", storeId);
         List<OrderResponse> orders = orderService.getStoreOrders(storeId);
@@ -57,9 +65,11 @@ public class CatalogOrderController {
      * GET /api/orders/my/distributor/{distributorId}
      */
     @GetMapping("/my/distributor/{distributorId}")
+    @PreAuthorize("hasRole('STORE_OWNER')")
     public ResponseEntity<List<OrderResponse>> getMyOrdersByDistributor(
-            @RequestHeader("X-Store-Id") String storeId,
             @PathVariable String distributorId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String storeId = authentication.getName();
         
         log.info("주문 목록 조회: 매장={}, 유통업체={}", storeId, distributorId);
         List<OrderResponse> orders = orderService.getStoreOrdersByDistributor(storeId, distributorId);
@@ -71,9 +81,11 @@ public class CatalogOrderController {
      * GET /api/orders/{orderId}
      */
     @GetMapping("/{orderId}")
+    @PreAuthorize("hasRole('STORE_OWNER')")
     public ResponseEntity<OrderResponse> getOrderDetail(
-            @RequestHeader("X-Store-Id") String storeId,
             @PathVariable Long orderId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String storeId = authentication.getName();
         
         log.info("주문 상세 조회: 매장={}, 주문ID={}", storeId, orderId);
         
@@ -91,10 +103,12 @@ public class CatalogOrderController {
      * POST /api/orders/{orderId}/cancel
      */
     @PostMapping("/{orderId}/cancel")
+    @PreAuthorize("hasRole('STORE_OWNER')")
     public ResponseEntity<OrderResponse> cancelOrder(
-            @RequestHeader("X-Store-Id") String storeId,
             @PathVariable Long orderId,
             @RequestBody(required = false) Map<String, String> body) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String storeId = authentication.getName();
         
         String reason = body != null ? body.getOrDefault("reason", "고객 요청") : "고객 요청";
         log.info("주문 취소 요청: 매장={}, 주문ID={}, 사유={}", storeId, orderId, reason);
@@ -106,5 +120,20 @@ public class CatalogOrderController {
             log.error("주문 취소 실패: {}", e.getMessage());
             return ResponseEntity.badRequest().build();
         }
+    }
+    
+    /**
+     * 유통업체에 들어온 주문 목록 조회
+     * GET /api/catalog-orders/distributor
+     */
+    @GetMapping("/distributor")
+    @PreAuthorize("hasRole('DISTRIBUTOR')")
+    public ResponseEntity<List<OrderResponse>> getDistributorOrders() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String distributorId = authentication.getName();
+        
+        log.info("유통업체 주문 목록 조회: 유통업체={}", distributorId);
+        List<OrderResponse> orders = orderService.getDistributorOrders(distributorId);
+        return ResponseEntity.ok(orders);
     }
 }
