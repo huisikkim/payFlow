@@ -23,7 +23,13 @@ public class DistributorOrderController {
     private final DistributorOrderService distributorOrderService;
     
     @GetMapping
-    public ResponseEntity<List<IngredientOrderResponse>> getOrders(@RequestParam String distributorId) {
+    public ResponseEntity<List<IngredientOrderResponse>> getOrders(
+            @RequestParam(required = false) String distributorId) {
+        // distributorId가 없으면 모든 발주 조회 (관리자용)
+        if (distributorId == null) {
+            log.warn("⚠️ distributorId 파라미터가 없습니다");
+            return ResponseEntity.badRequest().build();
+        }
         List<IngredientOrder> orders = distributorOrderService.getOrdersByDistributor(distributorId);
         List<IngredientOrderResponse> responses = orders.stream()
             .map(IngredientOrderResponse::from)
@@ -32,7 +38,13 @@ public class DistributorOrderController {
     }
     
     @GetMapping("/pending")
-    public ResponseEntity<List<IngredientOrderResponse>> getPendingOrders(@RequestParam String distributorId) {
+    public ResponseEntity<List<IngredientOrderResponse>> getPendingOrders(
+            @RequestParam(required = false) String distributorId) {
+        // distributorId가 없으면 에러
+        if (distributorId == null) {
+            log.warn("⚠️ distributorId 파라미터가 없습니다");
+            return ResponseEntity.badRequest().build();
+        }
         List<IngredientOrder> orders = distributorOrderService.getPendingOrders(distributorId);
         List<IngredientOrderResponse> responses = orders.stream()
             .map(IngredientOrderResponse::from)
