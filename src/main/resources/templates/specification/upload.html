@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>명세표 업로드</title>
+    <title>명세표 업로드 - AI 분석</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
     <style>
         * {
             margin: 0;
@@ -12,70 +13,184 @@
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1e1b4b 0%, #581c87 50%, #1e1b4b 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        body::before {
+            content: '';
+            position: absolute;
+            top: 20%;
+            left: 20%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.3) 0%, transparent 70%);
+            border-radius: 50%;
+            filter: blur(60px);
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        body::after {
+            content: '';
+            position: absolute;
+            bottom: 20%;
+            right: 20%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(34, 211, 238, 0.3) 0%, transparent 70%);
+            border-radius: 50%;
+            filter: blur(60px);
+            animation: float 8s ease-in-out infinite reverse;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(30px, -30px); }
         }
         
         .container {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 600px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            max-width: 800px;
             width: 100%;
-            padding: 40px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 30px 40px 20px;
+        }
+        
+        .icon-wrapper {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #8b5cf6 0%, #22d3ee 100%);
+            border-radius: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.5);
+            animation: iconFloat 3s ease-in-out infinite;
+        }
+        
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .icon-wrapper svg {
+            width: 30px;
+            height: 30px;
+            color: white;
         }
         
         h1 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 28px;
+            color: white;
+            margin-bottom: 8px;
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
         }
         
         .subtitle {
-            color: #666;
-            margin-bottom: 30px;
+            color: rgba(255, 255, 255, 0.7);
             font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .content {
+            padding: 0 40px 30px;
         }
         
         .upload-area {
-            border: 2px dashed #667eea;
-            border-radius: 8px;
-            padding: 40px;
+            border: 2px dashed rgba(139, 92, 246, 0.5);
+            border-radius: 16px;
+            padding: 30px 30px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
-            background: #f8f9ff;
+            background: rgba(255, 255, 255, 0.05);
+            position: relative;
+        }
+        
+        .upload-area::before {
+            content: '';
+            position: absolute;
+            inset: 16px;
+            border: 1px solid rgba(34, 211, 238, 0.3);
+            border-radius: 12px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
         
         .upload-area:hover {
-            border-color: #764ba2;
-            background: #f0f2ff;
+            border-color: rgba(139, 92, 246, 0.8);
+            background: rgba(255, 255, 255, 0.08);
+        }
+        
+        .upload-area:hover::before {
+            opacity: 1;
         }
         
         .upload-area.dragover {
-            border-color: #764ba2;
-            background: #e8ebff;
+            border-color: #22d3ee;
+            background: rgba(34, 211, 238, 0.1);
+        }
+        
+        .upload-icon-container {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 12px;
+        }
+        
+        .upload-icon-bg {
+            position: absolute;
+            inset: -8px;
+            background: linear-gradient(135deg, #8b5cf6 0%, #22d3ee 100%);
+            border-radius: 50%;
+            filter: blur(16px);
+            opacity: 0.6;
         }
         
         .upload-icon {
-            font-size: 48px;
-            margin-bottom: 15px;
+            position: relative;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #8b5cf6 0%, #22d3ee 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .upload-icon svg {
+            width: 30px;
+            height: 30px;
+            color: white;
         }
         
         .upload-text {
-            color: #333;
-            font-size: 16px;
-            font-weight: 500;
-            margin-bottom: 5px;
+            color: white;
+            font-size: 17px;
+            font-weight: 600;
+            margin-bottom: 6px;
         }
         
         .upload-hint {
-            color: #999;
+            color: rgba(255, 255, 255, 0.6);
             font-size: 13px;
         }
         
@@ -83,31 +198,74 @@
             display: none;
         }
         
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 20px;
+        }
+        
+        .feature-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 14px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        
+        .feature-icon {
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+        
+        .feature-content h3 {
+            color: white;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+        
+        .feature-content p {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 11px;
+        }
+        
         .button-group {
             display: flex;
-            gap: 10px;
-            margin-top: 30px;
+            gap: 12px;
+            margin-top: 20px;
         }
         
         button {
             flex: 1;
-            padding: 12px 24px;
+            padding: 14px 20px;
             border: none;
-            border-radius: 6px;
-            font-size: 16px;
+            border-radius: 12px;
+            font-size: 15px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
         
         .btn-upload {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #8b5cf6 0%, #22d3ee 100%);
             color: white;
+            box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3);
         }
         
         .btn-upload:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 15px 35px rgba(139, 92, 246, 0.5);
+        }
+        
+        .btn-upload:active {
+            transform: translateY(0);
         }
         
         .btn-upload:disabled {
@@ -117,41 +275,60 @@
         }
         
         .btn-back {
-            background: #f0f0f0;
-            color: #333;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
         }
         
         .btn-back:hover {
-            background: #e0e0e0;
+            background: rgba(255, 255, 255, 0.15);
         }
         
         .file-info {
-            margin-top: 20px;
-            padding: 15px;
-            background: #f8f9ff;
-            border-radius: 6px;
+            margin-top: 16px;
+            padding: 14px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
             display: none;
         }
         
         .file-info.show {
-            display: block;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .file-details {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .file-icon {
+            font-size: 20px;
         }
         
         .file-name {
-            color: #333;
+            color: white;
             font-weight: 500;
-            margin-bottom: 5px;
+            margin-bottom: 2px;
+            font-size: 14px;
         }
         
         .file-size {
-            color: #999;
-            font-size: 13px;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 12px;
         }
         
         .loading {
             display: none;
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 10px;
+            padding: 18px;
             text-align: center;
-            margin-top: 20px;
+            margin-top: 16px;
         }
         
         .loading.show {
@@ -159,11 +336,11 @@
         }
         
         .spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid #8b5cf6;
             border-radius: 50%;
-            width: 30px;
-            height: 30px;
+            width: 32px;
+            height: 32px;
             animation: spin 1s linear infinite;
             margin: 0 auto 10px;
         }
@@ -173,13 +350,24 @@
             100% { transform: rotate(360deg); }
         }
         
+        .loading-text {
+            color: white;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .loading-subtext {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 12px;
+            margin-top: 6px;
+        }
+        
         .result {
             display: none;
-            margin-top: 30px;
-            padding: 20px;
-            background: #f0f9ff;
-            border-left: 4px solid #667eea;
-            border-radius: 6px;
+            margin-top: 16px;
+            padding: 18px;
+            border-radius: 10px;
+            border: 1px solid;
         }
         
         .result.show {
@@ -187,17 +375,18 @@
         }
         
         .result.success {
-            background: #f0fdf4;
-            border-left-color: #22c55e;
+            background: rgba(34, 197, 94, 0.1);
+            border-color: rgba(34, 197, 94, 0.3);
         }
         
         .result.error {
-            background: #fef2f2;
-            border-left-color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.3);
         }
         
         .result-title {
             font-weight: 600;
+            font-size: 15px;
             margin-bottom: 10px;
         }
         
@@ -210,56 +399,155 @@
         }
         
         .result-message {
-            color: #666;
-            font-size: 14px;
-            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 13px;
+            line-height: 1.7;
         }
         
         .result-link {
-            margin-top: 15px;
+            margin-top: 12px;
         }
         
         .result-link a {
-            color: #667eea;
+            color: #22d3ee;
             text-decoration: none;
-            font-weight: 500;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 13px;
         }
         
         .result-link a:hover {
             text-decoration: underline;
         }
+        
+        @media (max-width: 640px) {
+            .container {
+                border-radius: 16px;
+            }
+            
+            .header {
+                padding: 40px 24px 24px;
+            }
+            
+            h1 {
+                font-size: 32px;
+            }
+            
+            .content {
+                padding: 0 24px 24px;
+            }
+            
+            .upload-area {
+                padding: 40px 24px;
+            }
+            
+            .features {
+                grid-template-columns: 1fr;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>📋 명세표 업로드</h1>
-        <p class="subtitle">명세표 이미지를 업로드하면 OCR로 텍스트를 추출하고 AI가 자동으로 파싱합니다</p>
+        <div class="header">
+            <div class="icon-wrapper">
+                <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" x2="8" y1="13" y2="13"></line>
+                    <line x1="16" x2="8" y1="17" y2="17"></line>
+                    <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+            </div>
+            <h1>명세표 업로드</h1>
+            <p class="subtitle">AI가 자동으로 명세표를 분석하고 데이터를 추출합니다</p>
+        </div>
         
-        <form id="uploadForm" enctype="multipart/form-data">
-            <div class="upload-area" id="uploadArea">
-                <div class="upload-icon">📸</div>
-                <div class="upload-text">이미지를 여기에 드래그하거나 클릭하여 선택</div>
-                <div class="upload-hint">지원 형식: JPG, PNG, GIF (최대 10MB)</div>
-                <input type="file" id="fileInput" name="file" accept="image/*">
-            </div>
-            
-            <div class="file-info" id="fileInfo">
-                <div class="file-name" id="fileName"></div>
-                <div class="file-size" id="fileSize"></div>
-            </div>
-            
-            <div class="loading" id="loading">
-                <div class="spinner"></div>
-                <div>처리 중입니다... (OCR + LLM 파싱)</div>
-            </div>
-            
-            <div class="result" id="result"></div>
-            
-            <div class="button-group">
-                <button type="submit" class="btn-upload" id="submitBtn">업로드 및 처리</button>
-                <button type="button" class="btn-back" onclick="window.location.href='/specification'">목록으로</button>
-            </div>
-        </form>
+        <div class="content">
+            <form id="uploadForm" enctype="multipart/form-data">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon-container">
+                        <div class="upload-icon-bg"></div>
+                        <div class="upload-icon">
+                            <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" x2="12" y1="3" y2="15"></line>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="upload-text">파일을 여기에 드래그하거나 클릭하세요</div>
+                    <div class="upload-hint">JPG, PNG, PDF 형식 지원 • 최대 10MB</div>
+                    <input type="file" id="fileInput" name="file" accept="image/*">
+                </div>
+                
+                <div class="features">
+                    <div class="feature-card">
+                        <div class="feature-icon">⚡</div>
+                        <div class="feature-content">
+                            <h3>빠른 처리</h3>
+                            <p>AI가 몇 분 만에 분석</p>
+                        </div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">✓</div>
+                        <div class="feature-content">
+                            <h3>높은 정확도(60%)</h3>
+                            <p>OCR 기술로 추출</p>
+                        </div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔒</div>
+                        <div class="feature-content">
+                            <h3>안전한 보안</h3>
+                            <p>암호화된 데이터 전송</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="file-info" id="fileInfo">
+                    <div class="file-details">
+                        <div class="file-icon">📄</div>
+                        <div>
+                            <div class="file-name" id="fileName"></div>
+                            <div class="file-size" id="fileSize"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <div class="loading-text">처리 중입니다...</div>
+                    <div class="loading-subtext">OCR + AI 파싱 진행 중</div>
+                </div>
+                
+                <div class="result" id="result"></div>
+                
+                <div class="button-group">
+                    <button type="submit" class="btn-upload" id="submitBtn">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" x2="12" y1="3" y2="15"></line>
+                        </svg>
+                        업로드 및 분석 시작
+                    </button>
+                    <button type="button" class="btn-back" onclick="window.location.href='/specification'">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
+                            <line x1="19" x2="5" y1="12" y2="12"></line>
+                            <polyline points="12 19 5 12 12 5"></polyline>
+                        </svg>
+                        목록 보기
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
     
     <script>
@@ -300,7 +588,7 @@
         function updateFileInfo() {
             if (fileInput.files.length > 0) {
                 const file = fileInput.files[0];
-                fileName.textContent = '📄 ' + file.name;
+                fileName.textContent = file.name;
                 fileSize.textContent = '크기: ' + formatFileSize(file.size);
                 fileInfo.classList.add('show');
             } else {
