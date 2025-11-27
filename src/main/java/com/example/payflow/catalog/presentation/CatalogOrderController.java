@@ -136,4 +136,25 @@ public class CatalogOrderController {
         List<OrderResponse> orders = orderService.getDistributorOrders(distributorId);
         return ResponseEntity.ok(orders);
     }
+    
+    /**
+     * 주문 확정 (결제 완료 후)
+     * POST /api/catalog-orders/{orderId}/confirm
+     */
+    @PostMapping("/{orderId}/confirm")
+    @PreAuthorize("hasRole('STORE_OWNER')")
+    public ResponseEntity<OrderResponse> confirmOrder(@PathVariable Long orderId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String storeId = authentication.getName();
+        
+        log.info("주문 확정 요청: 매장={}, 주문ID={}", storeId, orderId);
+        
+        try {
+            OrderResponse order = orderService.confirmOrder(orderId, storeId);
+            return ResponseEntity.ok(order);
+        } catch (IllegalArgumentException e) {
+            log.error("주문 확정 실패: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        }
+    }
 }

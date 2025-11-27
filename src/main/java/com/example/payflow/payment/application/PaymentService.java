@@ -115,8 +115,8 @@ public class PaymentService {
                 "TOSS_PAYMENTS"
             );
             
-            // 주문 확정 처리
-            orderService.confirmOrder(payment.getOrderId());
+            // 주문 확정 처리는 별도로 수행 (카탈로그 주문은 CatalogOrderService에서 처리)
+            // orderService.confirmOrder(payment.getOrderId());
             
             long processingTime = System.currentTimeMillis() - startTime;
             
@@ -158,7 +158,8 @@ public class PaymentService {
                 e.getMessage()
             );
             
-            orderService.failOrder(payment.getOrderId());
+            // 주문 실패 처리는 별도로 수행 (카탈로그 주문은 CatalogOrderService에서 처리)
+            // orderService.failOrder(payment.getOrderId());
             log.error("결제 승인 실패: orderId={}", payment.getOrderId(), e);
             throw new RuntimeException("결제 승인 실패: " + e.getMessage());
         }
