@@ -158,12 +158,36 @@ public class CatalogOrderService {
     }
     
     /**
-     * 주문 확정 (결제 완료 후)
+     * 주문 확정 (결제 완료 후) - ID로 조회
      */
     @Transactional
     public OrderResponse confirmOrder(Long orderId, String storeId) {
         DistributorOrder order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
+        
+        if (!order.getStoreId().equals(storeId)) {
+            throw new IllegalArgumentException("접근 권한이 없습니다.");
+        }
+        
+        if (order.getStatus() != OrderStatus.PENDING) {
+            throw new IllegalArgumentException("대기 중인 주문만 확정할 수 있습니다.");
+        }
+        
+        order.confirm();
+        DistributorOrder savedOrder = orderRepository.save(order);
+        
+        log.info("주문 확정 완료: {}", order.getOrderNumber());
+        
+        return toOrderResponse(savedOrder);
+    }
+    
+    /**
+     * 주문 확정 (결제 완료 후) - 주문번호로 조회
+     */
+    @Transactional
+    public OrderResponse confirmOrderByNumber(String orderNumber, String storeId) {
+        DistributorOrder order = orderRepository.findByOrderNumber(orderNumber)
+                .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다: " + orderNumber));
         
         if (!order.getStoreId().equals(storeId)) {
             throw new IllegalArgumentException("접근 권한이 없습니다.");

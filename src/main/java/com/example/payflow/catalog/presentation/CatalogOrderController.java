@@ -138,7 +138,7 @@ public class CatalogOrderController {
     }
     
     /**
-     * 주문 확정 (결제 완료 후)
+     * 주문 확정 (결제 완료 후) - ID로 조회
      * POST /api/catalog-orders/{orderId}/confirm
      */
     @PostMapping("/{orderId}/confirm")
@@ -151,6 +151,27 @@ public class CatalogOrderController {
         
         try {
             OrderResponse order = orderService.confirmOrder(orderId, storeId);
+            return ResponseEntity.ok(order);
+        } catch (IllegalArgumentException e) {
+            log.error("주문 확정 실패: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    
+    /**
+     * 주문 확정 (결제 완료 후) - 주문번호로 조회
+     * POST /api/catalog-orders/confirm/{orderNumber}
+     */
+    @PostMapping("/confirm/{orderNumber}")
+    @PreAuthorize("hasRole('STORE_OWNER')")
+    public ResponseEntity<OrderResponse> confirmOrderByNumber(@PathVariable String orderNumber) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String storeId = authentication.getName();
+        
+        log.info("주문 확정 요청 (주문번호): 매장={}, 주문번호={}", storeId, orderNumber);
+        
+        try {
+            OrderResponse order = orderService.confirmOrderByNumber(orderNumber, storeId);
             return ResponseEntity.ok(order);
         } catch (IllegalArgumentException e) {
             log.error("주문 확정 실패: {}", e.getMessage());
