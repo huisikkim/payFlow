@@ -36,15 +36,22 @@ public class ChatWebSocketController {
             Principal principal) {
         
         try {
-            String senderId = principal.getName();
+            // Principal에서 인증된 사용자 정보 추출 (클라이언트가 보낸 정보 무시)
+            if (principal == null) {
+                log.error("인증되지 않은 사용자의 메시지 전송 시도 - roomId: {}", roomId);
+                return;
+            }
             
-            // 사용자 타입 추출
+            String senderId = principal.getName();
+            log.info("WebSocket 메시지 수신 - roomId: {}, 인증된 senderId: {}", roomId, senderId);
+            
+            // 사용자 타입 추출 (세션에 저장된 권한 정보 사용)
             ChatMessage.SenderType senderType = extractSenderType(headerAccessor);
             
-            // 메시지 저장
+            // 메시지 저장 (서버에서 인증한 senderId 사용)
             ChatMessage message = chatService.sendMessage(
                     roomId,
-                    senderId,
+                    senderId,  // JWT 토큰에서 추출한 username 사용
                     senderType,
                     request.getMessageType(),
                     request.getContent(),
@@ -55,19 +62,36 @@ public class ChatWebSocketController {
             ChatMessageResponse response = ChatMessageResponse.from(message);
             messagingTemplate.convertAndSend("/topic/chat/" + roomId, response);
             
-            log.info("WebSocket 메시지 전송 완료 - roomId: {}, senderId: {}", roomId, senderId);
+            log.info("WebSocket 메시지 전송 완료 - roomId: {}, senderId: {}, messageType: {}", 
+                    roomId, senderId, request.getMessageType());
             
         } catch (Exception e) {
             log.error("메시지 전송 실패 - roomId: {}, error: {}", roomId, e.getMessage(), e);
+            // 클라이언트에게 에러 전송 (선택사항)
+            messagingTemplate.convertAndSendToUser(
+                    principal.getName(),
+                    "/queue/errors",
+                    "메시지 전송 실패: " + e.getMessage()
+            );
         }
     }
     
     private ChatMessage.SenderType extractSenderType(SimpMessageHeaderAccessor headerAccessor) {
         // Spring Security의 권한 정보에서 사용자 타입 추출
         Object authorities = headerAccessor.getSessionAttributes().get("authorities");
-        if (authorities != null && authorities.toString().contains("ROLE_STORE_OWNER")) {
-            return ChatMessage.SenderType.STORE;
+        
+        if (authorities != null) {
+            String authStr = authorities.toString();
+            log.debug("사용자 권한: {}", authStr);
+            
+            if (authStr.contains("ROLE_STORE_OWNER")) {
+                return ChatMessage.SenderType.STORE;
+            } else if (authStr.contains("ROLE_DISTRIBUTOR")) {
+                return ChatMessage.SenderType.DISTRIBUTOR;
+            }
         }
+        
+        log.warn("권한 정보를 찾을 수 없음, 기본값 DISTRIBUTOR 사용");
         return ChatMessage.SenderType.DISTRIBUTOR;
     }
 }

@@ -35,34 +35,56 @@ public class WebSocketSecurityConfig implements WebSocketMessageBrokerConfigurer
             public Message<?> preSend(Message<?> message, MessageChannel channel) {
                 StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
                 
-                if (accessor != null && StompCommand.CONNECT.equals(accessor.getCommand())) {
-                    String authHeader = accessor.getFirstNativeHeader("Authorization");
+                if (accessor != null) {
+                    StompCommand command = accessor.getCommand();
                     
-                    if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                        String token = authHeader.substring(7);
+                    // CONNECT 시 JWT 토큰 검증 및 인증 정보 설정
+                    if (StompCommand.CONNECT.equals(command)) {
+                        String authHeader = accessor.getFirstNativeHeader("Authorization");
                         
-                        try {
-                            if (jwtTokenProvider.validateToken(token)) {
-                                String username = jwtTokenProvider.getUsernameFromToken(token);
-                                List<String> roles = jwtTokenProvider.getRolesFromToken(token);
-                                
-                                List<SimpleGrantedAuthority> authorities = roles.stream()
-                                        .map(SimpleGrantedAuthority::new)
-                                        .toList();
-                                
-                                Authentication auth = new UsernamePasswordAuthenticationToken(
-                                        username, null, authorities);
-                                
-                                accessor.setUser(auth);
-                                
-                                // 세션에 권한 정보 저장
-                                accessor.getSessionAttributes().put("authorities", authorities);
-                                
-                                log.info("WebSocket 인증 성공: {}", username);
+                        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                            String token = authHeader.substring(7);
+                            
+                            try {
+                                if (jwtTokenProvider.validateToken(token)) {
+                                    String username = jwtTokenProvider.getUsernameFromToken(token);
+                                    List<String> roles = jwtTokenProvider.getRolesFromToken(token);
+                                    
+                                    List<SimpleGrantedAuthority> authorities = roles.stream()
+                                            .map(SimpleGrantedAuthority::new)
+                                            .toList();
+                                    
+                                    Authentication auth = new UsernamePasswordAuthenticationToken(
+                                            username, null, authorities);
+                                    
+                                    accessor.setUser(auth);
+                                    
+                                    // 세션에 사용자 정보와 권한 저장
+                                    accessor.getSessionAttributes().put("username", username);
+                                    accessor.getSessionAttributes().put("authorities", authorities);
+                                    
+                                    log.info("WebSocket 연결 인증 성공 - username: {}, roles: {}", username, roles);
+                                } else {
+                                    log.error("WebSocket 연결 실패 - 유효하지 않은 토큰");
+                                    return null;  // 연결 거부
+                                }
+                            } catch (Exception e) {
+                                log.error("WebSocket 인증 실패: {}", e.getMessage());
+                                return null;  // 연결 거부
                             }
-                        } catch (Exception e) {
-                            log.error("WebSocket 인증 실패: {}", e.getMessage());
+                        } else {
+                            log.error("WebSocket 연결 실패 - Authorization 헤더 없음");
+                            return null;  // 연결 거부
                         }
+                    }
+                    
+                    // SEND, SUBSCRIBE 등 다른 명령어는 이미 설정된 User 정보 사용
+                    if (StompCommand.SEND.equals(command) || StompCommand.SUBSCRIBE.equals(command)) {
+                        if (accessor.getUser() == null) {
+                            log.error("인증되지 않은 사용자의 {} 시도", command);
+                            return null;  // 요청 거부
+                        }
+                        log.debug("{} 명령 - 인증된 사용자: {}", command, accessor.getUser().getName());
                     }
                 }
                 
