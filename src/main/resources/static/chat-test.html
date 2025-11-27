@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>채팅 테스트</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .container {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        h2 {
+            color: #333;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        .input-group {
+            margin: 10px 0;
+        }
+        label {
+            display: inline-block;
+            width: 120px;
+            font-weight: bold;
+        }
+        input, select, textarea {
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        input[type="text"], input[type="password"], textarea {
+            width: 300px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        #messages {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+        }
+        .message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .message.store {
+            background-color: #e3f2fd;
+            text-align: left;
+        }
+        .message.distributor {
+            background-color: #fff3e0;
+            text-align: right;
+        }
+        .message.system {
+            background-color: #f5f5f5;
+            text-align: center;
+            font-style: italic;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .status.connected {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status.disconnected {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <h1>🗨️ 채팅 테스트 페이지</h1>
+    
+    <!-- 로그인 섹션 -->
+    <div class="container">
+        <h2>1. 로그인</h2>
+        <div class="input-group">
+            <label>사용자 타입:</label>
+            <select id="userType">
+                <option value="store">매장 (store1)</option>
+                <option value="distributor">유통업체 (dist1)</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label>Username:</label>
+            <input type="text" id="username" value="store1">
+        </div>
+        <div class="input-group">
+            <label>Password:</label>
+            <input type="password" id="password" value="password123">
+        </div>
+        <button onclick="login()">로그인</button>
+        <div id="loginStatus"></div>
+    </div>
+    
+    <!-- 채팅방 생성/조회 섹션 -->
+    <div class="container">
+        <h2>2. 채팅방</h2>
+        <div class="input-group">
+            <label>매장 ID:</label>
+            <input type="text" id="storeId" value="store1">
+        </div>
+        <div class="input-group">
+            <label>유통업체 ID:</label>
+            <input type="text" id="distributorId" value="dist1">
+        </div>
+        <button onclick="createChatRoom()">채팅방 생성/조회</button>
+        <button onclick="getMyChatRooms()">내 채팅방 목록</button>
+        <div id="chatRoomInfo"></div>
+    </div>
+    
+    <!-- WebSocket 연결 섹션 -->
+    <div class="container">
+        <h2>3. WebSocket 연결</h2>
+        <div id="connectionStatus" class="status disconnected">연결 안됨</div>
+        <button id="connectBtn" onclick="connectWebSocket()">연결</button>
+        <button id="disconnectBtn" onclick="disconnectWebSocket()" disabled>연결 해제</button>
+    </div>
+    
+    <!-- 메시지 섹션 -->
+    <div class="container">
+        <h2>4. 메시지</h2>
+        <div id="messages"></div>
+        <div class="input-group">
+            <label>메시지:</label>
+            <textarea id="messageContent" rows="3"></textarea>
+        </div>
+        <div class="input-group">
+            <label>메시지 타입:</label>
+            <select id="messageType">
+                <option value="TEXT">일반 텍스트</option>
+                <option value="ORDER_INQUIRY">주문 문의</option>
+                <option value="QUOTE_REQUEST">견적 요청</option>
+                <option value="QUOTE_RESPONSE">견적 응답</option>
+            </select>
+        </div>
+        <button onclick="sendMessage()" id="sendBtn" disabled>전송</button>
+        <button onclick="loadMessages()">메시지 불러오기</button>
+    </div>
+
+    <script>
+        let token = null;
+        let roomId = null;
+        let stompClient = null;
+        let currentUserId = null;
+        let currentUserType = null;
+
+        // 사용자 타입 변경 시 username 자동 변경
+        document.getElementById('userType').addEventListener('change', function() {
+            const userType = this.value;
+            document.getElementById('username').value = userType === 'store' ? 'store1' : 'dist1';
+        });
+
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('로그인 실패');
+                }
+                
+                const data = await response.json();
+                token = data.accessToken;  // accessToken으로 수정
+                currentUserId = username;
+                currentUserType = username.startsWith('store') ? 'STORE' : 'DISTRIBUTOR';
+                
+                console.log('로그인 성공, 토큰:', token ? '있음' : '없음');
+                
+                document.getElementById('loginStatus').innerHTML = 
+                    `<div class="status connected">✅ 로그인 성공! (${username})<br>토큰: ${token.substring(0, 30)}...</div>`;
+            } catch (error) {
+                document.getElementById('loginStatus').innerHTML = 
+                    `<div class="status disconnected">❌ 로그인 실패: ${error.message}</div>`;
+            }
+        }
+
+        async function createChatRoom() {
+            if (!token) {
+                alert('먼저 로그인하세요!');
+                return;
+            }
+            
+            const storeId = document.getElementById('storeId').value;
+            const distributorId = document.getElementById('distributorId').value;
+            
+            try {
+                const response = await fetch('/api/chat/rooms', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ storeId, distributorId })
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+                
+                const data = await response.json();
+                roomId = data.roomId;
+                
+                document.getElementById('chatRoomInfo').innerHTML = `
+                    <div class="status connected">
+                        <strong>채팅방 생성 완료!</strong><br>
+                        Room ID: ${data.roomId}<br>
+                        매장: ${data.storeName}<br>
+                        유통업체: ${data.distributorName}<br>
+                        읽지 않은 메시지: ${data.unreadCount}
+                    </div>
+                `;
+            } catch (error) {
+                document.getElementById('chatRoomInfo').innerHTML = 
+                    `<div class="status disconnected">❌ 실패: ${error.message}</div>`;
+            }
+        }
+
+        async function getMyChatRooms() {
+            if (!token) {
+                alert('먼저 로그인하세요!');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/chat/rooms', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const rooms = await response.json();
+                let html = '<div class="status connected"><strong>내 채팅방 목록:</strong><br>';
+                rooms.forEach(room => {
+                    html += `- ${room.roomId} (읽지 않음: ${room.unreadCount})<br>`;
+                });
+                html += '</div>';
+                
+                document.getElementById('chatRoomInfo').innerHTML = html;
+            } catch (error) {
+                document.getElementById('chatRoomInfo').innerHTML = 
+                    `<div class="status disconnected">❌ 실패: ${error.message}</div>`;
+            }
+        }
+
+        function connectWebSocket() {
+            if (!token || !roomId) {
+                alert('먼저 로그인하고 채팅방을 생성하세요!');
+                return;
+            }
+            
+            const socket = new SockJS('/ws/chat');
+            stompClient = Stomp.over(socket);
+            
+            stompClient.connect(
+                { 'Authorization': `Bearer ${token}` },
+                function(frame) {
+                    console.log('Connected: ' + frame);
+                    document.getElementById('connectionStatus').className = 'status connected';
+                    document.getElementById('connectionStatus').textContent = '✅ 연결됨';
+                    document.getElementById('connectBtn').disabled = true;
+                    document.getElementById('disconnectBtn').disabled = false;
+                    document.getElementById('sendBtn').disabled = false;
+                    
+                    // 채팅방 구독
+                    stompClient.subscribe('/topic/chat/' + roomId, function(message) {
+                        const msg = JSON.parse(message.body);
+                        displayMessage(msg);
+                    });
+                },
+                function(error) {
+                    console.error('Connection error: ' + error);
+                    document.getElementById('connectionStatus').className = 'status disconnected';
+                    document.getElementById('connectionStatus').textContent = '❌ 연결 실패';
+                }
+            );
+        }
+
+        function disconnectWebSocket() {
+            if (stompClient) {
+                stompClient.disconnect();
+                document.getElementById('connectionStatus').className = 'status disconnected';
+                document.getElementById('connectionStatus').textContent = '연결 안됨';
+                document.getElementById('connectBtn').disabled = false;
+                document.getElementById('disconnectBtn').disabled = true;
+                document.getElementById('sendBtn').disabled = true;
+            }
+        }
+
+        function sendMessage() {
+            if (!stompClient || !roomId) {
+                alert('WebSocket이 연결되지 않았습니다!');
+                return;
+            }
+            
+            const content = document.getElementById('messageContent').value;
+            const messageType = document.getElementById('messageType').value;
+            
+            if (!content.trim()) {
+                alert('메시지를 입력하세요!');
+                return;
+            }
+            
+            const message = {
+                content: content,
+                messageType: messageType,
+                metadata: null
+            };
+            
+            stompClient.send('/app/chat/' + roomId, {}, JSON.stringify(message));
+            document.getElementById('messageContent').value = '';
+        }
+
+        function displayMessage(msg) {
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ' + msg.senderType.toLowerCase();
+            
+            const time = new Date(msg.createdAt).toLocaleTimeString('ko-KR');
+            messageDiv.innerHTML = `
+                <strong>${msg.senderId}</strong> (${msg.messageType})<br>
+                ${msg.content}<br>
+                <small>${time}</small>
+            `;
+            
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        async function loadMessages() {
+            if (!token || !roomId) {
+                alert('먼저 로그인하고 채팅방을 생성하세요!');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/chat/rooms/${roomId}/messages?page=0&size=50`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const data = await response.json();
+                const messagesDiv = document.getElementById('messages');
+                messagesDiv.innerHTML = '';
+                
+                // 역순으로 표시 (오래된 메시지부터)
+                data.content.reverse().forEach(msg => displayMessage(msg));
+            } catch (error) {
+                alert('메시지 로드 실패: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

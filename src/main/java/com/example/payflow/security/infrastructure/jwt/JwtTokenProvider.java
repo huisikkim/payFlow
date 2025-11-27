@@ -56,6 +56,20 @@ public class JwtTokenProvider {
         return claims.getSubject();
     }
     
+    public java.util.List<String> getRolesFromToken(String token) {
+        Claims claims = Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+        
+        String roles = claims.get("roles", String.class);
+        if (roles != null && !roles.isEmpty()) {
+            return java.util.Arrays.asList(roles.split(","));
+        }
+        return java.util.Collections.emptyList();
+    }
+    
     public boolean validateToken(String token) {
         try {
             Jwts.parser()
