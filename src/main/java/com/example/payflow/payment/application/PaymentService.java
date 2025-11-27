@@ -63,8 +63,18 @@ public class PaymentService {
     public PaymentResponse confirmPayment(PaymentConfirmRequest request) {
         long startTime = System.currentTimeMillis();
         
+        // 결제 정보 조회 (없으면 자동 생성)
         Payment payment = paymentRepository.findByOrderId(request.getOrderId())
-            .orElseThrow(() -> new IllegalArgumentException("결제 정보를 찾을 수 없습니다"));
+            .orElseGet(() -> {
+                log.warn("결제 정보가 없어 자동 생성합니다: orderId={}", request.getOrderId());
+                Payment newPayment = new Payment(
+                    request.getOrderId(),
+                    "주문 " + request.getOrderId(),  // 기본 주문명
+                    request.getAmount(),
+                    "customer@example.com"  // 기본 이메일
+                );
+                return paymentRepository.save(newPayment);
+            });
         
         String previousState = payment.getStatus().name();
         

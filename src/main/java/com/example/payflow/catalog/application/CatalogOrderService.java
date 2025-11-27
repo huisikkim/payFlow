@@ -2,6 +2,7 @@ package com.example.payflow.catalog.application;
 
 import com.example.payflow.catalog.domain.*;
 import com.example.payflow.catalog.presentation.dto.*;
+import com.example.payflow.payment.application.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,7 @@ public class CatalogOrderService {
     private final DistributorOrderRepository orderRepository;
     private final OrderCartRepository cartRepository;
     private final ProductCatalogRepository productRepository;
+    private final PaymentService paymentService;
     
     /**
      * 장바구니에서 주문 생성
@@ -87,7 +89,16 @@ public class CatalogOrderService {
         
         DistributorOrder savedOrder = orderRepository.save(order);
         
-        // 5. 장바구니 비우기
+        // 5. 결제 정보 생성 (토스페이먼츠 결제를 위해)
+        String orderName = generateOrderName(savedOrder);
+        paymentService.createPayment(
+            savedOrder.getOrderNumber(),  // orderId로 주문번호 사용
+            orderName,
+            savedOrder.getTotalAmount(),
+            storeId + "@store.com"  // 임시 이메일 (실제로는 매장 정보에서 가져와야 함)
+        );
+        
+        // 6. 장바구니 비우기
         cartRepository.delete(cart);
         
         log.info("주문 생성 완료: {} (매장: {}, 유통업체: {})", 
@@ -191,6 +202,22 @@ public class CatalogOrderService {
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"));
         String random = String.format("%03d", (int)(Math.random() * 1000));
         return "ORD-" + timestamp + "-" + random;
+    }
+    
+    /**
+     * 주문명 생성 (결제 시 표시될 이름)
+     */
+    private String generateOrderName(DistributorOrder order) {
+        if (order.getItems().isEmpty()) {
+            return "주문";
+        }
+        
+        DistributorOrderItem firstItem = order.getItems().get(0);
+        if (order.getItems().size() == 1) {
+            return firstItem.getProductName();
+        }
+        
+        return firstItem.getProductName() + " 외 " + (order.getItems().size() - 1) + "건";
     }
     
     /**
