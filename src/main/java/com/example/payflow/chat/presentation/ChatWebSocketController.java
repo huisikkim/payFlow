@@ -2,8 +2,10 @@ package com.example.payflow.chat.presentation;
 
 import com.example.payflow.chat.application.ChatService;
 import com.example.payflow.chat.domain.ChatMessage;
+import com.example.payflow.chat.domain.ChatRoom;
 import com.example.payflow.chat.presentation.dto.ChatMessageRequest;
 import com.example.payflow.chat.presentation.dto.ChatMessageResponse;
+import com.example.payflow.chat.presentation.dto.TypingEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -14,6 +16,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
 import java.security.Principal;
+import java.time.LocalDateTime;
 
 @Controller
 @RequiredArgsConstructor
@@ -73,6 +76,67 @@ public class ChatWebSocketController {
                     "/queue/errors",
                     "메시지 전송 실패: " + e.getMessage()
             );
+        }
+    }
+    
+    /**
+     * 타이핑 인디케이터 처리
+     * 클라이언트: /app/chat/{roomId}/typing
+     * 구독: /topic/chat/{roomId}/typing
+     */
+    @MessageMapping("/chat/{roomId}/typing")
+    public void handleTyping(
+            @DestinationVariable String roomId,
+            @Payload TypingEvent event,
+            SimpMessageHeaderAccessor headerAccessor,
+            Principal principal) {
+        
+        try {
+            // 인증 확인
+            if (principal == null) {
+                log.error("인증되지 않은 사용자의 타이핑 이벤트 - roomId: {}", roomId);
+                return;
+            }
+            
+            String userId = principal.getName();
+            log.debug("타이핑 이벤트 수신 - roomId: {}, userId: {}, isTyping: {}", 
+                    roomId, userId, event.isTyping());
+            
+            // 채팅방 접근 권한 검증
+            ChatRoom chatRoom = chatService.getChatRoom(roomId);
+            ChatMessage.SenderType senderType = extractSenderType(headerAccessor);
+            
+            boolean hasAccess = (senderType == ChatMessage.SenderType.STORE && 
+                                chatRoom.getStoreId().equals(userId)) ||
+                               (senderType == ChatMessage.SenderType.DISTRIBUTOR && 
+                                chatRoom.getDistributorId().equals(userId));
+            
+            if (!hasAccess) {
+                log.warn("채팅방 접근 권한 없음 - roomId: {}, userId: {}", roomId, userId);
+                return;
+            }
+            
+            // 서버에서 사용자 정보 설정 (클라이언트가 보낸 정보 무시)
+            event.setUserId(userId);
+            event.setTimestamp(LocalDateTime.now());
+            
+            // 사용자 이름 설정 (선택사항)
+            if (senderType == ChatMessage.SenderType.STORE) {
+                event.setUserName(chatRoom.getStoreName());
+            } else {
+                event.setUserName(chatRoom.getDistributorName());
+            }
+            
+            // 같은 채팅방의 다른 사용자들에게 브로드캐스트
+            messagingTemplate.convertAndSend("/topic/chat/" + roomId + "/typing", event);
+            
+            log.debug("타이핑 이벤트 브로드캐스트 완료 - roomId: {}, userId: {}, isTyping: {}", 
+                    roomId, userId, event.isTyping());
+            
+        } catch (IllegalArgumentException e) {
+            log.error("타이핑 이벤트 처리 실패 (채팅방 없음) - roomId: {}, error: {}", roomId, e.getMessage());
+        } catch (Exception e) {
+            log.error("타이핑 이벤트 처리 실패 - roomId: {}, error: {}", roomId, e.getMessage(), e);
         }
     }
     

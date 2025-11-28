@@ -96,6 +96,40 @@
             background-color: #f8d7da;
             color: #721c24;
         }
+        .typing-indicator {
+            padding: 10px;
+            margin: 10px 0;
+            background-color: #e8f5e9;
+            border-left: 4px solid #4CAF50;
+            border-radius: 4px;
+            font-style: italic;
+            color: #2e7d32;
+            min-height: 20px;
+        }
+        .typing-indicator.active {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        .typing-dots {
+            display: inline-block;
+        }
+        .typing-dots span {
+            animation: blink 1.4s infinite;
+            animation-fill-mode: both;
+        }
+        .typing-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .typing-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        @keyframes blink {
+            0%, 80%, 100% { opacity: 0; }
+            40% { opacity: 1; }
+        }
     </style>
 </head>
 <body>
@@ -151,6 +185,10 @@
     <div class="container">
         <h2>4. 메시지</h2>
         <div id="messages"></div>
+        
+        <!-- 타이핑 인디케이터 -->
+        <div id="typingIndicator" class="typing-indicator"></div>
+        
         <div class="input-group">
             <label>메시지:</label>
             <textarea id="messageContent" rows="3"></textarea>
@@ -167,6 +205,15 @@
         <button onclick="sendMessage()" id="sendBtn" disabled>전송</button>
         <button onclick="loadMessages()">메시지 불러오기</button>
     </div>
+    
+    <!-- 타이핑 테스트 섹션 -->
+    <div class="container">
+        <h2>5. 타이핑 인디케이터 테스트</h2>
+        <p>메시지 입력란에 타이핑하면 자동으로 상대방에게 "입력 중..." 표시됩니다.</p>
+        <button onclick="sendTypingStart()" id="typingStartBtn" disabled>수동: 입력 시작</button>
+        <button onclick="sendTypingStop()" id="typingStopBtn" disabled>수동: 입력 중단</button>
+        <div id="typingTestStatus"></div>
+    </div>
 
     <script>
         let token = null;
@@ -174,6 +221,8 @@
         let stompClient = null;
         let currentUserId = null;
         let currentUserType = null;
+        let typingTimeout = null;
+        let isTyping = false;
 
         // 사용자 타입 변경 시 username 자동 변경
         document.getElementById('userType').addEventListener('change', function() {
@@ -297,11 +346,23 @@
                     document.getElementById('disconnectBtn').disabled = false;
                     document.getElementById('sendBtn').disabled = false;
                     
-                    // 채팅방 구독
+                    // 채팅방 메시지 구독
                     stompClient.subscribe('/topic/chat/' + roomId, function(message) {
                         const msg = JSON.parse(message.body);
                         displayMessage(msg);
                     });
+                    
+                    // 타이핑 인디케이터 구독
+                    stompClient.subscribe('/topic/chat/' + roomId + '/typing', function(message) {
+                        const event = JSON.parse(message.body);
+                        handleTypingEvent(event);
+                    });
+                    
+                    console.log('✅ 타이핑 인디케이터 구독 완료');
+                    
+                    // 버튼 활성화
+                    document.getElementById('typingStartBtn').disabled = false;
+                    document.getElementById('typingStopBtn').disabled = false;
                 },
                 function(error) {
                     console.error('Connection error: ' + error);
@@ -313,12 +374,19 @@
 
         function disconnectWebSocket() {
             if (stompClient) {
+                // 타이핑 중이면 중단 이벤트 전송
+                if (isTyping) {
+                    sendTypingStop();
+                }
+                
                 stompClient.disconnect();
                 document.getElementById('connectionStatus').className = 'status disconnected';
                 document.getElementById('connectionStatus').textContent = '연결 안됨';
                 document.getElementById('connectBtn').disabled = false;
                 document.getElementById('disconnectBtn').disabled = true;
                 document.getElementById('sendBtn').disabled = true;
+                document.getElementById('typingStartBtn').disabled = true;
+                document.getElementById('typingStopBtn').disabled = true;
             }
         }
 
@@ -336,6 +404,11 @@
                 return;
             }
             
+            // 메시지 전송 전에 타이핑 중단
+            if (isTyping) {
+                sendTypingStop();
+            }
+            
             const message = {
                 content: content,
                 messageType: messageType,
@@ -344,6 +417,69 @@
             
             stompClient.send('/app/chat/' + roomId, {}, JSON.stringify(message));
             document.getElementById('messageContent').value = '';
+        }
+        
+        // 타이핑 이벤트 전송
+        function sendTypingEvent(typing) {
+            if (!stompClient || !roomId) {
+                return;
+            }
+            
+            const event = {
+                roomId: roomId,
+                isTyping: typing
+            };
+            
+            stompClient.send('/app/chat/' + roomId + '/typing', {}, JSON.stringify(event));
+            console.log('📤 타이핑 이벤트 전송:', typing ? '시작' : '중단');
+        }
+        
+        function sendTypingStart() {
+            sendTypingEvent(true);
+            isTyping = true;
+            document.getElementById('typingTestStatus').innerHTML = 
+                '<div class="status connected">✅ 타이핑 시작 이벤트 전송됨</div>';
+        }
+        
+        function sendTypingStop() {
+            sendTypingEvent(false);
+            isTyping = false;
+            document.getElementById('typingTestStatus').innerHTML = 
+                '<div class="status disconnected">⏹️ 타이핑 중단 이벤트 전송됨</div>';
+        }
+        
+        // 타이핑 이벤트 수신 처리
+        function handleTypingEvent(event) {
+            console.log('📥 타이핑 이벤트 수신:', event);
+            
+            const indicator = document.getElementById('typingIndicator');
+            
+            // 자신의 타이핑 이벤트는 무시
+            if (event.userId === currentUserId) {
+                return;
+            }
+            
+            if (event.isTyping) {
+                const userName = event.userName || event.userId;
+                indicator.innerHTML = `
+                    <strong>${userName}</strong>님이 입력 중
+                    <span class="typing-dots">
+                        <span>.</span><span>.</span><span>.</span>
+                    </span>
+                `;
+                indicator.className = 'typing-indicator active';
+                
+                // 10초 후 자동으로 사라지게 (서버에서 중단 이벤트가 안 올 경우 대비)
+                clearTimeout(typingTimeout);
+                typingTimeout = setTimeout(() => {
+                    indicator.innerHTML = '';
+                    indicator.className = 'typing-indicator';
+                }, 10000);
+            } else {
+                indicator.innerHTML = '';
+                indicator.className = 'typing-indicator';
+                clearTimeout(typingTimeout);
+            }
         }
 
         function displayMessage(msg) {
@@ -383,6 +519,37 @@
                 alert('메시지 로드 실패: ' + error.message);
             }
         }
+        
+        // 메시지 입력란에 타이핑 감지 추가
+        document.addEventListener('DOMContentLoaded', function() {
+            const messageInput = document.getElementById('messageContent');
+            let typingDebounce = null;
+            
+            messageInput.addEventListener('input', function() {
+                // 입력 시작
+                if (!isTyping && this.value.length > 0) {
+                    isTyping = true;
+                    sendTypingEvent(true);
+                }
+                
+                // 디바운싱: 2초간 입력 없으면 타이핑 중단
+                clearTimeout(typingDebounce);
+                typingDebounce = setTimeout(() => {
+                    if (isTyping) {
+                        isTyping = false;
+                        sendTypingEvent(false);
+                    }
+                }, 2000);
+            });
+            
+            // 입력란이 비워지면 타이핑 중단
+            messageInput.addEventListener('blur', function() {
+                if (isTyping) {
+                    isTyping = false;
+                    sendTypingEvent(false);
+                }
+            });
+        });
     </script>
 </body>
 </html>
