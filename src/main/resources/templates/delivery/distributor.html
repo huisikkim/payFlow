@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>배송 관리 - 유통업자</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .header { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .header h1 { color: #333; margin-bottom: 10px; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .stat-card h3 { color: #666; font-size: 14px; margin-bottom: 10px; }
+        .stat-card .value { font-size: 28px; font-weight: bold; color: #2196F3; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab { padding: 12px 24px; background: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; transition: all 0.3s; }
+        .tab.active { background: #2196F3; color: white; }
+        .orders-container { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .order-card { border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; margin-bottom: 15px; }
+        .order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .order-number { font-size: 18px; font-weight: bold; color: #333; }
+        .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        .status-CONFIRMED { background: #FFF3E0; color: #F57C00; }
+        .status-PREPARING { background: #E3F2FD; color: #1976D2; }
+        .status-SHIPPED { background: #E8F5E9; color: #388E3C; }
+        .status-DELIVERED { background: #F3E5F5; color: #7B1FA2; }
+        .order-info { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
+        .info-item { font-size: 14px; }
+        .info-label { color: #666; margin-bottom: 5px; }
+        .info-value { color: #333; font-weight: 500; }
+        .actions { display: flex; gap: 10px; margin-top: 15px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.3s; }
+        .btn-primary { background: #2196F3; color: white; }
+        .btn-primary:hover { background: #1976D2; }
+        .btn-success { background: #4CAF50; color: white; }
+        .btn-success:hover { background: #388E3C; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; }
+        .modal-content { background: white; max-width: 500px; margin: 100px auto; padding: 30px; border-radius: 8px; }
+        .modal-content h2 { margin-bottom: 20px; color: #333; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; color: #666; font-size: 14px; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+        .btn-secondary { background: #757575; color: white; }
+        .btn-secondary:hover { background: #616161; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚚 배송 관리</h1>
+            <p>주문 확정된 상품의 배송을 관리합니다</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <h3>주문 확정 (배송 대기)</h3>
+                <div class="value" id="confirmedCount">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>상품 준비 중</h3>
+                <div class="value" id="preparingCount">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>배송 중</h3>
+                <div class="value" id="shippedCount">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>배송 완료</h3>
+                <div class="value" id="deliveredCount">0</div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="filterOrders('ALL')">전체</button>
+            <button class="tab" onclick="filterOrders('CONFIRMED')">주문확정</button>
+            <button class="tab" onclick="filterOrders('PREPARING')">상품준비중</button>
+            <button class="tab" onclick="filterOrders('SHIPPED')">배송중</button>
+            <button class="tab" onclick="filterOrders('DELIVERED')">배송완료</button>
+        </div>
+
+        <div class="orders-container">
+            <div id="ordersList"></div>
+        </div>
+    </div>
+
+    <!-- 배송 시작 모달 -->
+    <div id="shippingModal" class="modal">
+        <div class="modal-content">
+            <h2>배송 시작</h2>
+            <form id="shippingForm">
+                <input type="hidden" id="modalOrderId">
+                <div class="form-group">
+                    <label>송장번호 *</label>
+                    <input type="text" id="trackingNumber" required>
+                </div>
+                <div class="form-group">
+                    <label>배송사 *</label>
+                    <select id="courierCompany" required>
+                        <option value="">선택하세요</option>
+                        <option value="CJ대한통운">CJ대한통운</option>
+                        <option value="로젠택배">로젠택배</option>
+                        <option value="한진택배">한진택배</option>
+                        <option value="우체국택배">우체국택배</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>배송사 연락처</label>
+                    <input type="text" id="courierPhone" placeholder="1588-1255">
+                </div>
+                <div class="form-group">
+                    <label>예상 배송일</label>
+                    <input type="datetime-local" id="estimatedDeliveryDate">
+                </div>
+                <div class="form-group">
+                    <label>배송 메모</label>
+                    <input type="text" id="deliveryNotes" placeholder="배송 시 주의사항">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">취소</button>
+                    <button type="submit" class="btn btn-primary">배송 시작</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let allOrders = [];
+        let currentFilter = 'ALL';
+
+        async function loadOrders() {
+            try {
+                const response = await fetch('/api/catalog-orders/distributor', {
+                    headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
+                });
+                allOrders = await response.json();
+                updateStats();
+                displayOrders();
+            } catch (error) {
+                console.error('주문 로드 실패:', error);
+            }
+        }
+
+        function updateStats() {
+            const confirmed = allOrders.filter(o => o.status === 'CONFIRMED').length;
+            const preparing = allOrders.filter(o => o.status === 'PREPARING').length;
+            const shipped = allOrders.filter(o => o.status === 'SHIPPED').length;
+            const delivered = allOrders.filter(o => o.status === 'DELIVERED').length;
+
+            document.getElementById('confirmedCount').textContent = confirmed;
+            document.getElementById('preparingCount').textContent = preparing;
+            document.getElementById('shippedCount').textContent = shipped;
+            document.getElementById('deliveredCount').textContent = delivered;
+        }
+
+        function filterOrders(status) {
+            currentFilter = status;
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            displayOrders();
+        }
+
+        function displayOrders() {
+            const filtered = currentFilter === 'ALL' 
+                ? allOrders 
+                : allOrders.filter(o => o.status === currentFilter);
+
+            const html = filtered.map(order => `
+                <div class="order-card">
+                    <div class="order-header">
+                        <div class="order-number">${order.orderNumber}</div>
+                        <span class="status-badge status-${order.status}">${order.statusDescription}</span>
+                    </div>
+                    <div class="order-info">
+                        <div class="info-item">
+                            <div class="info-label">매장 ID</div>
+                            <div class="info-value">${order.storeId}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">주문 금액</div>
+                            <div class="info-value">${order.totalAmount.toLocaleString()}원</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">주문 수량</div>
+                            <div class="info-value">${order.totalQuantity}개</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">주문 일시</div>
+                            <div class="info-value">${new Date(order.orderedAt).toLocaleString()}</div>
+                        </div>
+                    </div>
+                    ${order.deliveryAddress ? `
+                        <div class="info-item">
+                            <div class="info-label">배송지</div>
+                            <div class="info-value">${order.deliveryAddress}</div>
+                        </div>
+                    ` : ''}
+                    <div class="actions">
+                        ${order.status === 'CONFIRMED' ? `
+                            <button class="btn btn-primary" onclick="createDelivery(${order.id})">배송 정보 생성</button>
+                        ` : ''}
+                        ${order.status === 'PREPARING' ? `
+                            <button class="btn btn-success" onclick="openShippingModal(${order.id})">배송 시작</button>
+                        ` : ''}
+                        ${order.status === 'SHIPPED' ? `
+                            <button class="btn btn-success" onclick="completeDelivery(${order.id})">배송 완료</button>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('ordersList').innerHTML = html || '<p>주문이 없습니다.</p>';
+        }
+
+        async function createDelivery(orderId) {
+            if (!confirm('배송 정보를 생성하시겠습니까?')) return;
+
+            try {
+                const response = await fetch(`/api/deliveries/order/${orderId}`, {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
+                });
+
+                if (response.ok) {
+                    alert('배송 정��가 생성되었습니다.');
+                    loadOrders();
+                } else {
+                    alert('배송 정보 생성에 실패했습니다.');
+                }
+            } catch (error) {
+                console.error('배송 정보 생성 실패:', error);
+                alert('오류가 발생했습니다.');
+            }
+        }
+
+        function openShippingModal(orderId) {
+            document.getElementById('modalOrderId').value = orderId;
+            document.getElementById('shippingModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('shippingModal').style.display = 'none';
+            document.getElementById('shippingForm').reset();
+        }
+
+        document.getElementById('shippingForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const orderId = document.getElementById('modalOrderId').value;
+            const data = {
+                trackingNumber: document.getElementById('trackingNumber').value,
+                courierCompany: document.getElementById('courierCompany').value,
+                courierPhone: document.getElementById('courierPhone').value,
+                estimatedDeliveryDate: document.getElementById('estimatedDeliveryDate').value || null,
+                deliveryNotes: document.getElementById('deliveryNotes').value
+            };
+
+            try {
+                const response = await fetch(`/api/deliveries/order/${orderId}/ship`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    alert('배송이 시작되었습니다.');
+                    closeModal();
+                    loadOrders();
+                } else {
+                    alert('배송 시작에 실패했습니다.');
+                }
+            } catch (error) {
+                console.error('배송 시작 실패:', error);
+                alert('오류가 발생했습니다.');
+            }
+        });
+
+        async function completeDelivery(orderId) {
+            if (!confirm('배송을 완료 처리하시겠습니까?')) return;
+
+            try {
+                const response = await fetch(`/api/deliveries/order/${orderId}/complete`, {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
+                });
+
+                if (response.ok) {
+                    alert('배송이 완료되었습니다.');
+                    loadOrders();
+                } else {
+                    alert('배송 완료 처리에 실패했습니다.');
+                }
+            } catch (error) {
+                console.error('배송 완료 실패:', error);
+                alert('오류가 발생했습니다.');
+            }
+        }
+
+        loadOrders();
+    </script>
+</body>
+</html>
+""

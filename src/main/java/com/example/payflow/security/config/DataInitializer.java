@@ -47,6 +47,28 @@ public class DataInitializer {
                         .build();
                 userRepository.save(admin);
                 log.info("Created default admin: username=admin, password=admin");
+                
+                // 매장 사용자 생성
+                User store001 = User.builder()
+                        .username("store001")
+                        .password(passwordEncoder.encode("password"))
+                        .email("store001@example.com")
+                        .roles(Set.of(Role.ROLE_STORE_OWNER))
+                        .enabled(true)
+                        .build();
+                userRepository.save(store001);
+                log.info("Created store user: username=store001, password=password");
+                
+                // 유통업자 생성
+                User dist001 = User.builder()
+                        .username("dist001")
+                        .password(passwordEncoder.encode("password"))
+                        .email("dist001@example.com")
+                        .roles(Set.of(Role.ROLE_DISTRIBUTOR))
+                        .enabled(true)
+                        .build();
+                userRepository.save(dist001);
+                log.info("Created distributor user: username=dist001, password=password");
             }
             
             // Saga 테스트용 재고 데이터 생성

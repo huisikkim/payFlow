@@ -2675,3 +2675,355 @@ public void checkCostIncrease() {
     // 전일 대비 원가 상승률 체크
 }
 ```
+
+
+## 🚚 카탈로그 주문 배송 관리 시스템
+
+**가게사장님과 유통업자 간 상품 주문 후 배송 프로세스를 관리하는 시스템**
+
+### 주요 특징
+
+#### 1. 완전한 주문 생명주기 관리
+```
+PENDING (주문대기)
+   ↓ 결제 완료
+CONFIRMED (주문확정)
+   ↓ 유통업자가 배송 정보 생성
+PREPARING (상품준비중)
+   ↓ 유통업자가 배송 시작
+SHIPPED (배송중)
+   ↓ 유통업자가 배송 완료
+DELIVERED (배송완료)
+```
+
+#### 2. 유통업자 배송 관리
+- ✅ **배송 정보 생성**: 주문 확정 후 배송 정보 자동 생성
+- ✅ **상품 준비**: 배송 전 상품 준비 단계 관리
+- ✅ **배송 시작**: 송장번호, 배송사, 예상 도착일 입력
+- ✅ **배송 완료**: 배송 완료 처리
+- ✅ **실시간 통계**: 주문확정, 상품준비중, 배송중, 배송완료 건수
+
+#### 3. 가게사장님 배송 조회
+- ✅ **배송 상태 조회**: 실시간 배송 상태 확인
+- ✅ **송장 정보**: 송장번호, 배송사, 예상 도착일 확인
+- ✅ **배송 이력**: 모든 주문의 배송 내역 조회
+- ✅ **배송지 정보**: 배송지 주소, 연락처, 요청사항 확인
+
+#### 4. 배송 정보 관리
+- ✅ **송장번호**: 배송 추적을 위한 송장번호 관리
+- ✅ **배송사**: CJ대한통운, 로젠택배, 한진택배, 우체국택배 등
+- ✅ **배송사 연락처**: 배송 문의를 위한 연락처
+- ✅ **예상 배송일**: 고객에게 제공할 예상 도착일
+- ✅ **배송 메모**: 유통업자용 배송 관련 메모
+
+### DDD 패턴 적용
+
+```
+catalog/
+├── domain/
+│   ├── DistributorOrder.java      # 주문 집합 루트
+│   ├── OrderStatus.java            # 주문 상태
+│   ├── DeliveryInfo.java           # 배송 정보 엔티티
+│   ├── DeliveryStatus.java         # 배송 상태
+│   └── DeliveryInfoRepository.java
+├── application/
+│   ├── CatalogOrderService.java    # 주문 관리
+│   └── DeliveryService.java        # 배송 관리
+└── presentation/
+    ├── CatalogOrderController.java
+    ├── DeliveryController.java
+    ├── DeliveryWebController.java
+    └── dto/
+        ├── DeliveryResponse.java
+        └── StartShippingRequest.java
+```
+
+### API 엔드포인트
+
+#### 배송 정보 생성 (유통업자)
+```bash
+# 배송 정보 생성 (주문 확정 후)
+POST /api/deliveries/order/{orderId}
+
+# 응답 예시
+{
+  "id": 1,
+  "orderId": 123,
+  "orderNumber": "ORD-20251128-143022-456",
+  "storeId": "store001",
+  "distributorId": "dist001",
+  "status": "PREPARING",
+  "statusDescription": "상품준비중",
+  "deliveryAddress": "서울시 강남구 테헤란로 123",
+  "deliveryPhone": "010-1234-5678",
+  "deliveryRequest": "문 앞에 놓아주세요",
+  "totalAmount": 50000,
+  "preparedAt": "2025-11-28T14:30:22"
+}
+```
+
+#### 배송 시작 (유통업자)
+```bash
+# 배송 시작
+POST /api/deliveries/order/{orderId}/ship
+{
+  "trackingNumber": "1234567890",
+  "courierCompany": "CJ대한통운",
+  "courierPhone": "1588-1255",
+  "estimatedDeliveryDate": "2025-11-30T18:00:00",
+  "deliveryNotes": "신선식품 주의"
+}
+
+# 응답 예시
+{
+  "id": 1,
+  "orderId": 123,
+  "orderNumber": "ORD-20251128-143022-456",
+  "trackingNumber": "1234567890",
+  "courierCompany": "CJ대한통운",
+  "courierPhone": "1588-1255",
+  "status": "SHIPPED",
+  "statusDescription": "배송중",
+  "shippedAt": "2025-11-28T15:00:00",
+  "estimatedDeliveryDate": "2025-11-30T18:00:00",
+  "deliveryNotes": "신선식품 주의"
+}
+```
+
+#### 배송 완료 (유통업자)
+```bash
+# 배송 완료
+POST /api/deliveries/order/{orderId}/complete
+
+# 응답 예시
+{
+  "id": 1,
+  "orderId": 123,
+  "orderNumber": "ORD-20251128-143022-456",
+  "status": "DELIVERED",
+  "statusDescription": "배송완료",
+  "deliveredAt": "2025-11-30T17:30:00"
+}
+```
+
+#### 배송 조회
+```bash
+# 배송 정보 조회 (주문 ID로)
+GET /api/deliveries/order/{orderId}
+
+# 유통업자별 배송 목록
+GET /api/deliveries/distributor
+
+# 매장별 배송 목록
+GET /api/deliveries/store
+
+# 상태별 배송 목록
+GET /api/deliveries/status/{status}
+# 상태: PREPARING, SHIPPED, DELIVERED
+```
+
+### 웹 UI
+
+#### 유통업자 배송 관리
+```
+http://localhost:8080/deliveries/distributor
+```
+
+**주요 기능:**
+- 📊 **실시간 통계**: 주문확정, 상품준비중, 배송중, 배송완료 건수
+- 📋 **주문 목록**: 상태별 필터링 (전체, 주문확정, 상품준비중, 배송중, 배송완료)
+- 🚀 **배송 정보 생성**: 주문 확정된 주문에 대해 배송 정보 생성
+- 📦 **배송 시작**: 송장번호, 배송사, 예상 도착일 입력 후 배송 시작
+- ✅ **배송 완료**: 배송 완료 처리
+
+#### 가게사장님 배송 조회
+```
+http://localhost:8080/deliveries/store
+```
+
+**주요 기능:**
+- 📦 **배송 목록**: 모든 주문의 배송 상태 조회
+- 🔍 **배송 상세**: 송장번호, 배송사, 예상 도착일 확인
+- 📍 **배송지 정보**: 배송지 주소, 연락처, 요청사항 확인
+- 🚚 **배송 추적**: 배송 상태별 색상 구분 (준비중/배송중/완료)
+
+### 테스트
+
+```bash
+./test-delivery-api.sh
+```
+
+이 스크립트는 다음을 테스트합니다:
+1. 매장 사용자 로그인
+2. 유통업자 로그인
+3. 주문 생성 (매장)
+4. 주문 확정 (매장)
+5. 배송 정보 생성 (유통업자)
+6. 배송 시작 (유통업자)
+7. 배송 정보 조회 (매장)
+8. 유통업자 배송 목록 조회
+9. 매장 배송 목록 조회
+10. 배송 완료 (유통업자)
+
+### 배송 상태 흐름
+
+```
+[주문 생성] → PENDING
+    ↓
+[결제 완료] → CONFIRMED
+    ↓
+[배송 정보 생성] → PREPARING (상품준비중)
+    ↓
+[배송 시작] → SHIPPED (배송중)
+    - 송장번호 입력
+    - 배송사 선택
+    - 예상 도착일 설정
+    ↓
+[배송 완료] → DELIVERED (배송완료)
+```
+
+### 데이터베이스 스키마
+
+#### delivery_info 테이블
+```sql
+CREATE TABLE delivery_info (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    order_id BIGINT NOT NULL,
+    tracking_number VARCHAR(50),
+    courier_company VARCHAR(50),
+    courier_phone VARCHAR(20),
+    status VARCHAR(20) NOT NULL,
+    prepared_at TIMESTAMP,
+    shipped_at TIMESTAMP,
+    delivered_at TIMESTAMP,
+    estimated_delivery_date TIMESTAMP,
+    delivery_address VARCHAR(255),
+    delivery_phone VARCHAR(20),
+    delivery_request VARCHAR(255),
+    delivery_notes VARCHAR(255),
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL,
+    FOREIGN KEY (order_id) REFERENCES distributor_orders(id)
+);
+```
+
+### 권한 체계
+
+- **STORE_OWNER (가게사장님)**:
+  - 주문 생성
+  - 주문 확정 (결제 후)
+  - 배송 정보 조회
+  - 배송 목록 조회
+
+- **DISTRIBUTOR (유통업자)**:
+  - 주문 목록 조회
+  - 배송 정보 생성
+  - 배송 시작
+  - 배송 완료
+  - 배송 목록 조회
+
+### 실무 활용 시나리오
+
+#### 1. 일반적인 배송 프로세스
+```
+1. 가게사장님이 상품 주문
+2. 결제 완료 후 주문 확정
+3. 유통업자가 주문 확인
+4. 유통업자가 배송 정보 생성 (상품 준비 시작)
+5. 상품 준비 완료 후 배송 시작 (송장번호 입력)
+6. 배송 완료 처리
+7. 가게사장님이 배송 완료 확인
+```
+
+#### 2. 배송 추적
+```
+- 가게사장님: 송장번호로 배송사 홈페이지에서 실시간 추적
+- 유통업자: 배송 상태별 필터링으로 진행 중인 배송 관리
+```
+
+#### 3. 배송 지연 처리
+```
+- 유통업자가 배송 메모에 지연 사유 기록
+- 예상 도착일 업데이트
+- 가게사장님에게 알림 (향후 확장)
+```
+
+### 향후 확장 가능 기능
+
+#### 1. 배송 추적 API 연동
+```java
+// CJ대한통운, 로젠택배 등 배송사 API 연동
+public DeliveryTrackingInfo getTrackingInfo(String trackingNumber) {
+    // 배송사 API 호출
+    // 실시간 배송 위치 조회
+}
+```
+
+#### 2. 알림 시스템
+```java
+// 배송 상태 변경 시 알림
+@EventListener
+public void onDeliveryStatusChanged(DeliveryStatusChangedEvent event) {
+    // 가게사장님에게 SMS/푸시 알림
+}
+```
+
+#### 3. 배송 통계
+```java
+// 유통업자별 배송 성과 분석
+public DeliveryStatistics getDeliveryStats(String distributorId) {
+    // 평균 배송 시간
+    // 정시 배송률
+    // 배송 완료율
+}
+```
+
+#### 4. 배송비 계산
+```java
+// 거리/무게 기반 배송비 자동 계산
+public Long calculateDeliveryFee(String address, Double weight) {
+    // 배송지 거리 계산
+    // 무게별 요금 적용
+}
+```
+
+### 기술 스택
+
+- **백엔드**: Spring Boot 3.5.7, Spring Security
+- **데이터베이스**: H2 (또는 MySQL)
+- **인증**: JWT
+- **프론트엔드**: Thymeleaf + Vanilla JavaScript
+- **스타일**: CSS3 (반응형 디자인)
+
+### 핵심 포인트
+
+1. **완전한 배송 생명주기**
+   - 주문 확정부터 배송 완료까지 전 과정 관리
+   - 각 단계별 상태 전이 규칙 적용
+
+2. **역할 기반 접근 제어**
+   - 유통업자: 배송 관리 권한
+   - 가게사장님: 배송 조회 권한
+
+3. **실시간 정보 제공**
+   - 송장번호, 배송사, 예상 도착일
+   - 배송 상태별 색상 구분
+
+4. **DDD 패턴**
+   - 도메인 주도 설계
+   - 명확한 레이어 분리
+   - 엔티티 간 관계 명확화
+
+5. **확장 가능한 구조**
+   - 배송사 API 연동 준비
+   - 알림 시스템 연계 가능
+   - 배송 통계 분석 확장 가능
+
+### 실무 적용 가능성
+
+이 시스템은 실제 B2B 유통 플랫폼에서 다음과 같이 활용 가능:
+- 식자재 유통 플랫폼
+- 도매 거래 플랫폼
+- B2B 전자상거래
+- 공급망 관리 시스템 (SCM)
+- 물류 관리 시스템 (WMS)

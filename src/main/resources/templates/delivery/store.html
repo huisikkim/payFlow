@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>배송 조회 - 매장</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .header h1 { color: #333; margin-bottom: 10px; }
+        .delivery-list { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .delivery-card { border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; margin-bottom: 15px; }
+        .delivery-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .order-number { font-size: 18px; font-weight: bold; color: #333; }
+        .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        .status-PREPARING { background: #E3F2FD; color: #1976D2; }
+        .status-SHIPPED { background: #E8F5E9; color: #388E3C; }
+        .status-DELIVERED { background: #F3E5F5; color: #7B1FA2; }
+        .delivery-info { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .info-item { font-size: 14px; }
+        .info-label { color: #666; margin-bottom: 5px; }
+        .info-value { color: #333; font-weight: 500; }
+        .tracking-info { background: #f9f9f9; padding: 15px; border-radius: 6px; margin-top: 15px; }
+        .tracking-info h4 { color: #333; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📦 배송 조회</h1>
+            <p>주문하신 상품의 배송 상태를 확인하세요</p>
+        </div>
+
+        <div class="delivery-list">
+            <div id="deliveryList"></div>
+        </div>
+    </div>
+
+    <script>
+        async function loadDeliveries() {
+            try {
+                const response = await fetch('/api/deliveries/store', {
+                    headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
+                });
+                const deliveries = await response.json();
+                displayDeliveries(deliveries);
+            } catch (error) {
+                console.error('배송 정보 로드 실패:', error);
+            }
+        }
+
+        function displayDeliveries(deliveries) {
+            const html = deliveries.map(delivery => `
+                <div class="delivery-card">
+                    <div class="delivery-header">
+                        <div class="order-number">${delivery.orderNumber}</div>
+                        <span class="status-badge status-${delivery.status}">${delivery.statusDescription}</span>
+                    </div>
+                    <div class="delivery-info">
+                        <div class="info-item">
+                            <div class="info-label">주문 금액</div>
+                            <div class="info-value">${delivery.totalAmount.toLocaleString()}원</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">배송지</div>
+                            <div class="info-value">${delivery.deliveryAddress || '-'}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">연락처</div>
+                            <div class="info-value">${delivery.deliveryPhone || '-'}</div>
+                        </div>
+                    </div>
+                    ${delivery.trackingNumber ? `
+                        <div class="tracking-info">
+                            <h4>🚚 배송 정보</h4>
+                            <div class="delivery-info">
+                                <div class="info-item">
+                                    <div class="info-label">송장번호</div>
+                                    <div class="info-value">${delivery.trackingNumber}</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">배송사</div>
+                                    <div class="info-value">${delivery.courierCompany}</div>
+                                </div>
+                                ${delivery.estimatedDeliveryDate ? `
+                                    <div class="info-item">
+                                        <div class="info-label">예상 도착일</div>
+                                        <div class="info-value">${new Date(delivery.estimatedDeliveryDate).toLocaleString()}</div>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+
+            document.getElementById('deliveryList').innerHTML = html || '<p>배송 정보가 없습니다.</p>';
+        }
+
+        loadDeliveries();
+    </script>
+</body>
+</html>

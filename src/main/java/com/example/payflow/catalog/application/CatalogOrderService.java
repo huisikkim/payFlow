@@ -176,7 +176,7 @@ public class CatalogOrderService {
         order.confirm();
         DistributorOrder savedOrder = orderRepository.save(order);
         
-        log.info("주문 확정 완료: {}", order.getOrderNumber());
+        log.info("주문 확정 완료: {} (다음 단계: 유통업자가 배송 정보 생성)", order.getOrderNumber());
         
         return toOrderResponse(savedOrder);
     }
