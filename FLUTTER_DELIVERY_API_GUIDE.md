@@ -109,7 +109,7 @@ POST /api/catalog-orders/{orderId}/confirm
 Authorization: Bearer {token}
 ```
 
-**응답**: 주문 정보 (status가 "CONFIRMED"로 변경됨)
+**응답**: 주문 정보 (status가 "CONFIRMED"로 변경됨, hasStoreReview와 hasDistributorReview 포함)
 
 ---
 
@@ -134,10 +134,18 @@ Authorization: Bearer {token}
     "status": "CONFIRMED",
     "statusDescription": "주문확정",
     "orderedAt": "2025-11-28T14:30:22",
-    "confirmedAt": "2025-11-28T14:35:00"
+    "confirmedAt": "2025-11-28T14:35:00",
+    "hasStoreReview": false,
+    "hasDistributorReview": false
   }
 ]
 ```
+
+**리뷰 작성 여부 필드**:
+- `hasStoreReview`: 가게사장님이 유통업자를 평가하는 리뷰를 작성했는지 (boolean)
+- `hasDistributorReview`: 유통업자가 가게사장님을 평가하는 리뷰를 작성했는지 (boolean)
+- 기본값: `false` (리뷰가 없으면 false)
+- 용도: 클라이언트에서 리뷰 중복 작성 방지 및 UI 상태 표시
 
 ### 2-2. 배송 정보 생성
 주문 확정 후 유통업자가 배송 정보를 생성합니다.
@@ -295,7 +303,7 @@ GET /api/catalog-orders/my
 Authorization: Bearer {token}
 ```
 
-**응답**: 주문 정보 배열
+**응답**: 주문 정보 배열 (각 주문에 hasStoreReview, hasDistributorReview 포함)
 
 ### 3-2. 배송 정보 조회 (주문 ID로)
 ```http
@@ -368,6 +376,28 @@ enum OrderStatus {
 }
 ```
 
+### Order (주문 정보)
+```dart
+class Order {
+  final int id;
+  final String orderNumber;
+  final String storeId;
+  final String distributorId;
+  final int totalAmount;
+  final int totalQuantity;
+  final OrderStatus status;
+  final String statusDescription;
+  final DateTime orderedAt;
+  final DateTime? confirmedAt;
+  final DateTime? shippedAt;
+  final DateTime? deliveredAt;
+  
+  // 리뷰 작성 여부 (중요!)
+  final bool hasStoreReview;        // 가게사장님이 리뷰 작성했는지
+  final bool hasDistributorReview;  // 유통업자가 리뷰 작성했는지
+}
+```
+
 ### DeliveryInfo (배송 정보)
 ```dart
 class DeliveryInfo {
@@ -417,6 +447,9 @@ class DeliveryInfo {
   - SHIPPED: 초록색
   - DELIVERED: 보라색
 - 송장번호 클릭 시 배송사 홈페이지 연결 (선택)
+- **리뷰 작성 버튼 표시 조건**:
+  - `status == "DELIVERED"` AND `hasStoreReview == false`일 때만 "리뷰 작성" 버튼 표시
+  - `hasStoreReview == true`이면 "리뷰 등록 완료" 표시
 
 **배송 상세 화면**:
 - 주문 정보 (주문번호, 금액, 주문일시)
@@ -441,6 +474,9 @@ class DeliveryInfo {
   - CONFIRMED: "배송 정보 생성" 버튼
   - PREPARING: "배송 시작" 버튼
   - SHIPPED: "배송 완료" 버튼
+- **리뷰 작성 버튼 표시 조건**:
+  - `status == "DELIVERED"` AND `hasDistributorReview == false`일 때만 "리뷰 작성" 버튼 표시
+  - `hasDistributorReview == true`이면 "리뷰 등록 완료" 표시
 
 **배송 시작 모달/화면**:
 - **배송 방식 선택** (필수)
@@ -543,6 +579,7 @@ class DeliveryInfo {
 3. **권한 체크**: 가게사장님은 자신의 주문만, 유통업자는 자신에게 온 주문만 접근 가능
 4. **날짜 형식**: ISO 8601 형식 사용 (`2025-11-30T18:00:00`)
 5. **에러 처리**: 모든 API 호출에 대해 적절한 에러 처리 구현
+6. **리뷰 중복 방지**: `hasStoreReview` 또는 `hasDistributorReview`가 `true`이면 리뷰 작성 버튼 숨김
 
 ---
 
@@ -881,3 +918,107 @@ class ReviewStatistics {
 3. 받은 리뷰 목록 조회 (GET /api/reviews/received)
 4. 평균 평점 및 세부 평점 확인
 ```
+
+
+---
+
+## 🔔 17. 리뷰 작성 여부 확인 (중요!)
+
+### 주문 조회 API 응답에 리뷰 작성 여부 포함
+
+모든 주문 조회 API 응답에 리뷰 작성 여부 필드가 포함됩니다.
+
+**대상 API**:
+- `GET /api/catalog-orders/my` (가게사장님 주문 목록)
+- `GET /api/catalog-orders/distributor` (유통업자 주문 목록)
+
+**응답 예시**:
+```json
+{
+  "id": 123,
+  "orderNumber": "ORD-20251127-155507-742",
+  "status": "DELIVERED",
+  "statusDescription": "배송완료",
+  "totalAmount": 50000,
+  "orderedAt": "2025-11-27T15:55:07",
+  "deliveredAt": "2025-11-28T10:30:00",
+  
+  // 리뷰 작성 여부 ⬇️
+  "hasStoreReview": true,        // 가게사장님이 리뷰 작성했는지
+  "hasDistributorReview": false  // 유통업자가 리뷰 작성했는지
+}
+```
+
+### 필드 설명
+
+**hasStoreReview** (boolean):
+- 해당 주문에 대해 가게사장님이 유통업자를 평가하는 리뷰를 작성했는지 여부
+- `true`: 리뷰 작성 완료
+- `false`: 리뷰 미작성 (작성 가능)
+
+**hasDistributorReview** (boolean):
+- 해당 주문에 대해 유통업자가 가게사장님을 평가하는 리뷰를 작성했는지 여부
+- `true`: 리뷰 작성 완료
+- `false`: 리뷰 미작성 (작성 가능)
+
+### UI 구현 가이드
+
+#### 가게사장님 앱
+```dart
+// 주문 목록에서 리뷰 버튼 표시 로직
+Widget buildReviewButton(Order order) {
+  if (order.status != OrderStatus.DELIVERED) {
+    return SizedBox.shrink(); // 배송 완료 전에는 버튼 숨김
+  }
+  
+  if (order.hasStoreReview) {
+    return Chip(
+      label: Text('리뷰 등록 완료'),
+      backgroundColor: Colors.green[100],
+      avatar: Icon(Icons.check_circle, color: Colors.green),
+    );
+  }
+  
+  return ElevatedButton(
+    onPressed: () => navigateToReviewPage(order),
+    child: Text('리뷰 작성'),
+  );
+}
+```
+
+#### 유통업자 앱
+```dart
+// 주문 목록에서 리뷰 버튼 표시 로직
+Widget buildReviewButton(Order order) {
+  if (order.status != OrderStatus.DELIVERED) {
+    return SizedBox.shrink(); // 배송 완료 전에는 버튼 숨김
+  }
+  
+  if (order.hasDistributorReview) {
+    return Chip(
+      label: Text('리뷰 등록 완료'),
+      backgroundColor: Colors.green[100],
+      avatar: Icon(Icons.check_circle, color: Colors.green),
+    );
+  }
+  
+  return ElevatedButton(
+    onPressed: () => navigateToReviewPage(order),
+    child: Text('리뷰 작성'),
+  );
+}
+```
+
+### 장점
+
+1. **불필요한 API 호출 방지**: 리뷰 작성 여부를 미리 알 수 있어 중복 작성 시도 방지
+2. **사용자 경험 개선**: "리뷰 작성" vs "리뷰 등록 완료" 상태를 명확히 표시
+3. **에러 감소**: 서버에서 "이미 리뷰를 작성한 주문입니다" 에러 발생 빈도 감소
+4. **UI 일관성**: 모든 주문 목록에서 일관된 리뷰 상태 표시
+
+### 주의사항
+
+- 필드 타입은 `boolean`이며 `null`이 아닙니다
+- 기본값은 `false`입니다 (리뷰가 없으면 false)
+- 배송 완료(`DELIVERED`) 상태에서만 리뷰 작성 버튼을 표시하세요
+- 리뷰 작성 후 주문 목록을 새로고침하여 최신 상태를 반영하세요

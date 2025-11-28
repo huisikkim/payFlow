@@ -30,4 +30,8 @@ public class OrderResponse {
     private LocalDateTime confirmedAt;
     private LocalDateTime shippedAt;
     private LocalDateTime deliveredAt;
+    
+    // 리뷰 작성 여부
+    private Boolean hasStoreReview;        // 가게사장님이 리뷰 작성했는지
+    private Boolean hasDistributorReview;  // 유통업자가 리뷰 작성했는지
 }

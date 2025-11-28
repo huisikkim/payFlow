@@ -7,6 +7,14 @@
 ```dart
 GET /api/deliveries/store  // 전체 목록
 GET /api/deliveries/order/{orderId}  // 상세 정보
+
+// 응답에 리뷰 작성 여부 포함
+{
+  "id": 1,
+  "status": "DELIVERED",
+  "hasStoreReview": false,        // 리뷰 작성 여부
+  "hasDistributorReview": false
+}
 ```
 
 ---
@@ -16,6 +24,14 @@ GET /api/deliveries/order/{orderId}  // 상세 정보
 ### 1️⃣ 주문 목록 조회
 ```dart
 GET /api/catalog-orders/distributor
+
+// 응답에 리뷰 작성 여부 포함
+{
+  "id": 1,
+  "status": "DELIVERED",
+  "hasStoreReview": false,
+  "hasDistributorReview": false  // 리뷰 작성 여부
+}
 ```
 
 ### 2️⃣ 배송 정보 생성
@@ -140,6 +156,9 @@ GET /api/reviews/statistics
 ## 🎨 리뷰 UI 체크리스트
 
 ### 가게사장님 화면
+- [ ] 주문 목록에서 리뷰 버튼 표시
+  - [ ] `status == DELIVERED` AND `hasStoreReview == false` → "리뷰 작성" 버튼
+  - [ ] `hasStoreReview == true` → "리뷰 등록 완료" 표시
 - [ ] 리뷰 작성 화면 (배송 완료 후)
   - [ ] 별점 입력 (1-5)
   - [ ] 리뷰 내용 입력
@@ -150,6 +169,9 @@ GET /api/reviews/statistics
 - [ ] 작성한 리뷰 화면
 
 ### 유통업자 화면
+- [ ] 주문 목록에서 리뷰 버튼 표시
+  - [ ] `status == DELIVERED` AND `hasDistributorReview == false` → "리뷰 작성" 버튼
+  - [ ] `hasDistributorReview == true` → "리뷰 등록 완료" 표시
 - [ ] 리뷰 작성 화면 (배송 완료 후)
   - [ ] 별점 입력 (1-5)
   - [ ] 리뷰 내용 입력
@@ -165,3 +187,4 @@ GET /api/reviews/statistics
 - ✅ 배송 완료 후에만 작성 가능
 - ✅ 한 주문당 한 번만 작성 가능
 - ✅ 평점은 1-5 사이
+- ✅ `hasStoreReview` 또는 `hasDistributorReview`로 중복 작성 방지

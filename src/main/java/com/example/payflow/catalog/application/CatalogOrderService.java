@@ -22,6 +22,7 @@ public class CatalogOrderService {
     private final OrderCartRepository cartRepository;
     private final ProductCatalogRepository productRepository;
     private final PaymentService paymentService;
+    private final ReviewRepository reviewRepository;
     
     /**
      * 장바구니에서 주문 생성
@@ -285,6 +286,12 @@ public class CatalogOrderService {
                         .build())
                 .collect(Collectors.toList());
         
+        // 리뷰 작성 여부 확인
+        boolean hasStoreReview = reviewRepository.existsByOrderIdAndReviewType(
+                order.getId(), ReviewType.STORE_TO_DISTRIBUTOR);
+        boolean hasDistributorReview = reviewRepository.existsByOrderIdAndReviewType(
+                order.getId(), ReviewType.DISTRIBUTOR_TO_STORE);
+        
         return OrderResponse.builder()
                 .id(order.getId())
                 .storeId(order.getStoreId())
@@ -303,6 +310,8 @@ public class CatalogOrderService {
                 .confirmedAt(order.getConfirmedAt())
                 .shippedAt(order.getShippedAt())
                 .deliveredAt(order.getDeliveredAt())
+                .hasStoreReview(hasStoreReview)
+                .hasDistributorReview(hasDistributorReview)
                 .build();
     }
 }
