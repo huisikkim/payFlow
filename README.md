@@ -3027,3 +3027,292 @@ public Long calculateDeliveryFee(String address, Double weight) {
 - B2B 전자상거래
 - 공급망 관리 시스템 (SCM)
 - 물류 관리 시스템 (WMS)
+
+
+## ⭐ 리뷰 및 평점 시스템
+
+**배송 완료 후 양방향 리뷰 시스템**
+
+### 주요 특징
+
+#### 1. 양방향 리뷰
+- ✅ **가게사장님 → 유통업자**: 배송 품질, 상품 품질, 서비스 품질 평가
+- ✅ **유통업자 → 가게사장님**: 결제 신뢰도, 소통 품질, 주문 정확도 평가
+- ✅ **배송 완료 후 작성**: 실제 거래 경험 기반 리뷰
+- ✅ **중복 방지**: 한 주문당 한 번만 리뷰 작성 가능
+
+#### 2. 세부 평점 시스템
+**가게사장님 → 유통업자**:
+- 배송 품질 (1-5): 배송 속도, 포장 상태 등
+- 상품 품질 (1-5): 신선도, 품질 등
+- 서비스 품질 (1-5): 응대, 문제 해결 등
+
+**유통업자 → 가게사장님**:
+- 결제 신뢰도 (1-5): 결제 이행, 신속성 등
+- 소통 품질 (1-5): 응답 속도, 명확성 등
+- 주문 정확도 (1-5): 주문 내용 정확성 등
+
+#### 3. 리뷰 통계
+- ✅ **평균 평점**: 전체 평균 평점 계산
+- ✅ **평점별 분포**: 5점, 4점, 3점, 2점, 1점 개수
+- ✅ **세부 평점 평균**: 각 항목별 평균 점수
+- ✅ **총 리뷰 개수**: 받은 리뷰 총 개수
+
+#### 4. 리뷰 관리
+- ✅ **내가 받은 리뷰**: 다른 사용자가 나에게 작성한 리뷰
+- ✅ **내가 작성한 리뷰**: 내가 다른 사용자에게 작성한 리뷰
+- ✅ **주문별 리뷰 조회**: 특정 주문의 리뷰 확인
+- ✅ **리뷰 통계 조회**: 사용자별 평점 통계
+
+### DDD 패턴 적용
+
+```
+catalog/
+├── domain/
+│   ├── Review.java              # 리뷰 엔티티
+│   ├── ReviewType.java          # 리뷰 타입 (양방향)
+│   └── ReviewRepository.java
+├── application/
+│   └── ReviewService.java       # 리뷰 비즈니스 로직
+└── presentation/
+    ├── ReviewController.java    # REST API
+    └── dto/
+        ├── CreateReviewRequest.java
+        ├── ReviewResponse.java
+        └── ReviewStatisticsResponse.java
+```
+
+### API 엔드포인트
+
+#### 리뷰 작성
+```bash
+# 가게사장님 → 유통업자 리뷰
+POST /api/reviews/store
+Authorization: Bearer {token}
+{
+  "orderId": 1,
+  "rating": 5,
+  "comment": "배송이 빠르고 상품 품질이 좋습니다!",
+  "deliveryQuality": 5,
+  "productQuality": 5,
+  "serviceQuality": 4
+}
+
+# 유통업자 → 가게사장님 리뷰
+POST /api/reviews/distributor
+Authorization: Bearer {token}
+{
+  "orderId": 1,
+  "rating": 5,
+  "comment": "결제가 빠르고 소통이 원활합니다!",
+  "paymentReliability": 5,
+  "communicationQuality": 5,
+  "orderAccuracy": 4
+}
+```
+
+#### 리뷰 조회
+```bash
+# 내가 받은 리뷰
+GET /api/reviews/received
+Authorization: Bearer {token}
+
+# 내가 작성한 리뷰
+GET /api/reviews/written
+Authorization: Bearer {token}
+
+# 주문별 리뷰
+GET /api/reviews/order/{orderId}?type=STORE_TO_DISTRIBUTOR
+Authorization: Bearer {token}
+
+# 리뷰 통계
+GET /api/reviews/statistics/{userId}
+Authorization: Bearer {token}
+
+# 내 리뷰 통계
+GET /api/reviews/statistics
+Authorization: Bearer {token}
+```
+
+### 응답 예시
+
+#### 리뷰 작성 응답
+```json
+{
+  "id": 1,
+  "orderId": 1,
+  "orderNumber": "ORD-20251128-143022-456",
+  "reviewType": "STORE_TO_DISTRIBUTOR",
+  "reviewTypeDescription": "가게사장님 → 유통업자",
+  "reviewerId": "store001",
+  "reviewerName": "매장-store001",
+  "revieweeId": "dist001",
+  "revieweeName": "유통업체-dist001",
+  "rating": 5,
+  "comment": "배송이 빠르고 상품 품질이 좋습니다!",
+  "deliveryQuality": 5,
+  "productQuality": 5,
+  "serviceQuality": 4,
+  "createdAt": "2025-11-28T18:00:00"
+}
+```
+
+#### 리뷰 통계 응답
+```json
+{
+  "userId": "dist001",
+  "userName": "유통업체-dist001",
+  "averageRating": 4.8,
+  "totalReviews": 25,
+  "rating5Count": 20,
+  "rating4Count": 4,
+  "rating3Count": 1,
+  "rating2Count": 0,
+  "rating1Count": 0,
+  "avgDeliveryQuality": 4.9,
+  "avgProductQuality": 4.7,
+  "avgServiceQuality": 4.8,
+  "avgPaymentReliability": null,
+  "avgCommunicationQuality": null,
+  "avgOrderAccuracy": null
+}
+```
+
+### 데이터베이스 스키마
+
+#### reviews 테이블
+```sql
+CREATE TABLE reviews (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    order_id BIGINT NOT NULL,
+    review_type VARCHAR(50) NOT NULL,
+    reviewer_id VARCHAR(50) NOT NULL,
+    reviewer_name VARCHAR(100) NOT NULL,
+    reviewee_id VARCHAR(50) NOT NULL,
+    reviewee_name VARCHAR(100) NOT NULL,
+    rating INT NOT NULL,
+    comment VARCHAR(1000),
+    delivery_quality INT,
+    product_quality INT,
+    service_quality INT,
+    payment_reliability INT,
+    communication_quality INT,
+    order_accuracy INT,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP,
+    FOREIGN KEY (order_id) REFERENCES distributor_orders(id)
+);
+```
+
+### 비즈니스 규칙
+
+1. **작성 조건**:
+   - 주문 상태가 `DELIVERED` (배송완료)여야 함
+   - 본인의 주문에만 리뷰 작성 가능
+   - 한 주문당 한 번만 리뷰 작성 가능
+
+2. **평점 범위**:
+   - 전체 평점: 1-5 (필수)
+   - 세부 평점: 1-5 (선택)
+
+3. **리뷰 타입**:
+   - `STORE_TO_DISTRIBUTOR`: 가게사장님이 유통업자 평가
+   - `DISTRIBUTOR_TO_STORE`: 유통업자가 가게사장님 평가
+
+### 실무 활용 시나리오
+
+#### 1. 신뢰도 평가
+```
+- 유통업자 선택 시 평균 평점 참고
+- 높은 평점의 유통업자 우선 선택
+- 세부 평점으로 강점 파악
+```
+
+#### 2. 서비스 개선
+```
+- 낮은 평점 항목 파악
+- 고객 피드백 분석
+- 서비스 품질 향상
+```
+
+#### 3. 인센티브 제공
+```
+- 높은 평점 유통업자에게 혜택
+- 우수 매장 인증 배지
+- 추천 시스템 연동
+```
+
+### 향후 확장 가능 기능
+
+#### 1. 리뷰 수정/삭제
+```java
+// 작성 후 24시간 내 수정 가능
+public ReviewResponse updateReview(Long reviewId, UpdateReviewRequest request) {
+    // 수정 로직
+}
+```
+
+#### 2. 리뷰 신고
+```java
+// 부적절한 리뷰 신고
+public void reportReview(Long reviewId, String reason) {
+    // 신고 로직
+}
+```
+
+#### 3. 리뷰 답글
+```java
+// 리뷰에 대한 답글 작성
+public ReviewReplyResponse createReply(Long reviewId, String content) {
+    // 답글 로직
+}
+```
+
+#### 4. 베스트 리뷰
+```java
+// 도움이 된 리뷰 선정
+public List<Review> getBestReviews(String userId) {
+    // 베스트 리뷰 조회
+}
+```
+
+### 기술 스택
+
+- **백엔드**: Spring Boot 3.5.7, Spring Data JPA
+- **데이터베이스**: H2 (또는 MySQL)
+- **인증**: JWT
+- **검증**: Bean Validation
+
+### 핵심 포인트
+
+1. **양방향 리뷰**
+   - 가게사장님과 유통업자 모두 평가 가능
+   - 공정한 거래 환경 조성
+
+2. **세부 평점**
+   - 단순 별점이 아닌 항목별 평가
+   - 구체적인 피드백 제공
+
+3. **통계 분석**
+   - 평균 평점 자동 계산
+   - 평점별 분포 시각화
+   - 세부 항목별 평균
+
+4. **신뢰도 구축**
+   - 실제 거래 기반 리뷰
+   - 중복 방지로 신뢰성 확보
+   - 투명한 평가 시스템
+
+5. **DDD 패턴**
+   - 명확한 도메인 로직
+   - 레이어 분리
+   - 확장 가능한 구조
+
+### 실무 적용 가능성
+
+이 시스템은 실제 B2B 플랫폼에서 다음과 같이 활용 가능:
+- 유통업자 신뢰도 평가
+- 우수 거래처 선정
+- 서비스 품질 관리
+- 고객 만족도 측정
+- 분쟁 해결 근거 자료

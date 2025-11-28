@@ -559,3 +559,325 @@ class DeliveryInfo {
 API 관련 문의사항이나 버그 발견 시 백엔드 팀에 연락 주세요.
 
 **Happy Coding! 🚀**
+
+
+---
+
+## ⭐ 11. 리뷰 및 평점 시스템
+
+배송 완료 후 양방향 리뷰 시스템을 제공합니다.
+
+### 11-1. 리뷰 작성 (가게사장님 → 유통업자)
+
+배송 완료 후 유통업자에 대한 리뷰를 작성합니다.
+
+```http
+POST /api/reviews/store
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "orderId": 1,
+  "rating": 5,
+  "comment": "배송이 빠르고 상품 품질이 좋습니다!",
+  "deliveryQuality": 5,
+  "productQuality": 5,
+  "serviceQuality": 4
+}
+```
+
+**필수 필드**:
+- `orderId`: 주문 ID
+- `rating`: 전체 평점 (1-5)
+
+**선택 필드**:
+- `comment`: 리뷰 내용
+- `deliveryQuality`: 배송 품질 (1-5)
+- `productQuality`: 상품 품질 (1-5)
+- `serviceQuality`: 서비스 품질 (1-5)
+
+**응답**:
+```json
+{
+  "id": 1,
+  "orderId": 1,
+  "orderNumber": "ORD-20251128-143022-456",
+  "reviewType": "STORE_TO_DISTRIBUTOR",
+  "reviewTypeDescription": "가게사장님 → 유통업자",
+  "reviewerId": "store001",
+  "reviewerName": "매장-store001",
+  "revieweeId": "dist001",
+  "revieweeName": "유통업체-dist001",
+  "rating": 5,
+  "comment": "배송이 빠르고 상품 품질이 좋습니다!",
+  "deliveryQuality": 5,
+  "productQuality": 5,
+  "serviceQuality": 4,
+  "createdAt": "2025-11-28T18:00:00"
+}
+```
+
+### 11-2. 리뷰 작성 (유통업자 → 가게사장님)
+
+배송 완료 후 가게사장님에 대한 리뷰를 작성합니다.
+
+```http
+POST /api/reviews/distributor
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "orderId": 1,
+  "rating": 5,
+  "comment": "결제가 빠르고 소통이 원활합니다!",
+  "paymentReliability": 5,
+  "communicationQuality": 5,
+  "orderAccuracy": 4
+}
+```
+
+**필수 필드**:
+- `orderId`: 주문 ID
+- `rating`: 전체 평점 (1-5)
+
+**선택 필드**:
+- `comment`: 리뷰 내용
+- `paymentReliability`: 결제 신뢰도 (1-5)
+- `communicationQuality`: 소통 품질 (1-5)
+- `orderAccuracy`: 주문 정확도 (1-5)
+
+### 11-3. 내가 받은 리뷰 조회
+
+```http
+GET /api/reviews/received
+Authorization: Bearer {token}
+```
+
+**응답**: 리뷰 배열
+
+### 11-4. 내가 작성한 리뷰 조회
+
+```http
+GET /api/reviews/written
+Authorization: Bearer {token}
+```
+
+**응답**: 리뷰 배열
+
+### 11-5. 주문별 리뷰 조회
+
+```http
+GET /api/reviews/order/{orderId}?type=STORE_TO_DISTRIBUTOR
+Authorization: Bearer {token}
+```
+
+**쿼리 파라미터**:
+- `type`: `STORE_TO_DISTRIBUTOR` 또는 `DISTRIBUTOR_TO_STORE`
+
+### 11-6. 리뷰 통계 조회
+
+```http
+GET /api/reviews/statistics/{userId}
+Authorization: Bearer {token}
+```
+
+**응답**:
+```json
+{
+  "userId": "dist001",
+  "userName": "유통업체-dist001",
+  "averageRating": 4.8,
+  "totalReviews": 25,
+  "rating5Count": 20,
+  "rating4Count": 4,
+  "rating3Count": 1,
+  "rating2Count": 0,
+  "rating1Count": 0,
+  "avgDeliveryQuality": 4.9,
+  "avgProductQuality": 4.7,
+  "avgServiceQuality": 4.8,
+  "avgPaymentReliability": null,
+  "avgCommunicationQuality": null,
+  "avgOrderAccuracy": null
+}
+```
+
+### 11-7. 내 리뷰 통계 조회
+
+```http
+GET /api/reviews/statistics
+Authorization: Bearer {token}
+```
+
+**응답**: 위와 동일
+
+---
+
+## 📊 12. 리뷰 데이터 모델
+
+### ReviewType (리뷰 타입)
+```dart
+enum ReviewType {
+  STORE_TO_DISTRIBUTOR,   // 가게사장님 → 유통업자
+  DISTRIBUTOR_TO_STORE    // 유통업자 → 가게사장님
+}
+```
+
+### Review (리뷰)
+```dart
+class Review {
+  final int id;
+  final int orderId;
+  final String orderNumber;
+  final ReviewType reviewType;
+  final String reviewTypeDescription;
+  final String reviewerId;
+  final String reviewerName;
+  final String revieweeId;
+  final String revieweeName;
+  final int rating;
+  final String? comment;
+  
+  // 가게사장님 → 유통업자 세부 평점
+  final int? deliveryQuality;
+  final int? productQuality;
+  final int? serviceQuality;
+  
+  // 유통업자 → 가게사장님 세부 평점
+  final int? paymentReliability;
+  final int? communicationQuality;
+  final int? orderAccuracy;
+  
+  final DateTime createdAt;
+  final DateTime? updatedAt;
+}
+```
+
+### ReviewStatistics (리뷰 통계)
+```dart
+class ReviewStatistics {
+  final String userId;
+  final String? userName;
+  final double averageRating;
+  final int totalReviews;
+  final int rating5Count;
+  final int rating4Count;
+  final int rating3Count;
+  final int rating2Count;
+  final int rating1Count;
+  final double? avgDeliveryQuality;
+  final double? avgProductQuality;
+  final double? avgServiceQuality;
+  final double? avgPaymentReliability;
+  final double? avgCommunicationQuality;
+  final double? avgOrderAccuracy;
+}
+```
+
+---
+
+## 🎨 13. 리뷰 UI 구현 가이드
+
+### 13-1. 가게사장님 앱
+
+**리뷰 작성 화면** (배송 완료 후):
+- 전체 평점 (별점 1-5, 필수)
+- 리뷰 내용 (텍스트 입력, 선택)
+- 세부 평점 (선택)
+  - ⭐ 배송 품질 (1-5)
+  - ⭐ 상품 품질 (1-5)
+  - ⭐ 서비스 품질 (1-5)
+
+**받은 리뷰 화면**:
+- 평균 평점 표시 (큰 별점)
+- 총 리뷰 개수
+- 평점별 분포 (막대 그래프)
+- 리뷰 목록 (최신순)
+
+**작성한 리뷰 화면**:
+- 내가 작성한 리뷰 목록
+- 주문 정보와 함께 표시
+
+### 13-2. 유통업자 앱
+
+**리뷰 작성 화면** (배송 완료 후):
+- 전체 평점 (별점 1-5, 필수)
+- 리뷰 내용 (텍스트 입력, 선택)
+- 세부 평점 (선택)
+  - ⭐ 결제 신뢰도 (1-5)
+  - ⭐ 소통 품질 (1-5)
+  - ⭐ 주문 정확도 (1-5)
+
+**받은 리뷰 화면**:
+- 평균 평점 표시
+- 총 리뷰 개수
+- 평점별 분포
+- 리뷰 목록
+
+**프로필/대시보드**:
+- 평균 평점 배지 표시
+- 최근 리뷰 미리보기
+
+---
+
+## 🔄 14. 리뷰 플로우
+
+### 가게사장님 플로우
+```
+1. 배송 완료 확인
+2. 배송 상세 화면에서 "리뷰 작성" 버튼 표시
+3. 리뷰 작성 화면 이동
+4. 평점 및 내용 입력
+5. 제출
+6. 작성한 리뷰 목록에 추가
+```
+
+### 유통업자 플로우
+```
+1. 배송 완료 처리
+2. 주문 상세 화면에서 "리뷰 작성" 버튼 표시
+3. 리뷰 작성 화면 이동
+4. 평점 및 내용 입력
+5. 제출
+6. 작성한 리뷰 목록에 추가
+```
+
+---
+
+## ⚠️ 15. 리뷰 제약사항
+
+1. **배송 완료 후에만 작성 가능**: 주문 상태가 `DELIVERED`여야 함
+2. **중복 리뷰 불가**: 한 주문당 한 번만 리뷰 작성 가능
+3. **평점 범위**: 1-5 사이의 정수만 가능
+4. **본인 주문만**: 자신의 주문에만 리뷰 작성 가능
+5. **수정 불가**: 작성 후 수정 불가 (향후 확장 가능)
+
+---
+
+## 🧪 16. 리뷰 테스트 시나리오
+
+### 시나리오 1: 가게사장님 리뷰 작성
+```
+1. 가게사장님 로그인
+2. 배송 완료된 주문 조회 (GET /api/catalog-orders/my)
+3. 리뷰 작성 (POST /api/reviews/store)
+4. 작성한 리뷰 조회 (GET /api/reviews/written)
+5. 유통업자의 리뷰 통계 조회 (GET /api/reviews/statistics/{distributorId})
+```
+
+### 시나리오 2: 유통업자 리뷰 작성
+```
+1. 유통업자 로그인
+2. 배송 완료된 주문 조회 (GET /api/catalog-orders/distributor)
+3. 리뷰 작성 (POST /api/reviews/distributor)
+4. 작성한 리뷰 조회 (GET /api/reviews/written)
+5. 가게사장님의 리뷰 통계 조회 (GET /api/reviews/statistics/{storeId})
+```
+
+### 시나리오 3: 리뷰 통계 확인
+```
+1. 로그인
+2. 내 리뷰 통계 조회 (GET /api/reviews/statistics)
+3. 받은 리뷰 목록 조회 (GET /api/reviews/received)
+4. 평균 평점 및 세부 평점 확인
+```

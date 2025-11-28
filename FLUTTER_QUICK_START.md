@@ -89,3 +89,79 @@ DELIVERED  → 배송완료 (보라색)
 
 ## 📞 문의
 상세 문서: `FLUTTER_DELIVERY_API_GUIDE.md` 참고
+
+
+---
+
+## ⭐ 리뷰 및 평점 시스템
+
+### 가게사장님 앱 (2개 API 추가)
+
+#### 1️⃣ 리뷰 작성 (유통업자 평가)
+```dart
+POST /api/reviews/store
+{
+  "orderId": 1,
+  "rating": 5,
+  "comment": "배송이 빠르고 상품 품질이 좋습니다!",
+  "deliveryQuality": 5,
+  "productQuality": 5,
+  "serviceQuality": 4
+}
+```
+
+#### 2️⃣ 내 리뷰 통계 조회
+```dart
+GET /api/reviews/statistics
+```
+
+### 유통업자 앱 (2개 API 추가)
+
+#### 1️⃣ 리뷰 작성 (가게사장님 평가)
+```dart
+POST /api/reviews/distributor
+{
+  "orderId": 1,
+  "rating": 5,
+  "comment": "결제가 빠르고 소통이 원활합니다!",
+  "paymentReliability": 5,
+  "communicationQuality": 5,
+  "orderAccuracy": 4
+}
+```
+
+#### 2️⃣ 내 리뷰 통계 조회
+```dart
+GET /api/reviews/statistics
+```
+
+---
+
+## 🎨 리뷰 UI 체크리스트
+
+### 가게사장님 화면
+- [ ] 리뷰 작성 화면 (배송 완료 후)
+  - [ ] 별점 입력 (1-5)
+  - [ ] 리뷰 내용 입력
+  - [ ] 세부 평점 (배송/상품/서비스)
+- [ ] 받은 리뷰 화면
+  - [ ] 평균 평점 표시
+  - [ ] 리뷰 목록
+- [ ] 작성한 리뷰 화면
+
+### 유통업자 화면
+- [ ] 리뷰 작성 화면 (배송 완료 후)
+  - [ ] 별점 입력 (1-5)
+  - [ ] 리뷰 내용 입력
+  - [ ] 세부 평점 (결제/소통/주문정확도)
+- [ ] 받은 리뷰 화면
+  - [ ] 평균 평점 표시
+  - [ ] 리뷰 목록
+- [ ] 프로필에 평점 배지 표시
+
+---
+
+## 📊 리뷰 제약사항
+- ✅ 배송 완료 후에만 작성 가능
+- ✅ 한 주문당 한 번만 작성 가능
+- ✅ 평점은 1-5 사이
