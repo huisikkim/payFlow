@@ -69,6 +69,23 @@ public class DataInitializer {
                         .build();
                 userRepository.save(dist001);
                 log.info("Created distributor user: username=dist001, password=password");
+                
+                // 가게사장님 계정 생성 (kimceo)
+                User kimceo = User.builder()
+                        .username("kimceo")
+                        .password(passwordEncoder.encode("123456"))
+                        .email("kimceo@example.com")
+                        .userType(com.example.payflow.security.domain.UserType.STORE_OWNER)
+                        .roles(Set.of(Role.ROLE_STORE_OWNER))
+                        .businessNumber("123-45-67890")
+                        .businessName("김사장 식당")
+                        .ownerName("김사장")
+                        .phoneNumber("010-1234-5678")
+                        .address("서울시 강남구")
+                        .enabled(true)
+                        .build();
+                userRepository.save(kimceo);
+                log.info("Created store owner user: username=kimceo, password=123456");
             }
             
             // Saga 테스트용 재고 데이터 생성
