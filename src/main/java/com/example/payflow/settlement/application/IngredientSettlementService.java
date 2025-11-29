@@ -26,10 +26,11 @@ public class IngredientSettlementService {
     private final IngredientSettlementRepository settlementRepository;
     private final EventPublisher eventPublisher;
     private final EventLoggingService eventLoggingService;
+    private final DailySettlementService dailySettlementService;
     
     @Transactional
     public SettlementResponse createSettlement(String orderId, String storeId, 
-                                              String distributorId, Long settlementAmount) {
+                                              String distributorId, String orderType, Long settlementAmount) {
         String settlementId = "SETTLE_" + UUID.randomUUID().toString().substring(0, 8);
         
         IngredientSettlement settlement = new IngredientSettlement(
@@ -37,10 +38,14 @@ public class IngredientSettlementService {
             storeId,
             distributorId,
             orderId,
+            orderType,
             settlementAmount
         );
         
-        settlementRepository.save(settlement);
+        IngredientSettlement savedSettlement = settlementRepository.save(settlement);
+        
+        // 일일 정산 집계
+        dailySettlementService.aggregateSettlement(savedSettlement);
         
         log.info("💰 정산 생성: settlementId={}, orderId={}, amount={}", 
             settlementId, orderId, settlementAmount);
@@ -65,11 +70,12 @@ public class IngredientSettlementService {
                 "orderId", orderId,
                 "storeId", storeId,
                 "distributorId", distributorId,
+                "orderType", orderType,
                 "settlementAmount", settlementAmount
             )
         );
         
-        return SettlementResponse.from(settlement);
+        return SettlementResponse.from(savedSettlement);
     }
     
     @Transactional

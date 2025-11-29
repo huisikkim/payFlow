@@ -30,6 +30,9 @@ public class IngredientSettlement {
     private String orderId;
     
     @Column(nullable = false)
+    private String orderType; // "INGREDIENT" or "CATALOG"
+    
+    @Column(nullable = false)
     private Long settlementAmount;
     
     @Column(nullable = false)
@@ -48,11 +51,12 @@ public class IngredientSettlement {
     private LocalDateTime updatedAt;
     
     public IngredientSettlement(String settlementId, String storeId, String distributorId, 
-                               String orderId, Long settlementAmount) {
+                               String orderId, String orderType, Long settlementAmount) {
         this.settlementId = settlementId;
         this.storeId = storeId;
         this.distributorId = distributorId;
         this.orderId = orderId;
+        this.orderType = orderType;
         this.settlementAmount = settlementAmount;
         this.outstandingAmount = settlementAmount; // 초기에는 전액 미수금
         this.paidAmount = 0L;

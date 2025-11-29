@@ -16,4 +16,9 @@ public interface IngredientSettlementRepository extends JpaRepository<Ingredient
     
     @Query("SELECT SUM(s.outstandingAmount) FROM IngredientSettlement s WHERE s.storeId = :storeId AND s.status = 'COMPLETED'")
     Long calculateTotalOutstandingByStore(String storeId);
+    
+    @Query("SELECT s FROM IngredientSettlement s WHERE s.settlementDate >= :startDateTime AND s.settlementDate < :endDateTime")
+    List<IngredientSettlement> findBySettlementDateBetween(
+        java.time.LocalDateTime startDateTime, 
+        java.time.LocalDateTime endDateTime);
 }

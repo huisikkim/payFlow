@@ -1,7 +1,9 @@
 package com.example.payflow.catalog.application;
 
 import com.example.payflow.catalog.domain.*;
+import com.example.payflow.catalog.domain.event.CatalogOrderPaymentCompletedEvent;
 import com.example.payflow.catalog.presentation.dto.*;
+import com.example.payflow.common.event.EventPublisher;
 import com.example.payflow.payment.application.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +25,7 @@ public class CatalogOrderService {
     private final ProductCatalogRepository productRepository;
     private final PaymentService paymentService;
     private final ReviewRepository reviewRepository;
+    private final EventPublisher eventPublisher;
     
     /**
      * 장바구니에서 주문 생성
@@ -177,6 +180,16 @@ public class CatalogOrderService {
         order.confirm();
         DistributorOrder savedOrder = orderRepository.save(order);
         
+        // 카프카 이벤트 발행: 결제 완료 -> 정산 생성
+        CatalogOrderPaymentCompletedEvent event = new CatalogOrderPaymentCompletedEvent(
+            savedOrder.getOrderNumber(),
+            savedOrder.getId(),
+            savedOrder.getStoreId(),
+            savedOrder.getDistributorId(),
+            savedOrder.getTotalAmount()
+        );
+        eventPublisher.publish(event);
+        
         log.info("주문 확정 완료: {} (다음 단계: 유통업자가 배송 정보 생성)", order.getOrderNumber());
         
         return toOrderResponse(savedOrder);
@@ -200,6 +213,16 @@ public class CatalogOrderService {
         
         order.confirm();
         DistributorOrder savedOrder = orderRepository.save(order);
+        
+        // 카프카 이벤트 발행: 결제 완료 -> 정산 생성
+        CatalogOrderPaymentCompletedEvent event = new CatalogOrderPaymentCompletedEvent(
+            savedOrder.getOrderNumber(),
+            savedOrder.getId(),
+            savedOrder.getStoreId(),
+            savedOrder.getDistributorId(),
+            savedOrder.getTotalAmount()
+        );
+        eventPublisher.publish(event);
         
         log.info("주문 확정 완료: {}", order.getOrderNumber());
         

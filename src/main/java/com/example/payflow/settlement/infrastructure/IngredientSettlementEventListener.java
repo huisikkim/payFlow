@@ -23,16 +23,39 @@ public class IngredientSettlementEventListener {
             
             IngredientOrderConfirmedEvent event = objectMapper.readValue(message, IngredientOrderConfirmedEvent.class);
             
-            // 정산 자동 생성
+            // 정산 자동 생성 (식자재 주문)
             settlementService.createSettlement(
                 event.getOrderId(),
                 event.getStoreId(),
                 event.getDistributorId(),
+                "INGREDIENT",
                 event.getTotalAmount()
             );
             
         } catch (Exception e) {
             log.error("❌ IngredientOrderConfirmed 이벤트 처리 실패 (정산)", e);
+        }
+    }
+    
+    @KafkaListener(topics = "CatalogOrderPaymentCompleted", groupId = "settlement-group")
+    public void handleCatalogOrderPaymentCompleted(String message) {
+        try {
+            log.info("🎧 [Kafka] CatalogOrderPaymentCompleted 이벤트 수신 (정산): {}", message);
+            
+            com.example.payflow.catalog.domain.event.CatalogOrderPaymentCompletedEvent event = 
+                objectMapper.readValue(message, com.example.payflow.catalog.domain.event.CatalogOrderPaymentCompletedEvent.class);
+            
+            // 정산 자동 생성 (카탈로그 주문)
+            settlementService.createSettlement(
+                event.getOrderNumber(),
+                event.getStoreId(),
+                event.getDistributorId(),
+                "CATALOG",
+                event.getTotalAmount()
+            );
+            
+        } catch (Exception e) {
+            log.error("❌ CatalogOrderPaymentCompleted 이벤트 처리 실패 (정산)", e);
         }
     }
     
