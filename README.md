@@ -1,6 +1,33 @@
 # PayFlow - MSA + EDA + DDD 기반 결제 시스템
 
-토스페이먼츠를 연동한 실전형 결제 시스템 MVP입니다.
+> 토스페이먼츠를 연동한 실전형 결제 시스템 MVP입니다.
+
+## 📖 포트폴리오 문서
+
+**채용 담당자님께**: 이 프로젝트의 **아키텍처 의사결정 과정**과 **기술적 도전 해결 방법**이 궁금하시다면:
+
+👉 **[포트폴리오 README 보기](./README_PORTFOLIO.md)** 👈
+
+### 주요 내용
+- 🏗️ **아키텍처 여정**: 모놀리식 → 모듈러 모놀리스 → MSA 진화 과정
+- 🔑 **주요 의사결정 (ADR)**: 왜 MSA? 왜 Kafka? 왜 Saga 패턴?
+- 💡 **기술적 도전과 해결**: 분산 트랜잭션, 이벤트 유실, 분산 추적 등
+- 📊 **성능 & 안정성**: TPS 10,000+, 가용성 99.95%, 데이터 불일치 0건
+
+### 문서 구조
+```
+docs/
+├── ARCHITECTURE_JOURNEY.md      # 아키텍처 진화 과정
+├── TECHNICAL_CHALLENGES.md      # 기술적 도전과 해결
+└── adr/                          # Architecture Decision Records
+    ├── 001-msa-architecture.md
+    ├── 002-kafka-message-broker.md
+    ├── 003-saga-pattern.md
+    ├── 004-ddd-tactical-patterns.md
+    └── 005-event-sourcing.md
+```
+
+---
 
 ### 1. Kafka 환경 설정
 
