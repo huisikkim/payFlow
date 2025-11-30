@@ -1210,6 +1210,91 @@ crypto/
    - 직관적인 UI
    - 반응형 디자인
 
+## 🔍 품질 이슈 신고 및 반품/교환 시스템
+
+가게사장님이 상품 품질 문제를 빠르게 신고하고, 유통업자가 즉시 대응할 수 있는 **간편 반품/교환 시스템**입니다.
+
+### 주요 특징
+
+#### 1. 간편한 품질 이슈 신고 (가게사장님)
+- ✅ **빠른 신고**: 주문 ID, 품목 정보만으로 즉시 신고
+- ✅ **사진 업로드**: 문제 상품 사진을 여러 장 첨부 가능
+- ✅ **이슈 유형**: 품질 불량, 오배송, 파손, 유통기한, 수량 불일치
+- ✅ **요청 액션**: 환불 또는 교환 선택
+
+#### 2. 유통업자 대응 시스템
+- ✅ **실시간 알림**: 품질 이슈 접수 즉시 확인
+- ✅ **사진 확인**: 가게사장님이 올린 사진으로 문제 파악
+- ✅ **승인/거절**: 검토 후 승인 또는 거절 처리
+- ✅ **당일 수거**: 승인 시 당일 수거 예약
+- ✅ **빠른 처리**: 환불 또는 교환 완료
+
+#### 3. 품질 보증 정책
+- ✅ **100% 환불 보장**: 품질 문제 시 전액 환불
+- ✅ **당일 수거**: 승인 후 당일 수거 서비스
+- ✅ **빠른 재배송**: 교환 시 신속한 재배송
+- ✅ **투명한 프로세스**: 모든 단계 실시간 추적
+
+### API 엔드포인트
+
+```bash
+# 품질 이슈 신고 (가게사장님)
+POST /api/quality-issues
+{
+  "orderId": 123,
+  "itemId": 456,
+  "itemName": "양파 10kg",
+  "storeId": "STORE_001",
+  "storeName": "홍길동 식당",
+  "distributorId": "DIST_001",
+  "issueType": "POOR_QUALITY",
+  "photoUrls": ["https://example.com/photo1.jpg"],
+  "description": "양파가 썩었습니다.",
+  "requestAction": "REFUND"
+}
+
+# 내 품질 이슈 목록 (가게사장님)
+GET /api/quality-issues/store/{storeId}
+
+# 대기 중인 품질 이슈 (유통업자)
+GET /api/quality-issues/distributor/{distributorId}/pending
+
+# 품질 이슈 승인 (유통업자)
+POST /api/quality-issues/{issueId}/approve
+{
+  "comment": "확인했습니다. 환불 처리하겠습니다."
+}
+
+# 수거 예약 (유통업자)
+POST /api/quality-issues/{issueId}/schedule-pickup
+{
+  "pickupTime": "2025-11-30T14:00:00"
+}
+
+# 환불/교환 완료 (유통업자)
+POST /api/quality-issues/{issueId}/complete-resolution
+{
+  "note": "환불 처리 완료했습니다."
+}
+```
+
+### 테스트
+
+```bash
+./test-quality-issue-api.sh
+```
+
+### 상세 가이드
+
+**백엔드 개발자:**
+- [전체 API 가이드](./QUALITY_ISSUE_GUIDE.md) - 상세 API 문서 및 사용 가이드
+- [사용 예시](./QUALITY_ISSUE_EXAMPLE.md) - 실제 시나리오별 예시
+
+**Flutter 개발자:**
+- 👉 [여기서 시작하세요!](./FLUTTER_START_HERE.md) - Flutter 개발자 시작 가이드
+- [Flutter API 가이드](./FLUTTER_QUALITY_ISSUE_API.md) - 전체 API 목록 및 Flutter 구현 예시
+- [빠른 시작](./FLUTTER_QUALITY_ISSUE_QUICK_START.md) - 5분 안에 시작하기
+
 ## 🎯 온톨로지 기반 인사 채용 시스템
 
 PayFlow는 **AI 없이 규칙 기반 추론으로 구현한 지능형 채용 매칭 시스템**을 제공합니다.

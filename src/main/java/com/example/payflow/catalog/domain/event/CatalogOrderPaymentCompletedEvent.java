@@ -1,6 +1,7 @@
 package com.example.payflow.catalog.domain.event;
 
 import com.example.payflow.common.event.DomainEvent;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,6 +12,7 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class CatalogOrderPaymentCompletedEvent implements DomainEvent {
     
     private String eventId;
