@@ -21,6 +21,28 @@ public class DailySettlementService {
     private final IngredientSettlementRepository settlementRepository;
     
     /**
+     * 정산 완료 시 일일 정산 업데이트
+     */
+    @Transactional
+    public void updatePayment(IngredientSettlement settlement, Long paidAmount) {
+        LocalDate settlementDate = settlement.getSettlementDate().toLocalDate();
+        
+        DailySettlement dailySettlement = dailySettlementRepository
+            .findBySettlementDateAndStoreIdAndDistributorId(
+                settlementDate, 
+                settlement.getStoreId(), 
+                settlement.getDistributorId())
+            .orElseThrow(() -> new IllegalStateException(
+                "일일 정산을 찾을 수 없습니다: " + settlementDate + ", " + settlement.getStoreId()));
+        
+        dailySettlement.updatePayment(paidAmount);
+        dailySettlementRepository.save(dailySettlement);
+        
+        log.info("📊 일일 정산 지불 업데이트: date={}, store={}, paidAmount={}", 
+            settlementDate, settlement.getStoreId(), paidAmount);
+    }
+    
+    /**
      * 정산 생성 시 일일 정산에 반영
      */
     @Transactional

@@ -86,6 +86,9 @@ public class IngredientSettlementService {
         settlement.complete(paidAmount);
         settlementRepository.save(settlement);
         
+        // 일일 정산 업데이트
+        dailySettlementService.updatePayment(settlement, paidAmount);
+        
         log.info("✅ 정산 완료: settlementId={}, paidAmount={}, outstandingAmount={}", 
             settlementId, paidAmount, settlement.getOutstandingAmount());
         
