@@ -30,8 +30,8 @@ public class MenuDataInitializer implements CommandLineRunner {
         
         log.info("🍽️ 메뉴 초기 데이터 생성 시작...");
         
-        // 단가 데이터 먼저 생성
-        createPriceData();
+        // 단가 데이터는 실제 발주 시 자동 수집되므로 초기 데이터 생성 제거
+        // createPriceData();
         
         // 메뉴 생성
         createKimchiJjigae();
