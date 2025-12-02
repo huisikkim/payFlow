@@ -1,0 +1,4 @@
+file '/Users/kimhuisik/payFlow/ai-shortform-mvp/outputs/scene_0_video.mp4'
+file '/Users/kimhuisik/payFlow/ai-shortform-mvp/outputs/scene_1_video.mp4'
+file '/Users/kimhuisik/payFlow/ai-shortform-mvp/outputs/scene_2_video.mp4'
+file '/Users/kimhuisik/payFlow/ai-shortform-mvp/outputs/scene_3_video.mp4'
