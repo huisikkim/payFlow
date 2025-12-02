@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>명세표 업로드 + 재료 매칭 - PayFlow</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: #f8f9fa;
+        }
+        
+        .upload-area.dragover {
+            border-color: #764ba2;
+            background: #f0f0ff;
+        }
+        
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        
+        .upload-text {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .upload-hint {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        .file-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .file-info.show {
+            display: block;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            transition: transform 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .loading.show {
+            display: block;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .result-box {
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .result-box.show {
+            display: block;
+        }
+        
+        .result-item {
+            background: white;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .result-item.success {
+            border-left-color: #28a745;
+        }
+        
+        .result-item.error {
+            border-left-color: #dc3545;
+        }
+        
+        .result-item h4 {
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .result-item p {
+            margin: 5px 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .badge.exact {
+            background: #28a745;
+            color: white;
+        }
+        
+        .badge.similarity {
+            background: #ffc107;
+            color: #333;
+        }
+        
+        .badge.no-match {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .summary {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .summary h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 명세표 업로드 + 재료 매칭</h1>
+            <p>OCR로 텍스트를 추출하고 규칙 기반 알고리즘으로 재료를 자동 매칭합니다</p>
+        </div>
+        
+        <div class="card">
+            <form id="uploadForm" enctype="multipart/form-data">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📄</div>
+                    <div class="upload-text">명세표 이미지를 드래그하거나 클릭하세요</div>
+                    <div class="upload-hint">JPG, PNG 형식 지원 • 최대 10MB</div>
+                    <input type="file" id="fileInput" name="file" accept="image/*">
+                </div>
+                
+                <div class="file-info" id="fileInfo">
+                    <strong>선택된 파일:</strong> <span id="fileName"></span>
+                </div>
+                
+                <button type="submit" class="btn" id="submitBtn">업로드 및 재료 매칭 시작</button>
+            </form>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>OCR 추출 및 재료 매칭 중...</p>
+            </div>
+        </div>
+        
+        <div class="card result-box" id="resultBox">
+            <div class="summary" id="summary"></div>
+            <h3 style="margin-bottom: 15px;">매칭 결과</h3>
+            <div id="results"></div>
+        </div>
+    </div>
+    
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const loading = document.getElementById('loading');
+        const resultBox = document.getElementById('resultBox');
+        const results = document.getElementById('results');
+        const summary = document.getElementById('summary');
+        const submitBtn = document.getElementById('submitBtn');
+        const uploadForm = document.getElementById('uploadForm');
+        
+        // 드래그 앤 드롭
+        uploadArea.addEventListener('click', () => fileInput.click());
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                updateFileInfo();
+            }
+        });
+        
+        fileInput.addEventListener('change', updateFileInfo);
+        
+        function updateFileInfo() {
+            if (fileInput.files.length > 0) {
+                fileName.textContent = fileInput.files[0].name;
+                fileInfo.classList.add('show');
+            } else {
+                fileInfo.classList.remove('show');
+            }
+        }
+        
+        uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (fileInput.files.length === 0) {
+                alert('파일을 선택해주세요');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            
+            loading.classList.add('show');
+            submitBtn.disabled = true;
+            resultBox.classList.remove('show');
+            
+            try {
+                const response = await fetch('/api/specification/upload-with-matching', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    displayResults(data);
+                } else {
+                    const error = await response.text();
+                    alert('처리 실패: ' + error);
+                }
+            } catch (error) {
+                alert('오류 발생: ' + error.message);
+            } finally {
+                loading.classList.remove('show');
+                submitBtn.disabled = false;
+            }
+        });
+        
+        function displayResults(data) {
+            // 통계 계산
+            const items = data.items || [];
+            const totalCount = items.length;
+            const successCount = items.filter(item => item.unit && item.unit.startsWith('매칭:')).length;
+            const failCount = totalCount - successCount;
+            const successRate = totalCount > 0 ? (successCount / totalCount * 100).toFixed(1) : 0;
+            
+            // 요약 표시
+            summary.innerHTML = `
+                <h3>📊 매칭 통계</h3>
+                <div class="summary-stats">
+                    <div class="stat-item">
+                        <div class="stat-value">${totalCount}</div>
+                        <div class="stat-label">전체 항목</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" style="color: #28a745;">${successCount}</div>
+                        <div class="stat-label">매칭 성공</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" style="color: #dc3545;">${failCount}</div>
+                        <div class="stat-label">매칭 실패</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${successRate}%</div>
+                        <div class="stat-label">성공률</div>
+                    </div>
+                </div>
+            `;
+            
+            // 결과 표시
+            let html = '';
+            items.forEach(item => {
+                const isSuccess = item.unit && item.unit.startsWith('매칭:');
+                const className = isSuccess ? 'success' : 'error';
+                const badgeClass = isSuccess ? 'exact' : 'no-match';
+                const badgeText = isSuccess ? '✅ 매칭 성공' : '❌ 매칭 실패';
+                
+                html += `
+                    <div class="result-item ${className}">
+                        <h4>
+                            ${item.itemName}
+                            <span class="badge ${badgeClass}">${badgeText}</span>
+                        </h4>
+                        <p><strong>원본 텍스트:</strong> ${item.itemValue}</p>
+                        <p><strong>상태:</strong> ${item.unit}</p>
+                    </div>
+                `;
+            });
+            
+            results.innerHTML = html;
+            resultBox.classList.add('show');
+            
+            // 결과로 스크롤
+            resultBox.scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>

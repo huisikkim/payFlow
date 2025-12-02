@@ -7,6 +7,7 @@ import com.example.payflow.specification.domain.SpecificationRepository;
 import com.example.payflow.specification.domain.ProcessingStatus;
 import com.example.payflow.specification.presentation.dto.ParsedSpecificationDto;
 import com.example.payflow.specification.presentation.dto.SpecificationResponse;
+import com.example.payflow.specification.presentation.dto.IngredientMatchResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,7 @@ public class SpecificationService {
     private final SpecificationRepository repository;
     private final OCRService ocrService;
     private final LLMParsingService llmService;
+    private final RuleBasedMatchingService matchingService;
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final Gson gson;
     
@@ -32,10 +34,12 @@ public class SpecificationService {
             SpecificationRepository repository,
             OCRService ocrService,
             LLMParsingService llmService,
+            RuleBasedMatchingService matchingService,
             KafkaTemplate<String, String> kafkaTemplate) {
         this.repository = repository;
         this.ocrService = ocrService;
         this.llmService = llmService;
+        this.matchingService = matchingService;
         this.kafkaTemplate = kafkaTemplate;
         this.gson = new Gson();
         log.info("SpecificationService initialized");
@@ -122,6 +126,91 @@ public class SpecificationService {
         return repository.findByProductNameContaining(productName).stream()
                 .map(SpecificationResponse::from)
                 .collect(Collectors.toList());
+    }
+    
+    /**
+     * 명세표 업로드 및 규칙 기반 재료 매칭
+     */
+    public SpecificationResponse uploadAndMatchIngredients(MultipartFile file) {
+        try {
+            // 1. 명세표 엔티티 생성
+            Specification spec = Specification.builder()
+                    .imagePath(file.getOriginalFilename())
+                    .productName("Processing...")
+                    .status(ProcessingStatus.UPLOADED)
+                    .createdAt(LocalDateTime.now())
+                    .build();
+            spec = repository.save(spec);
+            log.info("Specification created: {}", spec.getId());
+            
+            // 2. OCR 추출
+            String extractedText = ocrService.extractTextFromImage(file);
+            spec.updateExtractedText(extractedText);
+            spec = repository.save(spec);
+            log.info("Text extracted for specification: {}", spec.getId());
+            
+            // 3. 텍스트를 줄 단위로 분리
+            String[] lines = extractedText.split("\n");
+            List<SpecificationItem> items = new ArrayList<>();
+            List<IngredientMatchResult> matchResults = new ArrayList<>();
+            
+            int sequence = 0;
+            for (String line : lines) {
+                line = line.trim();
+                if (line.isEmpty()) continue;
+                
+                // 재료 매칭 시도
+                IngredientMatchResult matchResult = matchingService.matchIngredient(line);
+                matchResults.add(matchResult);
+                
+                if (matchResult.getMatched()) {
+                    // 매칭 성공 시 표준 재료명으로 저장
+                    items.add(SpecificationItem.builder()
+                            .itemName(matchResult.getStandardName())
+                            .itemValue(matchResult.getOriginalText())
+                            .unit(String.format("매칭: %.0f%%", matchResult.getSimilarityScore() * 100))
+                            .sequence(sequence++)
+                            .build());
+                    log.info("Matched: '{}' -> '{}'", line, matchResult.getStandardName());
+                } else {
+                    // 매칭 실패 시 원본 텍스트 저장
+                    items.add(SpecificationItem.builder()
+                            .itemName(line)
+                            .itemValue("매칭 실패")
+                            .unit(matchResult.getFailureReason())
+                            .sequence(sequence++)
+                            .build());
+                    log.warn("Match failed: '{}'", line);
+                }
+            }
+            
+            // 4. 첫 번째 매칭된 재료를 상품명으로 사용
+            String productName = matchResults.stream()
+                    .filter(IngredientMatchResult::getMatched)
+                    .findFirst()
+                    .map(IngredientMatchResult::getStandardName)
+                    .orElse("미확인");
+            
+            // 5. 결과 저장
+            spec.updateParsedData(
+                    gson.toJson(matchResults),
+                    items,
+                    productName,
+                    "재료",
+                    null,
+                    items.size()
+            );
+            spec = repository.save(spec);
+            log.info("Specification matched: {} items", items.size());
+            
+            // 6. Kafka 이벤트 발행
+            publishEvent(spec);
+            
+            return SpecificationResponse.from(spec);
+        } catch (Exception e) {
+            log.error("Error processing specification with matching", e);
+            throw new RuntimeException("명세표 처리 실패: " + e.getMessage(), e);
+        }
     }
     
     private void publishEvent(Specification spec) {

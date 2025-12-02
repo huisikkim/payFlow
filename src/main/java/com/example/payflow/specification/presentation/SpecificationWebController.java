@@ -38,6 +38,11 @@ public class SpecificationWebController {
         return "specification/upload";
     }
     
+    @GetMapping("/upload-with-matching")
+    public String uploadWithMatchingPage() {
+        return "specification/upload-with-matching";
+    }
+    
     @GetMapping("/{id}")
     public String detail(@PathVariable Long id, Model model) {
         try {

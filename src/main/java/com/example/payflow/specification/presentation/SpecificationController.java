@@ -40,6 +40,26 @@ public class SpecificationController {
         }
     }
     
+    /**
+     * 명세표 업로드 및 규칙 기반 재료 매칭
+     */
+    @PostMapping("/upload-with-matching")
+    public ResponseEntity<?> uploadAndMatch(@RequestParam("file") MultipartFile file) {
+        try {
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest().body("파일을 선택해주세요");
+            }
+            
+            log.info("명세표 업로드 및 재료 매칭 시작: {}", file.getOriginalFilename());
+            SpecificationResponse response = service.uploadAndMatchIngredients(file);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Upload with matching failed", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("업로드 실패: " + e.getMessage());
+        }
+    }
+    
     @GetMapping("/{id}")
     public ResponseEntity<?> getSpecification(@PathVariable Long id) {
         try {
