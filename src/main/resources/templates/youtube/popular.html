@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube 인기 급상승 영상</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            color: #e0e7ff;
+        }
+
+        /* YouTube 전용 헤더 */
+        .youtube-header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 16px 24px;
+            border-bottom: 1px solid rgba(255, 0, 0, 0.2);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .youtube-header .logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 22px;
+            font-weight: 700;
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .youtube-icon {
+            background: #ff0000;
+            color: white;
+            width: 32px;
+            height: 22px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .page-header h1 {
+            font-size: 32px;
+            background: linear-gradient(135deg, #ff0000 0%, #ff6b6b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .page-header p {
+            color: rgba(224, 231, 255, 0.7);
+            font-size: 16px;
+        }
+
+        /* 필터 섹션 */
+        .filter-section {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-group label {
+            font-size: 14px;
+            color: rgba(224, 231, 255, 0.8);
+        }
+
+        .filter-group select {
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: 1px solid rgba(165, 180, 252, 0.3);
+            background: rgba(26, 26, 46, 0.8);
+            color: #e0e7ff;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .btn-refresh {
+            padding: 10px 24px;
+            background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-refresh:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(255, 0, 0, 0.4);
+        }
+
+        /* 로딩 */
+        .loading {
+            text-align: center;
+            padding: 60px;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 0, 0, 0.2);
+            border-top-color: #ff0000;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 비디오 그리드 */
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+        }
+
+        .video-card {
+            background: linear-gradient(135deg, rgba(26, 26, 46, 0.9) 0%, rgba(22, 33, 62, 0.9) 100%);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid rgba(165, 180, 252, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .video-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 40px rgba(255, 0, 0, 0.2);
+            border-color: rgba(255, 0, 0, 0.3);
+        }
+
+        .thumbnail-container {
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%;
+            overflow: hidden;
+        }
+
+        .thumbnail {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .video-card:hover .thumbnail {
+            transform: scale(1.05);
+        }
+
+        .duration-badge {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .rank-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .video-info {
+            padding: 16px;
+        }
+
+        .video-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #e0e7ff;
+            margin-bottom: 8px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            line-height: 1.4;
+        }
+
+        .channel-name {
+            font-size: 13px;
+            color: rgba(224, 231, 255, 0.6);
+            margin-bottom: 12px;
+        }
+
+        .video-stats {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            color: rgba(224, 231, 255, 0.7);
+        }
+
+        .stat-item .icon {
+            font-size: 14px;
+        }
+
+        /* 에러 메시지 */
+        .error-message {
+            text-align: center;
+            padding: 60px;
+            color: #ff6b6b;
+        }
+
+        .error-message h3 {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <header class="youtube-header">
+        <div class="header-content">
+            <a href="/youtube/popular" class="logo">
+                <span class="youtube-icon">▶</span>
+                YouTube 트렌드
+            </a>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>🔥 YouTube 인기 급상승</h1>
+            <p>실시간 인기 영상을 확인하세요</p>
+        </div>
+
+        <div class="filter-section">
+            <div class="filter-group">
+                <label>국가:</label>
+                <select id="regionCode">
+                    <option value="KR" selected>🇰🇷 한국</option>
+                    <option value="US">🇺🇸 미국</option>
+                    <option value="JP">🇯🇵 일본</option>
+                    <option value="GB">🇬🇧 영국</option>
+                    <option value="DE">🇩🇪 독일</option>
+                    <option value="FR">🇫🇷 프랑스</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>개수:</label>
+                <select id="maxResults">
+                    <option value="10">10개</option>
+                    <option value="25" selected>25개</option>
+                    <option value="50">50개</option>
+                </select>
+            </div>
+            <button class="btn-refresh" onclick="loadVideos()">🔄 새로고침</button>
+        </div>
+
+        <div id="loading" class="loading" style="display: none;">
+            <div class="loading-spinner"></div>
+            <p>인기 영상을 불러오는 중...</p>
+        </div>
+
+        <div id="error" class="error-message" style="display: none;">
+            <h3>⚠️ 오류 발생</h3>
+            <p id="error-text"></p>
+        </div>
+
+        <div id="video-grid" class="video-grid"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            loadVideos();
+        });
+
+        async function loadVideos() {
+            const regionCode = document.getElementById('regionCode').value;
+            const maxResults = document.getElementById('maxResults').value;
+            
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const grid = document.getElementById('video-grid');
+            
+            loading.style.display = 'block';
+            error.style.display = 'none';
+            grid.innerHTML = '';
+            
+            try {
+                const response = await fetch(`/api/youtube/popular/${regionCode}?maxResults=${maxResults}`);
+                const data = await response.json();
+                
+                loading.style.display = 'none';
+                
+                if (data.success && data.videos) {
+                    renderVideos(data.videos);
+                } else {
+                    showError('영상을 불러올 수 없습니다.');
+                }
+            } catch (err) {
+                loading.style.display = 'none';
+                showError('API 호출 중 오류가 발생했습니다: ' + err.message);
+            }
+        }
+
+        function renderVideos(videos) {
+            const grid = document.getElementById('video-grid');
+            
+            videos.forEach((video, index) => {
+                const card = document.createElement('div');
+                card.className = 'video-card';
+                card.onclick = () => window.open(`https://www.youtube.com/watch?v=${video.videoId}`, '_blank');
+                
+                card.innerHTML = `
+                    <div class="thumbnail-container">
+                        <img class="thumbnail" src="${video.thumbnailUrl || ''}" alt="${video.title}" loading="lazy">
+                        <div class="rank-badge">${index + 1}</div>
+                        ${video.duration ? `<div class="duration-badge">${formatDuration(video.duration)}</div>` : ''}
+                    </div>
+                    <div class="video-info">
+                        <div class="video-title">${escapeHtml(video.title)}</div>
+                        <div class="channel-name">${escapeHtml(video.channelTitle || '')}</div>
+                        <div class="video-stats">
+                            <div class="stat-item">
+                                <span class="icon">👁️</span>
+                                <span>${formatNumber(video.viewCount)}</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="icon">👍</span>
+                                <span>${formatNumber(video.likeCount)}</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="icon">💬</span>
+                                <span>${formatNumber(video.commentCount)}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                grid.appendChild(card);
+            });
+        }
+
+        function showError(message) {
+            const error = document.getElementById('error');
+            document.getElementById('error-text').textContent = message;
+            error.style.display = 'block';
+        }
+
+        function formatNumber(num) {
+            if (!num) return '0';
+            if (num >= 100000000) return (num / 100000000).toFixed(1) + '억';
+            if (num >= 10000) return (num / 10000).toFixed(1) + '만';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+            return num.toLocaleString();
+        }
+
+        function formatDuration(duration) {
+            if (!duration) return '';
+            // ISO 8601 duration (PT1H2M3S) to readable format
+            const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+            if (!match) return duration;
+            
+            const hours = match[1] ? parseInt(match[1]) : 0;
+            const minutes = match[2] ? parseInt(match[2]) : 0;
+            const seconds = match[3] ? parseInt(match[3]) : 0;
+            
+            if (hours > 0) {
+                return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+            return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

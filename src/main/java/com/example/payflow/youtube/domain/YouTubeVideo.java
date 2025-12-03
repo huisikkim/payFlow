@@ -1,0 +1,29 @@
+package com.example.payflow.youtube.domain;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class YouTubeVideo {
+    private String videoId;
+    private String title;
+    private String description;
+    private String channelId;
+    private String channelTitle;
+    private String thumbnailUrl;
+    private String publishedAt;
+    
+    // Statistics
+    private Long viewCount;
+    private Long likeCount;
+    private Long commentCount;
+    
+    // Additional info
+    private String duration;
+    private String categoryId;
+}
