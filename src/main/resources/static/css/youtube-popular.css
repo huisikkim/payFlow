@@ -1285,3 +1285,76 @@ body {
     color: #c4b5fd;
     text-decoration: underline;
 }
+
+/* 비디오 미리보기 */
+.thumbnail-wrapper {
+    position: relative;
+    cursor: pointer;
+}
+
+.video-preview-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 5;
+}
+
+.video-preview-container.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.video-preview-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 8px;
+}
+
+.thumbnail {
+    transition: opacity 0.3s ease;
+}
+
+.preview-indicator {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    z-index: 3;
+}
+
+.preview-indicator .material-symbols-outlined {
+    color: white;
+    font-size: 24px;
+}
+
+.thumbnail-wrapper:hover .preview-indicator {
+    opacity: 1;
+}
+
+.preview-indicator.hidden {
+    opacity: 0 !important;
+}
+
+/* 미리보기 중 다른 요소 숨기기 */
+.video-preview-container.active ~ .performance-score,
+.video-preview-container.active ~ .duration-badge,
+.video-preview-container.active ~ .preview-indicator {
+    opacity: 0;
+}

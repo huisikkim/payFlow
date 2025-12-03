@@ -136,13 +136,17 @@ function renderVideos(videos, showRank = true) {
         item.innerHTML = `
             <div class="video-item-left">
                 ${showRank ? `<div class="rank-number">${index + 1}</div>` : ''}
-                <div class="thumbnail-wrapper">
+                <div class="thumbnail-wrapper" data-video-id="${video.videoId}" onmouseenter="showVideoPreview(this)" onmouseleave="hideVideoPreview(this)">
                     <img class="thumbnail" src="${video.thumbnailUrl || ''}" alt="${escapeHtml(video.title)}" loading="lazy">
+                    <div class="video-preview-container"></div>
                     <div class="performance-score ${performanceInfo.class}" title="${performanceInfo.tooltip}">
                         <span class="score-value">${performanceScore}</span>
                         <span class="score-label">점</span>
                     </div>
                     ${video.duration ? `<div class="duration-badge">${formatDuration(video.duration)}</div>` : ''}
+                    <div class="preview-indicator">
+                        <span class="material-symbols-outlined">play_circle</span>
+                    </div>
                 </div>
             </div>
             <div class="video-content">
@@ -785,4 +789,64 @@ function generateTips(videos, avgDuration, avgEngagement, avgTitleLength) {
     }
     
     return '<ul>' + tips.map(tip => `<li>${tip}</li>`).join('') + '</ul>';
+}
+
+// 비디오 미리보기 타이머
+let previewTimer = null;
+let currentPreviewElement = null;
+
+/**
+ * 썸네일에 마우스 오버 시 YouTube 미리보기 표시
+ */
+function showVideoPreview(element) {
+    const videoId = element.dataset.videoId;
+    if (!videoId) return;
+    
+    // 기존 타이머 취소
+    if (previewTimer) {
+        clearTimeout(previewTimer);
+    }
+    
+    // 500ms 후에 미리보기 시작 (실수로 스쳐지나가는 경우 방지)
+    previewTimer = setTimeout(() => {
+        const container = element.querySelector('.video-preview-container');
+        if (!container) return;
+        
+        // iframe 생성
+        container.innerHTML = `
+            <iframe 
+                src="https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&modestbranding=1&rel=0&showinfo=0&start=0&enablejsapi=1"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+                class="video-preview-iframe"
+            ></iframe>
+        `;
+        
+        container.classList.add('active');
+        element.querySelector('.thumbnail').style.opacity = '0';
+        element.querySelector('.preview-indicator')?.classList.add('hidden');
+        currentPreviewElement = element;
+    }, 500);
+}
+
+/**
+ * 마우스가 떠나면 미리보기 숨기기
+ */
+function hideVideoPreview(element) {
+    // 타이머 취소
+    if (previewTimer) {
+        clearTimeout(previewTimer);
+        previewTimer = null;
+    }
+    
+    const container = element.querySelector('.video-preview-container');
+    if (!container) return;
+    
+    // iframe 제거 (리소스 해제)
+    container.innerHTML = '';
+    container.classList.remove('active');
+    element.querySelector('.thumbnail').style.opacity = '1';
+    element.querySelector('.preview-indicator')?.classList.remove('hidden');
+    currentPreviewElement = null;
 }
