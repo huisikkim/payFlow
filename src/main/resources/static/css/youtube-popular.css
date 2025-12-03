@@ -12,6 +12,85 @@
     vertical-align: middle;
 }
 
+/* 커스텀 툴팁 */
+.tooltip-wrapper {
+    position: relative;
+    display: inline-flex;
+}
+
+.tooltip-content {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1f2937;
+    border: 1px solid #374151;
+    border-radius: 8px;
+    padding: 12px 16px;
+    min-width: 240px;
+    max-width: 320px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+.tooltip-wrapper:hover .tooltip-content {
+    opacity: 1;
+    visibility: visible;
+}
+
+.tooltip-content::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 8px solid transparent;
+    border-top-color: #374151;
+}
+
+.tooltip-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.tooltip-formula {
+    font-size: 12px;
+    color: #9ca3af;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 6px 10px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    font-family: monospace;
+}
+
+.tooltip-desc {
+    font-size: 12px;
+    color: #d1d5db;
+    line-height: 1.5;
+}
+
+.tooltip-levels {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #374151;
+    font-size: 11px;
+    color: #9ca3af;
+}
+
+.tooltip-levels span {
+    display: inline-block;
+    margin-right: 8px;
+}
+
 body {
     font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
     background: #111827;
@@ -680,8 +759,167 @@ body {
     }
     
     .engagement-badge,
-    .performance-badge {
+    .performance-badge,
+    .viral-badge,
+    .explosiveness-badge {
         width: 100%;
         justify-content: center;
     }
+}
+
+/* 바이럴 지수 배지 */
+.viral-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 9999px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.viral-icon {
+    font-size: 14px;
+}
+
+.viral-label {
+    color: inherit;
+    opacity: 0.9;
+}
+
+.viral-value {
+    font-weight: 600;
+}
+
+.viral-level {
+    font-weight: 600;
+}
+
+/* 바이럴 레벨별 스타일 */
+.viral-excellent {
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: #fca5a5;
+}
+.viral-excellent .viral-level {
+    color: #fca5a5;
+}
+
+.viral-high {
+    background: rgba(249, 115, 22, 0.15);
+    border: 1px solid rgba(249, 115, 22, 0.4);
+    color: #fdba74;
+}
+.viral-high .viral-level {
+    color: #fdba74;
+}
+
+.viral-good {
+    background: rgba(234, 179, 8, 0.15);
+    border: 1px solid rgba(234, 179, 8, 0.4);
+    color: #fde047;
+}
+.viral-good .viral-level {
+    color: #fde047;
+}
+
+.viral-normal {
+    background: rgba(34, 197, 94, 0.15);
+    border: 1px solid rgba(34, 197, 94, 0.4);
+    color: #86efac;
+}
+.viral-normal .viral-level {
+    color: #86efac;
+}
+
+.viral-low {
+    background: rgba(107, 114, 128, 0.2);
+    border: 1px solid rgba(107, 114, 128, 0.4);
+    color: #d1d5db;
+}
+.viral-low .viral-level {
+    color: #9ca3af;
+}
+
+.viral-none {
+    display: none;
+}
+
+/* 폭발력 배지 */
+.explosiveness-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 9999px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.explosiveness-icon {
+    font-size: 14px;
+}
+
+.explosiveness-label {
+    color: inherit;
+    opacity: 0.9;
+}
+
+.explosiveness-value {
+    font-weight: 600;
+}
+
+.explosiveness-level {
+    font-weight: 600;
+}
+
+/* 폭발력 레벨별 스타일 */
+.explosiveness-excellent {
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: #fca5a5;
+}
+.explosiveness-excellent .explosiveness-level {
+    color: #fca5a5;
+}
+
+.explosiveness-high {
+    background: rgba(249, 115, 22, 0.15);
+    border: 1px solid rgba(249, 115, 22, 0.4);
+    color: #fdba74;
+}
+.explosiveness-high .explosiveness-level {
+    color: #fdba74;
+}
+
+.explosiveness-good {
+    background: rgba(234, 179, 8, 0.15);
+    border: 1px solid rgba(234, 179, 8, 0.4);
+    color: #fde047;
+}
+.explosiveness-good .explosiveness-level {
+    color: #fde047;
+}
+
+.explosiveness-normal {
+    background: rgba(34, 197, 94, 0.15);
+    border: 1px solid rgba(34, 197, 94, 0.4);
+    color: #86efac;
+}
+.explosiveness-normal .explosiveness-level {
+    color: #86efac;
+}
+
+.explosiveness-low {
+    background: rgba(107, 114, 128, 0.2);
+    border: 1px solid rgba(107, 114, 128, 0.4);
+    color: #d1d5db;
+}
+.explosiveness-low .explosiveness-level {
+    color: #9ca3af;
+}
+
+/* 지표 행 간격 */
+.metrics-row + .metrics-row {
+    margin-top: 6px;
 }

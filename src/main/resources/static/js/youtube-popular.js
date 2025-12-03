@@ -127,6 +127,10 @@ function renderVideos(videos, showRank = true) {
         const engagementInfo = getEngagementLevel(engagementRate);
         const performanceScore = calculatePerformanceScore(video);
         const performanceInfo = getPerformanceLevel(performanceScore);
+        const viralIndex = calculateViralIndex(video);
+        const viralInfo = getViralLevel(viralIndex);
+        const explosiveness = calculateExplosiveness(video);
+        const explosivenessInfo = getExplosivenessLevel(explosiveness);
         
         item.innerHTML = `
             <div class="video-item-left">
@@ -142,19 +146,87 @@ function renderVideos(videos, showRank = true) {
             </div>
             <div class="video-content">
                 <div class="video-title">${escapeHtml(video.title)}</div>
-                <div class="channel-name">${escapeHtml(video.channelTitle || '')}</div>
+                <div class="channel-name">${escapeHtml(video.channelTitle || '')}${video.channelSubscriberCount ? ` · 구독자 ${formatNumber(video.channelSubscriberCount)}명` : ''}</div>
                 <div class="metrics-row">
-                    <div class="engagement-badge ${engagementInfo.class}" title="참여율: (좋아요 + 댓글) / 조회수">
-                        <span class="material-symbols-outlined engagement-icon">local_fire_department</span>
-                        <span class="engagement-label">참여율</span>
-                        <span class="engagement-value">${engagementRate}%</span>
-                        <span class="engagement-level">${engagementInfo.label}</span>
+                    <div class="tooltip-wrapper">
+                        <div class="engagement-badge ${engagementInfo.class}">
+                            <span class="material-symbols-outlined engagement-icon">local_fire_department</span>
+                            <span class="engagement-label">참여율</span>
+                            <span class="engagement-value">${engagementRate}%</span>
+                            <span class="engagement-level">${engagementInfo.label}</span>
+                        </div>
+                        <div class="tooltip-content" onclick="event.stopPropagation()">
+                            <div class="tooltip-title">🔥 참여율 (Engagement Rate)</div>
+                            <div class="tooltip-formula">(좋아요 + 댓글) ÷ 조회수 × 100</div>
+                            <div class="tooltip-desc">시청자들이 영상에 얼마나 적극적으로 반응하는지 나타내요. 높을수록 시청자 참여도가 좋은 영상이에요.</div>
+                            <div class="tooltip-levels">
+                                <span>🔴 최고 10%↑</span>
+                                <span>🟠 높음 5%↑</span>
+                                <span>🟢 좋음 2%↑</span>
+                                <span>🔵 보통 1%↑</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="performance-badge ${performanceInfo.class}" title="${performanceInfo.tooltip}">
-                        <span class="material-symbols-outlined performance-icon">star</span>
-                        <span class="performance-label">성과도</span>
-                        <span class="performance-value">${performanceScore}</span>
-                        <span class="performance-level">${performanceInfo.label}</span>
+                    <div class="tooltip-wrapper">
+                        <div class="performance-badge ${performanceInfo.class}">
+                            <span class="material-symbols-outlined performance-icon">star</span>
+                            <span class="performance-label">성과도</span>
+                            <span class="performance-value">${performanceScore}</span>
+                            <span class="performance-level">${performanceInfo.label}</span>
+                        </div>
+                        <div class="tooltip-content" onclick="event.stopPropagation()">
+                            <div class="tooltip-title">⭐ 종합 성과도</div>
+                            <div class="tooltip-formula">바이럴속도(30%) + 좋아요비율(30%) + 참여율(40%)</div>
+                            <div class="tooltip-desc">여러 지표를 종합해서 영상의 전체적인 성과를 0~100점으로 평가해요.</div>
+                            <div class="tooltip-levels">
+                                <span>🟣 S등급 80↑</span>
+                                <span>🩷 A등급 60↑</span>
+                                <span>🩵 B등급 40↑</span>
+                                <span>🩶 C등급 20↑</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="metrics-row">
+                    ${viralIndex !== null ? `
+                    <div class="tooltip-wrapper">
+                        <div class="viral-badge ${viralInfo.class}">
+                            <span class="material-symbols-outlined viral-icon">rocket_launch</span>
+                            <span class="viral-label">바이럴</span>
+                            <span class="viral-value">${viralIndex}%</span>
+                            <span class="viral-level">${viralInfo.label}</span>
+                        </div>
+                        <div class="tooltip-content" onclick="event.stopPropagation()">
+                            <div class="tooltip-title">🚀 바이럴 지수</div>
+                            <div class="tooltip-formula">조회수 ÷ 채널 구독자수 × 100</div>
+                            <div class="tooltip-desc">구독자 대비 조회수 비율이에요. 100% 이상이면 비구독자 유입이 많다는 뜻으로, 유튜브 알고리즘 추천을 잘 받고 있어요!</div>
+                            <div class="tooltip-levels">
+                                <span>🔴 대박 500%↑</span>
+                                <span>🟠 폭발 200%↑</span>
+                                <span>🟡 확산 100%↑</span>
+                                <span>🟢 양호 50%↑</span>
+                            </div>
+                        </div>
+                    </div>
+                    ` : ''}
+                    <div class="tooltip-wrapper">
+                        <div class="explosiveness-badge ${explosivenessInfo.class}">
+                            <span class="material-symbols-outlined explosiveness-icon">bolt</span>
+                            <span class="explosiveness-label">폭발력</span>
+                            <span class="explosiveness-value">${explosiveness}</span>
+                            <span class="explosiveness-level">${explosivenessInfo.label}</span>
+                        </div>
+                        <div class="tooltip-content" onclick="event.stopPropagation()">
+                            <div class="tooltip-title">⚡ 폭발력 (시간당 조회수)</div>
+                            <div class="tooltip-formula">조회수 ÷ 업로드 후 경과 시간</div>
+                            <div class="tooltip-desc">영상이 얼마나 빠르게 퍼지고 있는지 나타내요. 높을수록 현재 핫한 영상이에요!</div>
+                            <div class="tooltip-levels">
+                                <span>🔴 초고속 10만/h↑</span>
+                                <span>🟠 고속 5만/h↑</span>
+                                <span>🟡 빠름 1만/h↑</span>
+                                <span>🟢 보통 1천/h↑</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -257,6 +329,84 @@ function getPerformanceLevel(score) {
         return { class: 'performance-normal', label: 'C', tooltip };
     } else {
         return { class: 'performance-low', label: 'D', tooltip };
+    }
+}
+
+/**
+ * 바이럴 지수 계산 (구독자 도달률)
+ * 조회수 / 채널 구독자수 × 100
+ * 100% 이상이면 비구독자 유입이 많다는 뜻
+ */
+function calculateViralIndex(video) {
+    const views = video.viewCount || 0;
+    const subscribers = video.channelSubscriberCount;
+    
+    if (!subscribers || subscribers === 0) return null;
+    
+    const index = (views / subscribers) * 100;
+    return index.toFixed(0);
+}
+
+function getViralLevel(index) {
+    if (index === null) {
+        return { class: 'viral-none', label: '-' };
+    }
+    
+    const numIndex = parseFloat(index);
+    
+    if (numIndex >= 500) {
+        return { class: 'viral-excellent', label: '대박' };
+    } else if (numIndex >= 200) {
+        return { class: 'viral-high', label: '폭발' };
+    } else if (numIndex >= 100) {
+        return { class: 'viral-good', label: '확산' };
+    } else if (numIndex >= 50) {
+        return { class: 'viral-normal', label: '양호' };
+    } else {
+        return { class: 'viral-low', label: '일반' };
+    }
+}
+
+/**
+ * 폭발력 계산 (시간당 조회수)
+ * 조회수 / 업로드 후 시간
+ */
+function calculateExplosiveness(video) {
+    const views = video.viewCount || 0;
+    const publishedAt = video.publishedAt;
+    
+    if (!publishedAt || views === 0) return '0';
+    
+    const hoursSinceUpload = Math.max(1, (Date.now() - new Date(publishedAt).getTime()) / (1000 * 60 * 60));
+    const viewsPerHour = views / hoursSinceUpload;
+    
+    return formatNumber(Math.round(viewsPerHour)) + '/h';
+}
+
+function getExplosivenessLevel(explosiveness) {
+    // 숫자 부분만 추출
+    const numStr = explosiveness.replace(/[^0-9.]/g, '');
+    let num = parseFloat(numStr) || 0;
+    
+    // 만, 억 단위 처리
+    if (explosiveness.includes('억')) {
+        num *= 100000000;
+    } else if (explosiveness.includes('만')) {
+        num *= 10000;
+    } else if (explosiveness.includes('K')) {
+        num *= 1000;
+    }
+    
+    if (num >= 100000) {
+        return { class: 'explosiveness-excellent', label: '초고속' };
+    } else if (num >= 50000) {
+        return { class: 'explosiveness-high', label: '고속' };
+    } else if (num >= 10000) {
+        return { class: 'explosiveness-good', label: '빠름' };
+    } else if (num >= 1000) {
+        return { class: 'explosiveness-normal', label: '보통' };
+    } else {
+        return { class: 'explosiveness-low', label: '느림' };
     }
 }
 

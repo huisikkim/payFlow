@@ -26,4 +26,7 @@ public class YouTubeVideo {
     // Additional info
     private String duration;
     private String categoryId;
+    
+    // Channel Statistics (for viral index calculation)
+    private Long channelSubscriberCount;
 }

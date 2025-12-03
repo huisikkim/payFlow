@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -25,11 +26,12 @@ public class YouTubeService {
     }
 
     /**
-     * 특정 국가의 인기 급상승 영상 목록 조회
+     * 특정 국가의 인기 급상승 영상 목록 조회 (채널 구독자 정보 포함)
      */
     public List<YouTubeVideo> getPopularVideos(String regionCode, int maxResults) {
         log.info("Getting popular videos for region: {}, maxResults: {}", regionCode, maxResults);
-        return youTubeApiClient.getMostPopularVideos(regionCode, maxResults);
+        List<YouTubeVideo> videos = youTubeApiClient.getMostPopularVideos(regionCode, maxResults);
+        return enrichWithChannelSubscribers(videos);
     }
 
     /**
@@ -75,10 +77,39 @@ public class YouTubeService {
     }
 
     /**
-     * 키워드로 영상 검색
+     * 키워드로 영상 검색 (채널 구독자 정보 포함)
      */
     public List<YouTubeVideo> searchVideos(String query, int maxResults) {
         log.info("Searching videos with query: {}, maxResults: {}", query, maxResults);
-        return youTubeApiClient.searchVideos(query, maxResults);
+        List<YouTubeVideo> videos = youTubeApiClient.searchVideos(query, maxResults);
+        return enrichWithChannelSubscribers(videos);
+    }
+
+    /**
+     * 영상 목록에 채널 구독자 정보 추가
+     */
+    private List<YouTubeVideo> enrichWithChannelSubscribers(List<YouTubeVideo> videos) {
+        if (videos == null || videos.isEmpty()) {
+            return videos;
+        }
+        
+        // 채널 ID 목록 추출
+        List<String> channelIds = videos.stream()
+                .map(YouTubeVideo::getChannelId)
+                .filter(id -> id != null)
+                .distinct()
+                .collect(Collectors.toList());
+        
+        // 채널 구독자 수 조회
+        Map<String, Long> subscriberCounts = youTubeApiClient.getChannelSubscriberCounts(channelIds);
+        
+        // 영상에 구독자 수 설정
+        videos.forEach(video -> {
+            if (video.getChannelId() != null) {
+                video.setChannelSubscriberCount(subscriberCounts.get(video.getChannelId()));
+            }
+        });
+        
+        return videos;
     }
 }

@@ -306,4 +306,60 @@ public class YouTubeApiClient {
         return videoIds;
     }
 
+    /**
+     * 채널 구독자 수 조회
+     */
+    public java.util.Map<String, Long> getChannelSubscriberCounts(List<String> channelIds) {
+        java.util.Map<String, Long> subscriberCounts = new java.util.HashMap<>();
+        
+        if (channelIds == null || channelIds.isEmpty()) {
+            return subscriberCounts;
+        }
+        
+        // 중복 제거
+        List<String> uniqueChannelIds = channelIds.stream().distinct().collect(java.util.stream.Collectors.toList());
+        String ids = String.join(",", uniqueChannelIds);
+        
+        log.info("Fetching subscriber counts for {} channels", uniqueChannelIds.size());
+        
+        URI uri = UriComponentsBuilder.fromHttpUrl(baseUrl + "/channels")
+                .queryParam("part", "statistics")
+                .queryParam("id", ids)
+                .queryParam("key", apiKey)
+                .build()
+                .encode()
+                .toUri();
+        
+        try {
+            String response = webClient.get()
+                    .uri(uri)
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block();
+            
+            JsonObject json = JsonParser.parseString(response).getAsJsonObject();
+            JsonArray items = json.getAsJsonArray("items");
+            
+            if (items != null) {
+                for (JsonElement item : items) {
+                    JsonObject channelObj = item.getAsJsonObject();
+                    String channelId = channelObj.get("id").getAsString();
+                    JsonObject statistics = channelObj.getAsJsonObject("statistics");
+                    
+                    // hiddenSubscriberCount가 true면 구독자 수가 비공개
+                    boolean isHidden = statistics.has("hiddenSubscriberCount") 
+                        && statistics.get("hiddenSubscriberCount").getAsBoolean();
+                    
+                    if (!isHidden && statistics.has("subscriberCount")) {
+                        subscriberCounts.put(channelId, statistics.get("subscriberCount").getAsLong());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error fetching channel subscriber counts: {}", e.getMessage());
+        }
+        
+        return subscriberCounts;
+    }
+
 }
