@@ -147,6 +147,9 @@ function renderVideos(videos, showRank = true) {
                     <div class="preview-indicator">
                         <span class="material-symbols-outlined">play_circle</span>
                     </div>
+                    <button class="btn-favorite" onclick="event.stopPropagation(); addToFavorites(${JSON.stringify(video).replace(/"/g, '&quot;')})" title="즐겨찾기에 추가">
+                        <span class="material-symbols-outlined">bookmark_add</span>
+                    </button>
                 </div>
             </div>
             <div class="video-content">
@@ -849,4 +852,24 @@ function hideVideoPreview(element) {
     element.querySelector('.thumbnail').style.opacity = '1';
     element.querySelector('.preview-indicator')?.classList.remove('hidden');
     currentPreviewElement = null;
+}
+
+
+// 즐겨찾기에 추가 (폴더 선택 모달 열기)
+function addToFavorites(video) {
+    const videoData = {
+        videoId: video.videoId,
+        title: video.title,
+        channelTitle: video.channelTitle,
+        thumbnailUrl: video.thumbnailUrl,
+        viewCount: video.viewCount,
+        likeCount: video.likeCount,
+        duration: video.duration
+    };
+    
+    if (typeof showSelectFolderModal === 'function') {
+        showSelectFolderModal(videoData);
+    } else {
+        alert('즐겨찾기 기능을 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
+    }
 }

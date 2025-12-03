@@ -54,6 +54,10 @@
                         <span class="material-symbols-outlined">search</span>
                         검색 결과
                     </button>
+                    <button class="tab-btn" data-tab="favorites" onclick="switchTab('favorites')">
+                        <span class="material-symbols-outlined">folder_special</span>
+                        즐겨찾기
+                    </button>
                 </div>
                 <button class="btn-refresh" onclick="loadCurrentTab()">
                     <span class="material-symbols-outlined">refresh</span>
@@ -171,8 +175,82 @@
         </div>
 
         <div id="video-list" class="video-list"></div>
+
+        <!-- 즐겨찾기 섹션 -->
+        <div id="favorites-section" class="favorites-section" style="display: none;">
+            <div class="folders-header">
+                <h2>
+                    <span class="material-symbols-outlined">folder_special</span>
+                    내 즐겨찾기 폴더
+                </h2>
+                <button class="btn-create-folder" onclick="showCreateFolderModal()">
+                    <span class="material-symbols-outlined">create_new_folder</span>
+                    새 폴더
+                </button>
+            </div>
+            <div id="folders-list" class="folders-list"></div>
+            <div id="folder-videos" class="folder-videos" style="display: none;">
+                <div class="folder-videos-header">
+                    <button class="btn-back" onclick="showFoldersList()">
+                        <span class="material-symbols-outlined">arrow_back</span>
+                        폴더 목록
+                    </button>
+                    <h3 id="current-folder-name"></h3>
+                    <button class="btn-delete-folder" onclick="deleteCurrentFolder()">
+                        <span class="material-symbols-outlined">delete</span>
+                    </button>
+                </div>
+                <div id="folder-video-list" class="video-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 폴더 생성 모달 -->
+    <div id="create-folder-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>새 폴더 만들기</h3>
+                <button class="modal-close" onclick="hideCreateFolderModal()">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="folder-name">폴더명</label>
+                    <input type="text" id="folder-name" placeholder="폴더명을 입력하세요">
+                </div>
+                <div class="form-group">
+                    <label for="folder-desc">설명 (선택)</label>
+                    <input type="text" id="folder-desc" placeholder="폴더 설명">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="hideCreateFolderModal()">취소</button>
+                <button class="btn-confirm" onclick="createFolder()">만들기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 폴더 선택 모달 -->
+    <div id="select-folder-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>폴더에 추가</h3>
+                <button class="modal-close" onclick="hideSelectFolderModal()">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="folder-select-list" class="folder-select-list"></div>
+                <button class="btn-new-folder-inline" onclick="hideSelectFolderModal(); showCreateFolderModal();">
+                    <span class="material-symbols-outlined">add</span>
+                    새 폴더 만들기
+                </button>
+            </div>
+        </div>
     </div>
 
     <script th:src="@{/js/youtube-popular.js}"></script>
+    <script th:src="@{/js/youtube-favorites.js}"></script>
 </body>
 </html>
