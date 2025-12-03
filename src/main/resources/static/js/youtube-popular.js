@@ -123,6 +123,9 @@ function renderVideos(videos, showRank = true) {
         item.className = 'video-item';
         item.onclick = () => window.open(`https://www.youtube.com/watch?v=${video.videoId}`, '_blank');
         
+        const engagementRate = calculateEngagementRate(video);
+        const engagementInfo = getEngagementLevel(engagementRate);
+        
         item.innerHTML = `
             ${showRank ? `<div class="rank-number">${index + 1}</div>` : ''}
             <div class="thumbnail-wrapper">
@@ -132,6 +135,12 @@ function renderVideos(videos, showRank = true) {
             <div class="video-content">
                 <div class="video-title">${escapeHtml(video.title)}</div>
                 <div class="channel-name">${escapeHtml(video.channelTitle || '')}</div>
+                <div class="engagement-badge ${engagementInfo.class}" title="참여율: (좋아요 + 댓글) / 조회수">
+                    <span class="engagement-icon">🔥</span>
+                    <span class="engagement-label">참여율</span>
+                    <span class="engagement-value">${engagementRate}%</span>
+                    <span class="engagement-level">${engagementInfo.label}</span>
+                </div>
             </div>
             <div class="video-stats">
                 <div class="stat-row views">
@@ -154,6 +163,33 @@ function renderVideos(videos, showRank = true) {
         
         list.appendChild(item);
     });
+}
+
+function calculateEngagementRate(video) {
+    const views = video.viewCount || 0;
+    const likes = video.likeCount || 0;
+    const comments = video.commentCount || 0;
+    
+    if (views === 0) return '0.00';
+    
+    const rate = ((likes + comments) / views) * 100;
+    return rate.toFixed(2);
+}
+
+function getEngagementLevel(rate) {
+    const numRate = parseFloat(rate);
+    
+    if (numRate >= 10) {
+        return { class: 'engagement-excellent', label: '최고' };
+    } else if (numRate >= 5) {
+        return { class: 'engagement-high', label: '높음' };
+    } else if (numRate >= 2) {
+        return { class: 'engagement-good', label: '좋음' };
+    } else if (numRate >= 1) {
+        return { class: 'engagement-normal', label: '보통' };
+    } else {
+        return { class: 'engagement-low', label: '낮음' };
+    }
 }
 
 function showError(message) {
