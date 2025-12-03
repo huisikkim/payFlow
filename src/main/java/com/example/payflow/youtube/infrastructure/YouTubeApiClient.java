@@ -307,23 +307,23 @@ public class YouTubeApiClient {
     }
 
     /**
-     * 채널 구독자 수 조회
+     * 채널 정보 조회 (구독자 수 + 설명 + 연락처 파싱)
      */
-    public java.util.Map<String, Long> getChannelSubscriberCounts(List<String> channelIds) {
-        java.util.Map<String, Long> subscriberCounts = new java.util.HashMap<>();
+    public java.util.Map<String, ChannelInfo> getChannelInfos(List<String> channelIds) {
+        java.util.Map<String, ChannelInfo> channelInfos = new java.util.HashMap<>();
         
         if (channelIds == null || channelIds.isEmpty()) {
-            return subscriberCounts;
+            return channelInfos;
         }
         
         // 중복 제거
         List<String> uniqueChannelIds = channelIds.stream().distinct().collect(java.util.stream.Collectors.toList());
         String ids = String.join(",", uniqueChannelIds);
         
-        log.info("Fetching subscriber counts for {} channels", uniqueChannelIds.size());
+        log.info("Fetching channel info for {} channels", uniqueChannelIds.size());
         
         URI uri = UriComponentsBuilder.fromHttpUrl(baseUrl + "/channels")
-                .queryParam("part", "statistics")
+                .queryParam("part", "statistics,snippet")
                 .queryParam("id", ids)
                 .queryParam("key", apiKey)
                 .build()
@@ -345,21 +345,110 @@ public class YouTubeApiClient {
                     JsonObject channelObj = item.getAsJsonObject();
                     String channelId = channelObj.get("id").getAsString();
                     JsonObject statistics = channelObj.getAsJsonObject("statistics");
+                    JsonObject snippet = channelObj.getAsJsonObject("snippet");
                     
-                    // hiddenSubscriberCount가 true면 구독자 수가 비공개
+                    ChannelInfo info = new ChannelInfo();
+                    
+                    // 구독자 수
                     boolean isHidden = statistics.has("hiddenSubscriberCount") 
                         && statistics.get("hiddenSubscriberCount").getAsBoolean();
-                    
                     if (!isHidden && statistics.has("subscriberCount")) {
-                        subscriberCounts.put(channelId, statistics.get("subscriberCount").getAsLong());
+                        info.subscriberCount = statistics.get("subscriberCount").getAsLong();
                     }
+                    
+                    // 채널 설명
+                    String description = getStringOrNull(snippet, "description");
+                    info.description = description;
+                    
+                    // 연락처 파싱
+                    if (description != null) {
+                        info.email = parseEmail(description);
+                        info.instagram = parseInstagram(description);
+                        info.twitter = parseTwitter(description);
+                        info.website = parseWebsite(description);
+                    }
+                    
+                    channelInfos.put(channelId, info);
                 }
             }
         } catch (Exception e) {
-            log.error("Error fetching channel subscriber counts: {}", e.getMessage());
+            log.error("Error fetching channel info: {}", e.getMessage());
         }
         
-        return subscriberCounts;
+        return channelInfos;
+    }
+    
+    /**
+     * 채널 구독자 수 조회 (하위 호환성 유지)
+     */
+    public java.util.Map<String, Long> getChannelSubscriberCounts(List<String> channelIds) {
+        java.util.Map<String, ChannelInfo> infos = getChannelInfos(channelIds);
+        java.util.Map<String, Long> counts = new java.util.HashMap<>();
+        infos.forEach((id, info) -> {
+            if (info.subscriberCount != null) {
+                counts.put(id, info.subscriberCount);
+            }
+        });
+        return counts;
+    }
+    
+    // 이메일 파싱
+    private String parseEmail(String text) {
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(
+            "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}"
+        );
+        java.util.regex.Matcher matcher = pattern.matcher(text);
+        return matcher.find() ? matcher.group() : null;
+    }
+    
+    // 인스타그램 파싱
+    private String parseInstagram(String text) {
+        // instagram.com/username 또는 @username 패턴
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(
+            "(?:instagram\\.com/|insta(?:gram)?[:\\s]*@?)([a-zA-Z0-9_.]+)",
+            java.util.regex.Pattern.CASE_INSENSITIVE
+        );
+        java.util.regex.Matcher matcher = pattern.matcher(text);
+        return matcher.find() ? "@" + matcher.group(1) : null;
+    }
+    
+    // 트위터/X 파싱
+    private String parseTwitter(String text) {
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(
+            "(?:twitter\\.com/|x\\.com/|twitter[:\\s]*@?)([a-zA-Z0-9_]+)",
+            java.util.regex.Pattern.CASE_INSENSITIVE
+        );
+        java.util.regex.Matcher matcher = pattern.matcher(text);
+        return matcher.find() ? "@" + matcher.group(1) : null;
+    }
+    
+    // 웹사이트 파싱
+    private String parseWebsite(String text) {
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(
+            "(https?://[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}[/a-zA-Z0-9._-]*)",
+            java.util.regex.Pattern.CASE_INSENSITIVE
+        );
+        java.util.regex.Matcher matcher = pattern.matcher(text);
+        // 유튜브, 인스타, 트위터 링크 제외
+        while (matcher.find()) {
+            String url = matcher.group(1);
+            if (!url.contains("youtube.com") && !url.contains("youtu.be") 
+                && !url.contains("instagram.com") && !url.contains("twitter.com")
+                && !url.contains("x.com") && !url.contains("facebook.com")) {
+                return url;
+            }
+        }
+        return null;
+    }
+    
+    // 채널 정보 내부 클래스
+    public static class ChannelInfo {
+        public Long subscriberCount;
+        public String description;
+        public String email;
+        public String instagram;
+        public String twitter;
+        public String website;
     }
 
 }

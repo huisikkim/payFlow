@@ -86,7 +86,7 @@ public class YouTubeService {
     }
 
     /**
-     * 영상 목록에 채널 구독자 정보 추가
+     * 영상 목록에 채널 정보 추가 (구독자 수 + 연락처)
      */
     private List<YouTubeVideo> enrichWithChannelSubscribers(List<YouTubeVideo> videos) {
         if (videos == null || videos.isEmpty()) {
@@ -100,13 +100,21 @@ public class YouTubeService {
                 .distinct()
                 .collect(Collectors.toList());
         
-        // 채널 구독자 수 조회
-        Map<String, Long> subscriberCounts = youTubeApiClient.getChannelSubscriberCounts(channelIds);
+        // 채널 정보 조회 (구독자 수 + 설명 + 연락처)
+        Map<String, YouTubeApiClient.ChannelInfo> channelInfos = youTubeApiClient.getChannelInfos(channelIds);
         
-        // 영상에 구독자 수 설정
+        // 영상에 채널 정보 설정
         videos.forEach(video -> {
             if (video.getChannelId() != null) {
-                video.setChannelSubscriberCount(subscriberCounts.get(video.getChannelId()));
+                YouTubeApiClient.ChannelInfo info = channelInfos.get(video.getChannelId());
+                if (info != null) {
+                    video.setChannelSubscriberCount(info.subscriberCount);
+                    video.setChannelDescription(info.description);
+                    video.setChannelEmail(info.email);
+                    video.setChannelInstagram(info.instagram);
+                    video.setChannelTwitter(info.twitter);
+                    video.setChannelWebsite(info.website);
+                }
             }
         });
         

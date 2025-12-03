@@ -923,3 +923,77 @@ body {
 .metrics-row + .metrics-row {
     margin-top: 6px;
 }
+
+/* 채널 연락처 정보 */
+.contact-info {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #374151;
+    justify-content: flex-end;
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    font-size: 16px;
+}
+
+.contact-item:hover {
+    transform: scale(1.1);
+}
+
+.contact-item.email {
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #f87171;
+}
+
+.contact-item.email:hover {
+    background: rgba(239, 68, 68, 0.25);
+}
+
+.contact-item.instagram {
+    background: linear-gradient(135deg, rgba(131, 58, 180, 0.15), rgba(253, 29, 29, 0.15), rgba(252, 176, 69, 0.15));
+    border: 1px solid rgba(225, 48, 108, 0.3);
+    color: #e1306c;
+}
+
+.contact-item.instagram:hover {
+    background: linear-gradient(135deg, rgba(131, 58, 180, 0.25), rgba(253, 29, 29, 0.25), rgba(252, 176, 69, 0.25));
+}
+
+.contact-item.twitter {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.contact-item.twitter:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.contact-item.website {
+    background: rgba(59, 130, 246, 0.15);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    color: #60a5fa;
+}
+
+.contact-item.website:hover {
+    background: rgba(59, 130, 246, 0.25);
+}
+
+@media (max-width: 767px) {
+    .contact-info {
+        justify-content: center;
+    }
+}

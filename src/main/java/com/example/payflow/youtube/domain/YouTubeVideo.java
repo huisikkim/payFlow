@@ -29,4 +29,11 @@ public class YouTubeVideo {
     
     // Channel Statistics (for viral index calculation)
     private Long channelSubscriberCount;
+    
+    // Channel Contact Info (parsed from channel description)
+    private String channelDescription;
+    private String channelEmail;
+    private String channelInstagram;
+    private String channelTwitter;
+    private String channelWebsite;
 }

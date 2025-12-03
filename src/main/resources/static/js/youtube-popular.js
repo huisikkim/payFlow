@@ -243,11 +243,43 @@ function renderVideos(videos, showRank = true) {
                     <span><span class="material-symbols-outlined icon">chat_bubble</span> 댓글</span>
                     <span class="value">${formatNumber(video.commentCount)}</span>
                 </div>
+                ${renderContactInfo(video)}
             </div>
         `;
         
         list.appendChild(item);
     });
+}
+
+function renderContactInfo(video) {
+    const hasContact = video.channelEmail || video.channelInstagram || video.channelTwitter || video.channelWebsite;
+    if (!hasContact) return '';
+    
+    let contactHtml = '<div class="contact-info">';
+    
+    if (video.channelEmail) {
+        contactHtml += `<a href="mailto:${escapeHtml(video.channelEmail)}" class="contact-item email" onclick="event.stopPropagation()" title="이메일">
+            <span class="material-symbols-outlined">mail</span>
+        </a>`;
+    }
+    if (video.channelInstagram) {
+        contactHtml += `<a href="https://instagram.com/${video.channelInstagram.replace('@', '')}" target="_blank" class="contact-item instagram" onclick="event.stopPropagation()" title="Instagram ${escapeHtml(video.channelInstagram)}">
+            <span class="instagram-icon">📸</span>
+        </a>`;
+    }
+    if (video.channelTwitter) {
+        contactHtml += `<a href="https://twitter.com/${video.channelTwitter.replace('@', '')}" target="_blank" class="contact-item twitter" onclick="event.stopPropagation()" title="Twitter ${escapeHtml(video.channelTwitter)}">
+            <span class="twitter-icon">𝕏</span>
+        </a>`;
+    }
+    if (video.channelWebsite) {
+        contactHtml += `<a href="${escapeHtml(video.channelWebsite)}" target="_blank" class="contact-item website" onclick="event.stopPropagation()" title="웹사이트">
+            <span class="material-symbols-outlined">language</span>
+        </a>`;
+    }
+    
+    contactHtml += '</div>';
+    return contactHtml;
 }
 
 function calculateEngagementRate(video) {
