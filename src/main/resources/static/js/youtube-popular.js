@@ -492,7 +492,7 @@ function generateInsights(videos) {
     
     // 1. 인기 키워드 추출
     const keywords = extractKeywords(videos);
-    document.getElementById('insight-keywords').textContent = keywords.slice(0, 5).join(', ') || '-';
+    document.getElementById('insight-keywords').textContent = keywords.slice(0, 3).join(', ') || '-';
     
     // 2. 평균 영상 길이
     const avgDuration = calculateAverageDuration(videos);
@@ -519,9 +519,98 @@ function generateInsights(videos) {
         topEngagementEl.textContent = '-';
     }
     
-    // 7. 콘텐츠 제작 팁 생성
-    const tips = generateTips(videos, avgDuration, avgEngagement, avgTitleLength);
+    // 7. 콘텐츠 제작 팁 생성 (새 디자인)
+    const tips = generateTipsNew(videos, avgDuration, avgEngagement, avgTitleLength);
     document.getElementById('insight-tips').innerHTML = tips;
+    
+    // 8. TOP 영상 리스트 생성
+    renderTopVideosList(videos);
+}
+
+/**
+ * TOP 영상 리스트 렌더링
+ */
+function renderTopVideosList(videos) {
+    const listEl = document.getElementById('insight-top-videos-list');
+    if (!listEl) return;
+    
+    // 참여율 기준 상위 3개 영상
+    const topVideos = getTopEngagementVideos(videos, 3);
+    const avgEngagement = parseFloat(calculateAverageEngagement(videos));
+    
+    listEl.innerHTML = topVideos.map(item => {
+        const diff = (item.rate - avgEngagement).toFixed(1);
+        const isPositive = diff >= 0;
+        const title = item.video.title?.length > 15 ? item.video.title.substring(0, 15) + '...' : item.video.title;
+        
+        return `
+            <li class="top-video-item" onclick="window.open('https://www.youtube.com/watch?v=${item.video.videoId}', '_blank')">
+                <div class="top-video-item-left">
+                    <img src="${item.video.thumbnailUrl || ''}" alt="" class="top-video-thumb">
+                    <div class="top-video-info">
+                        <div class="top-video-title">${escapeHtml(title)}</div>
+                        <div class="top-video-engagement">${item.rate.toFixed(2)}% 참여율</div>
+                    </div>
+                </div>
+                <div class="top-video-change ${isPositive ? 'positive' : 'negative'}">
+                    ${isPositive ? '+' : ''}${diff}%
+                </div>
+            </li>
+        `;
+    }).join('');
+}
+
+/**
+ * 참여율 상위 N개 영상 가져오기
+ */
+function getTopEngagementVideos(videos, n) {
+    return videos
+        .map(video => {
+            const views = video.viewCount || 0;
+            const likes = video.likeCount || 0;
+            const comments = video.commentCount || 0;
+            const rate = views > 0 ? ((likes + comments) / views) * 100 : 0;
+            return { video, rate };
+        })
+        .sort((a, b) => b.rate - a.rate)
+        .slice(0, n);
+}
+
+/**
+ * 새 디자인용 팁 생성
+ */
+function generateTipsNew(videos, avgDuration, avgEngagement, avgTitleLength) {
+    const tips = [];
+    
+    // 영상 길이 팁
+    const durationMatch = avgDuration.match(/(\d+)분/);
+    if (durationMatch) {
+        const mins = parseInt(durationMatch[1]);
+        if (mins <= 5) {
+            tips.push('현재 트렌드는 <strong>5분 이하 숏폼</strong> 콘텐츠가 인기예요');
+        } else if (mins <= 15) {
+            tips.push(`평균 <strong>${mins}분</strong> 길이의 영상이 인기 - 핵심만 담은 콘텐츠 추천`);
+        } else {
+            tips.push('긴 영상도 인기! <strong>깊이 있는 고퀄리티 콘텐츠</strong>로 승부해보세요');
+        }
+    }
+    
+    // 제목 팁
+    if (avgTitleLength < 30) {
+        tips.push(`제목은 <strong>${avgTitleLength}자</strong> 내외로 간결하게, 핵심 키워드를 앞에 배치하세요`);
+    } else {
+        tips.push('제목에 <strong>키워드</strong>를 충분히 포함하되 핵심을 앞에 배치하세요');
+    }
+    
+    // 참여율 팁
+    tips.push('영상 끝에 <strong>좋아요/구독 요청</strong>과 <strong>질문</strong>을 넣어 참여를 유도하세요');
+    
+    return tips.map(tip => `
+        <div class="tip-item">
+            <span class="material-symbols-outlined">check_circle</span>
+            <p>${tip}</p>
+        </div>
+    `).join('');
 }
 
 function extractKeywords(videos) {
