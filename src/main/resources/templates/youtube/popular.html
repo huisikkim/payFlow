@@ -84,6 +84,70 @@
             </div>
         </div>
 
+        <!-- 크리에이터 인사이트 섹션 -->
+        <div id="insights-section" class="insights-section" style="display: none;">
+            <div class="insights-header">
+                <h2>
+                    <span class="material-symbols-outlined">insights</span>
+                    크리에이터 인사이트
+                </h2>
+                <p>인기 영상 데이터를 분석한 트렌드 정보</p>
+            </div>
+            <div class="insights-grid">
+                <div class="insight-card">
+                    <div class="insight-icon">🔥</div>
+                    <div class="insight-content">
+                        <div class="insight-label">인기 키워드</div>
+                        <div class="insight-value" id="insight-keywords">-</div>
+                    </div>
+                </div>
+                <div class="insight-card">
+                    <div class="insight-icon">⏱️</div>
+                    <div class="insight-content">
+                        <div class="insight-label">평균 영상 길이</div>
+                        <div class="insight-value" id="insight-duration">-</div>
+                    </div>
+                </div>
+                <div class="insight-card">
+                    <div class="insight-icon">📊</div>
+                    <div class="insight-content">
+                        <div class="insight-label">평균 참여율</div>
+                        <div class="insight-value" id="insight-engagement">-</div>
+                    </div>
+                </div>
+                <div class="insight-card">
+                    <div class="insight-icon">👁️</div>
+                    <div class="insight-content">
+                        <div class="insight-label">평균 조회수</div>
+                        <div class="insight-value" id="insight-views">-</div>
+                    </div>
+                </div>
+                <div class="insight-card">
+                    <div class="insight-icon">📝</div>
+                    <div class="insight-content">
+                        <div class="insight-label">평균 제목 길이</div>
+                        <div class="insight-value" id="insight-title-length">-</div>
+                    </div>
+                </div>
+                <div class="insight-card">
+                    <div class="insight-icon">🏆</div>
+                    <div class="insight-content">
+                        <div class="insight-label">참여율 TOP 영상</div>
+                        <div class="insight-value insight-small" id="insight-top-engagement">-</div>
+                    </div>
+                </div>
+            </div>
+            <div class="insights-tips">
+                <div class="tips-header">
+                    <span class="material-symbols-outlined">lightbulb</span>
+                    콘텐츠 제작 팁
+                </div>
+                <div class="tips-content" id="insight-tips">
+                    데이터를 분석 중입니다...
+                </div>
+            </div>
+        </div>
+
         <div id="loading" class="loading" style="display: none;">
             <div class="loading-spinner"></div>
             <p>인기 영상을 불러오는 중...</p>
