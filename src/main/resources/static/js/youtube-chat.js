@@ -86,7 +86,10 @@ function sendMessage() {
 function displayMessage(data) {
     const messagesContainer = document.getElementById('chat-messages');
     const messageDiv = document.createElement('div');
-    messageDiv.className = `chat-message ${data.type || 'message'}`;
+    
+    // 내 메시지인지 확인
+    const isMyMessage = data.username === anonymousUsername;
+    messageDiv.className = `chat-message ${data.type || 'message'} ${isMyMessage ? 'my-message' : 'other-message'}`;
     
     if (data.type === 'join') {
         messageDiv.innerHTML = `
