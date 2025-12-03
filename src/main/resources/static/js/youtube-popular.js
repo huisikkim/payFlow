@@ -255,6 +255,12 @@ function renderVideos(videos, showRank = true) {
             </div>
         `;
         
+        // 수익 정보 추가 (youtube-revenue.js에서 정의)
+        if (typeof renderRevenueInfo === 'function') {
+            const revenueHtml = renderRevenueInfo(video);
+            item.innerHTML += revenueHtml;
+        }
+        
         list.appendChild(item);
     });
 }

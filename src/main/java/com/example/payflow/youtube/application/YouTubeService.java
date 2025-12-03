@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 public class YouTubeService {
 
     private final YouTubeApiClient youTubeApiClient;
+    private final com.example.payflow.youtube.domain.RevenueEstimator revenueEstimator;
 
     /**
      * 한국 인기 급상승 영상 목록 조회 (기본 25개)
@@ -142,4 +143,60 @@ public class YouTubeService {
         
         return videos;
     }
+
+    /**
+     * 영상의 예상 수익 계산
+     */
+    public com.example.payflow.youtube.domain.RevenueEstimate estimateRevenue(String videoId) {
+        // 영상 정보 조회 (캐시된 데이터 활용)
+        List<YouTubeVideo> videos = getPopularVideos("KR", 50);
+        YouTubeVideo video = videos.stream()
+                .filter(v -> videoId.equals(v.getVideoId()))
+                .findFirst()
+                .orElse(null);
+        
+        if (video == null) {
+            // 캐시에 없으면 직접 조회
+            YouTubeVideoStatistics stats = youTubeApiClient.getVideoStatistics(videoId);
+            if (stats == null) {
+                return null;
+            }
+            video = convertToVideo(stats);
+        }
+        
+        return revenueEstimator.estimateRevenue(video);
+    }
+    
+    /**
+     * 월 수익 시뮬레이션
+     */
+    public com.example.payflow.youtube.domain.MonthlyRevenueSimulation simulateMonthlyRevenue(
+            String videoId, int videosPerMonth) {
+        
+        List<YouTubeVideo> videos = getPopularVideos("KR", 50);
+        YouTubeVideo video = videos.stream()
+                .filter(v -> videoId.equals(v.getVideoId()))
+                .findFirst()
+                .orElse(null);
+        
+        if (video == null) {
+            YouTubeVideoStatistics stats = youTubeApiClient.getVideoStatistics(videoId);
+            if (stats == null) {
+                return null;
+            }
+            video = convertToVideo(stats);
+        }
+        
+        return revenueEstimator.simulateMonthlyRevenue(video, videosPerMonth);
+    }
+    
+    private YouTubeVideo convertToVideo(YouTubeVideoStatistics stats) {
+        return YouTubeVideo.builder()
+                .videoId(stats.getVideoId())
+                .viewCount(stats.getViewCount())
+                .likeCount(stats.getLikeCount())
+                .commentCount(stats.getCommentCount())
+                .build();
+    }
+
 }

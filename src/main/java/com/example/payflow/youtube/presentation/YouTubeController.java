@@ -157,4 +157,63 @@ public class YouTubeController {
             ));
         }
     }
+
+    /**
+     * 영상 수익 예측
+     * GET /api/youtube/revenue/{videoId}
+     */
+    @GetMapping("/revenue/{videoId}")
+    public ResponseEntity<Map<String, Object>> estimateRevenue(@PathVariable String videoId) {
+        try {
+            com.example.payflow.youtube.domain.RevenueEstimate estimate = 
+                    youTubeService.estimateRevenue(videoId);
+            
+            if (estimate == null) {
+                return ResponseEntity.notFound().build();
+            }
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "videoId", videoId,
+                "revenue", estimate
+            ));
+        } catch (Exception e) {
+            log.error("수익 예측 실패 - videoId: {}", videoId, e);
+            return ResponseEntity.status(500).body(Map.of(
+                "success", false,
+                "message", "수익 예측 실패: " + e.getMessage()
+            ));
+        }
+    }
+    
+    /**
+     * 월 수익 시뮬레이션
+     * GET /api/youtube/revenue/{videoId}/monthly?videosPerMonth=10
+     */
+    @GetMapping("/revenue/{videoId}/monthly")
+    public ResponseEntity<Map<String, Object>> simulateMonthlyRevenue(
+            @PathVariable String videoId,
+            @RequestParam(defaultValue = "10") int videosPerMonth) {
+        try {
+            com.example.payflow.youtube.domain.MonthlyRevenueSimulation simulation = 
+                    youTubeService.simulateMonthlyRevenue(videoId, videosPerMonth);
+            
+            if (simulation == null) {
+                return ResponseEntity.notFound().build();
+            }
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "videoId", videoId,
+                "simulation", simulation
+            ));
+        } catch (Exception e) {
+            log.error("월 수익 시뮬레이션 실패 - videoId: {}", videoId, e);
+            return ResponseEntity.status(500).body(Map.of(
+                "success", false,
+                "message", "월 수익 시뮬레이션 실패: " + e.getMessage()
+            ));
+        }
+    }
+
 }

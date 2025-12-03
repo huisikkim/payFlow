@@ -1844,3 +1844,231 @@ body {
         margin-bottom: 8px;
     }
 }
+
+
+/* ========== 수익 예측 스타일 ========== */
+
+/* 수익 섹션 */
+.revenue-section {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(55, 65, 81, 0.5);
+}
+
+/* 수익 배지 */
+.revenue-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 9999px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.revenue-icon {
+    font-size: 16px;
+}
+
+.revenue-label {
+    color: inherit;
+    opacity: 0.9;
+}
+
+.revenue-value {
+    font-weight: 700;
+    font-size: 14px;
+}
+
+/* 수익 잠재력 배지 */
+.potential-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 9999px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.potential-icon {
+    font-size: 14px;
+}
+
+.potential-label {
+    color: inherit;
+    opacity: 0.9;
+}
+
+.potential-value {
+    font-weight: 600;
+}
+
+.potential-level {
+    font-weight: 600;
+}
+
+/* 수익 레벨별 스타일 */
+.revenue-excellent, .potential-badge.revenue-excellent {
+    background: rgba(168, 85, 247, 0.15);
+    border: 1px solid rgba(168, 85, 247, 0.4);
+    color: #d8b4fe;
+}
+
+.revenue-high, .potential-badge.revenue-high {
+    background: rgba(236, 72, 153, 0.15);
+    border: 1px solid rgba(236, 72, 153, 0.4);
+    color: #f9a8d4;
+}
+
+.revenue-good, .potential-badge.revenue-good {
+    background: rgba(6, 182, 212, 0.15);
+    border: 1px solid rgba(6, 182, 212, 0.4);
+    color: #67e8f9;
+}
+
+.revenue-low, .potential-badge.revenue-low {
+    background: rgba(107, 114, 128, 0.2);
+    border: 1px solid rgba(107, 114, 128, 0.4);
+    color: #d1d5db;
+}
+
+.revenue-very-low, .potential-badge.revenue-very-low {
+    background: rgba(75, 85, 99, 0.2);
+    border: 1px solid rgba(75, 85, 99, 0.4);
+    color: #9ca3af;
+}
+
+/* 월 수익 시뮬레이션 */
+.monthly-simulation {
+    margin-top: 16px;
+    padding: 16px;
+    background: rgba(31, 41, 55, 0.3);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 12px;
+}
+
+.simulation-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 16px;
+}
+
+.simulation-title .material-symbols-outlined {
+    font-size: 20px;
+    color: #fbbf24;
+}
+
+.simulation-subtitle {
+    font-size: 12px;
+    font-weight: 400;
+    color: #9ca3af;
+    margin-left: auto;
+}
+
+.simulation-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.simulation-card {
+    background: rgba(17, 24, 39, 0.5);
+    border: 1px solid rgba(55, 65, 81, 0.7);
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.simulation-card:hover {
+    background: rgba(17, 24, 39, 0.8);
+    border-color: rgba(251, 191, 36, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(251, 191, 36, 0.2);
+}
+
+.simulation-header {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 4px;
+}
+
+.simulation-frequency {
+    font-size: 14px;
+    font-weight: 600;
+    color: #e5e7eb;
+}
+
+.simulation-desc {
+    font-size: 11px;
+    color: #9ca3af;
+}
+
+.simulation-videos {
+    font-size: 13px;
+    font-weight: 600;
+    color: #60a5fa;
+    padding: 4px 8px;
+    background: rgba(96, 165, 250, 0.1);
+    border-radius: 6px;
+    margin: 4px 0;
+}
+
+.simulation-revenue {
+    font-size: 18px;
+    font-weight: 700;
+    color: #fbbf24;
+    margin: 8px 0;
+    line-height: 1.2;
+}
+
+.simulation-growth {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #9ca3af;
+    padding-top: 8px;
+    border-top: 1px solid rgba(55, 65, 81, 0.5);
+}
+
+.growth-icon {
+    font-size: 16px;
+}
+
+.growth-label {
+    font-weight: 500;
+}
+
+/* 반응형 */
+@media (max-width: 767px) {
+    .simulation-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    
+    .monthly-simulation {
+        padding: 12px;
+    }
+    
+    .revenue-section {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .revenue-badge,
+    .potential-badge {
+        width: 100%;
+        justify-content: center;
+    }
+}
