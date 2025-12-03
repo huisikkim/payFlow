@@ -279,6 +279,29 @@ body {
     font-weight: 600;
 }
 
+/* 썸네일 위 성과도 점수 */
+.performance-score {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    padding: 2px 6px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.performance-score .score-value {
+    font-size: 13px;
+}
+
+.performance-score .score-label {
+    font-size: 9px;
+    opacity: 0.9;
+}
+
 .video-content {
     flex: 1;
     min-width: 0;
@@ -302,12 +325,19 @@ body {
     color: rgba(224, 231, 255, 0.6);
 }
 
+/* 지표 행 */
+.metrics-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+
 /* 참여율 배지 */
 .engagement-badge {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    margin-top: 8px;
     padding: 4px 10px;
     border-radius: 16px;
     font-size: 11px;
@@ -393,6 +423,105 @@ body {
     color: #9ca3af;
 }
 .engagement-low .engagement-level {
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+    color: white;
+}
+
+/* 성과도 배지 */
+.performance-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 16px;
+    font-size: 11px;
+    font-weight: 500;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.performance-icon {
+    font-size: 12px;
+}
+
+.performance-label {
+    color: rgba(224, 231, 255, 0.6);
+}
+
+.performance-value {
+    font-weight: 700;
+    color: #e0e7ff;
+}
+
+.performance-level {
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-size: 10px;
+    font-weight: 600;
+}
+
+/* 성과도 레벨별 스타일 */
+.performance-excellent {
+    background: rgba(168, 85, 247, 0.15);
+    border-color: rgba(168, 85, 247, 0.3);
+}
+.performance-excellent .performance-value {
+    color: #c084fc;
+}
+.performance-excellent .performance-level,
+.performance-score.performance-excellent {
+    background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+    color: white;
+}
+
+.performance-high {
+    background: rgba(236, 72, 153, 0.15);
+    border-color: rgba(236, 72, 153, 0.3);
+}
+.performance-high .performance-value {
+    color: #f472b6;
+}
+.performance-high .performance-level,
+.performance-score.performance-high {
+    background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+    color: white;
+}
+
+.performance-good {
+    background: rgba(14, 165, 233, 0.15);
+    border-color: rgba(14, 165, 233, 0.3);
+}
+.performance-good .performance-value {
+    color: #38bdf8;
+}
+.performance-good .performance-level,
+.performance-score.performance-good {
+    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+    color: white;
+}
+
+.performance-normal {
+    background: rgba(20, 184, 166, 0.15);
+    border-color: rgba(20, 184, 166, 0.3);
+}
+.performance-normal .performance-value {
+    color: #2dd4bf;
+}
+.performance-normal .performance-level,
+.performance-score.performance-normal {
+    background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+    color: white;
+}
+
+.performance-low {
+    background: rgba(156, 163, 175, 0.15);
+    border-color: rgba(156, 163, 175, 0.3);
+}
+.performance-low .performance-value {
+    color: #9ca3af;
+}
+.performance-low .performance-level,
+.performance-score.performance-low {
     background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
     color: white;
 }
