@@ -122,6 +122,88 @@
             box-shadow: 0 4px 16px rgba(255, 0, 0, 0.4);
         }
 
+        /* 검색 섹션 */
+        .search-section {
+            margin-bottom: 20px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 12px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 12px 20px;
+            border-radius: 24px;
+            border: 1px solid rgba(165, 180, 252, 0.3);
+            background: rgba(26, 26, 46, 0.8);
+            color: #e0e7ff;
+            font-size: 15px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-box input:focus {
+            border-color: #ff0000;
+            box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.1);
+        }
+
+        .search-box input::placeholder {
+            color: rgba(224, 231, 255, 0.5);
+        }
+
+        .btn-search {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+            color: white;
+            border: none;
+            border-radius: 24px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .btn-search:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(255, 0, 0, 0.4);
+        }
+
+        /* 탭 메뉴 */
+        .tab-menu {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            padding: 10px 24px;
+            background: rgba(26, 26, 46, 0.8);
+            color: rgba(224, 231, 255, 0.7);
+            border: 1px solid rgba(165, 180, 252, 0.2);
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn:hover {
+            background: rgba(255, 0, 0, 0.1);
+            border-color: rgba(255, 0, 0, 0.3);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+            color: white;
+            border-color: transparent;
+        }
+
         .loading {
             text-align: center;
             padding: 60px;
@@ -307,8 +389,22 @@
             <p>실시간 인기 영상을 확인하세요</p>
         </div>
 
+        <!-- 검색 섹션 -->
+        <div class="search-section">
+            <div class="search-box">
+                <input type="text" id="searchQuery" placeholder="검색어를 입력하세요..." onkeypress="handleSearchKeypress(event)">
+                <button class="btn-search" onclick="searchVideos()">🔍 검색</button>
+            </div>
+        </div>
+
+        <!-- 탭 메뉴 -->
+        <div class="tab-menu">
+            <button class="tab-btn active" data-tab="popular" onclick="switchTab('popular')">🔥 인기 급상승</button>
+            <button class="tab-btn" data-tab="search" onclick="switchTab('search')">🔍 검색 결과</button>
+        </div>
+
         <div class="filter-section">
-            <div class="filter-group">
+            <div class="filter-group" id="regionFilter">
                 <label>국가:</label>
                 <select id="regionCode">
                     <option value="KR" selected>🇰🇷 한국</option>
@@ -327,7 +423,7 @@
                     <option value="50">50개</option>
                 </select>
             </div>
-            <button class="btn-refresh" onclick="loadVideos()">🔄 새로고침</button>
+            <button class="btn-refresh" onclick="loadCurrentTab()">🔄 새로고침</button>
         </div>
 
         <div id="loading" class="loading" style="display: none;">
@@ -344,9 +440,93 @@
     </div>
 
     <script>
+        let currentTab = 'popular';
+        let lastSearchQuery = '';
+        let isSearching = false;
+
         document.addEventListener('DOMContentLoaded', () => {
             loadVideos();
         });
+
+        function switchTab(tab, skipLoad = false) {
+            currentTab = tab;
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.tab === tab);
+            });
+            
+            // 인기 탭에서만 국가 필터 표시
+            document.getElementById('regionFilter').style.display = tab === 'popular' ? 'flex' : 'none';
+            
+            if (!skipLoad) {
+                if (tab === 'popular') {
+                    loadVideos();
+                } else if (tab === 'search' && lastSearchQuery) {
+                    doSearch(lastSearchQuery);
+                }
+            }
+        }
+
+        function loadCurrentTab() {
+            if (currentTab === 'popular') {
+                loadVideos();
+            } else if (lastSearchQuery) {
+                doSearch(lastSearchQuery);
+            }
+        }
+
+        function handleSearchKeypress(event) {
+            if (event.key === 'Enter') {
+                searchVideos();
+            }
+        }
+
+        function searchVideos() {
+            const query = document.getElementById('searchQuery').value.trim();
+            if (!query) {
+                showError('검색어를 입력해주세요.');
+                return;
+            }
+            
+            lastSearchQuery = query;
+            switchTab('search', true);
+            doSearch(query);
+        }
+
+        async function doSearch(query) {
+            if (isSearching) return;
+            isSearching = true;
+            
+            const maxResults = document.getElementById('maxResults').value;
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const list = document.getElementById('video-list');
+            
+            loading.style.display = 'block';
+            error.style.display = 'none';
+            list.innerHTML = '';
+            
+            try {
+                const response = await fetch(`/api/youtube/search?q=${encodeURIComponent(query)}&maxResults=${maxResults}`);
+                const data = await response.json();
+                
+                loading.style.display = 'none';
+                
+                if (data.success && data.videos) {
+                    if (data.videos.length === 0) {
+                        showError(`"${query}"에 대한 검색 결과가 없습니다.`);
+                    } else {
+                        renderVideos(data.videos, false);
+                    }
+                } else {
+                    showError('검색 결과를 불러올 수 없습니다.');
+                }
+            } catch (err) {
+                loading.style.display = 'none';
+                showError('검색 중 오류가 발생했습니다: ' + err.message);
+            } finally {
+                isSearching = false;
+            }
+        }
 
         async function loadVideos() {
             const regionCode = document.getElementById('regionCode').value;
@@ -367,7 +547,7 @@
                 loading.style.display = 'none';
                 
                 if (data.success && data.videos) {
-                    renderVideos(data.videos);
+                    renderVideos(data.videos, true);
                 } else {
                     showError('영상을 불러올 수 없습니다.');
                 }
@@ -377,7 +557,7 @@
             }
         }
 
-        function renderVideos(videos) {
+        function renderVideos(videos, showRank = true) {
             const list = document.getElementById('video-list');
             
             videos.forEach((video, index) => {
@@ -386,7 +566,7 @@
                 item.onclick = () => window.open(`https://www.youtube.com/watch?v=${video.videoId}`, '_blank');
                 
                 item.innerHTML = `
-                    <div class="rank-number">${index + 1}</div>
+                    ${showRank ? `<div class="rank-number">${index + 1}</div>` : ''}
                     <div class="thumbnail-wrapper">
                         <img class="thumbnail" src="${video.thumbnailUrl || ''}" alt="${escapeHtml(video.title)}" loading="lazy">
                         ${video.duration ? `<div class="duration-badge">${formatDuration(video.duration)}</div>` : ''}

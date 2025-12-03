@@ -73,4 +73,12 @@ public class YouTubeService {
                 .limit(topN)
                 .collect(Collectors.toList());
     }
+
+    /**
+     * 키워드로 영상 검색
+     */
+    public List<YouTubeVideo> searchVideos(String query, int maxResults) {
+        log.info("Searching videos with query: {}, maxResults: {}", query, maxResults);
+        return youTubeApiClient.searchVideos(query, maxResults);
+    }
 }

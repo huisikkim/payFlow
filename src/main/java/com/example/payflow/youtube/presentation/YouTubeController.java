@@ -132,4 +132,29 @@ public class YouTubeController {
             "videos", videos
         ));
     }
+
+    /**
+     * 키워드로 영상 검색
+     * GET /api/youtube/search?q=검색어&maxResults=25
+     */
+    @GetMapping("/search")
+    public ResponseEntity<Map<String, Object>> searchVideos(
+            @RequestParam String q,
+            @RequestParam(defaultValue = "25") int maxResults) {
+        try {
+            List<YouTubeVideo> videos = youTubeService.searchVideos(q, maxResults);
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "query", q,
+                "count", videos.size(),
+                "videos", videos
+            ));
+        } catch (Exception e) {
+            log.error("YouTube 검색 API 호출 실패", e);
+            return ResponseEntity.status(500).body(Map.of(
+                "success", false,
+                "message", "YouTube 검색 API 호출 실패: " + e.getMessage()
+            ));
+        }
+    }
 }
