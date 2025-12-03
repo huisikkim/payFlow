@@ -129,13 +129,15 @@ function renderVideos(videos, showRank = true) {
         const performanceInfo = getPerformanceLevel(performanceScore);
         
         item.innerHTML = `
-            ${showRank ? `<div class="rank-number">${index + 1}</div>` : ''}
-            <div class="thumbnail-wrapper">
-                <img class="thumbnail" src="${video.thumbnailUrl || ''}" alt="${escapeHtml(video.title)}" loading="lazy">
-                ${video.duration ? `<div class="duration-badge">${formatDuration(video.duration)}</div>` : ''}
-                <div class="performance-score ${performanceInfo.class}" title="${performanceInfo.tooltip}">
-                    <span class="score-value">${performanceScore}</span>
-                    <span class="score-label">점</span>
+            <div class="video-item-left">
+                ${showRank ? `<div class="rank-number">${index + 1}</div>` : ''}
+                <div class="thumbnail-wrapper">
+                    <img class="thumbnail" src="${video.thumbnailUrl || ''}" alt="${escapeHtml(video.title)}" loading="lazy">
+                    <div class="performance-score ${performanceInfo.class}" title="${performanceInfo.tooltip}">
+                        <span class="score-value">${performanceScore}</span>
+                        <span class="score-label">점</span>
+                    </div>
+                    ${video.duration ? `<div class="duration-badge">${formatDuration(video.duration)}</div>` : ''}
                 </div>
             </div>
             <div class="video-content">
@@ -143,13 +145,13 @@ function renderVideos(videos, showRank = true) {
                 <div class="channel-name">${escapeHtml(video.channelTitle || '')}</div>
                 <div class="metrics-row">
                     <div class="engagement-badge ${engagementInfo.class}" title="참여율: (좋아요 + 댓글) / 조회수">
-                        <span class="engagement-icon">🔥</span>
+                        <span class="material-symbols-outlined engagement-icon">local_fire_department</span>
                         <span class="engagement-label">참여율</span>
                         <span class="engagement-value">${engagementRate}%</span>
                         <span class="engagement-level">${engagementInfo.label}</span>
                     </div>
                     <div class="performance-badge ${performanceInfo.class}" title="${performanceInfo.tooltip}">
-                        <span class="performance-icon">⭐</span>
+                        <span class="material-symbols-outlined performance-icon">star</span>
                         <span class="performance-label">성과도</span>
                         <span class="performance-value">${performanceScore}</span>
                         <span class="performance-level">${performanceInfo.label}</span>
@@ -158,18 +160,15 @@ function renderVideos(videos, showRank = true) {
             </div>
             <div class="video-stats">
                 <div class="stat-row views">
-                    <span class="icon">👁️</span>
-                    <span>조회수</span>
+                    <span><span class="material-symbols-outlined icon">visibility</span> 조회수</span>
                     <span class="value">${formatNumber(video.viewCount)}</span>
                 </div>
                 <div class="stat-row likes">
-                    <span class="icon">👍</span>
-                    <span>좋아요</span>
+                    <span><span class="material-symbols-outlined icon">thumb_up</span> 좋아요</span>
                     <span class="value">${formatNumber(video.likeCount)}</span>
                 </div>
                 <div class="stat-row comments">
-                    <span class="icon">💬</span>
-                    <span>댓글</span>
+                    <span><span class="material-symbols-outlined icon">chat_bubble</span> 댓글</span>
                     <span class="value">${formatNumber(video.commentCount)}</span>
                 </div>
             </div>
