@@ -603,7 +603,18 @@ function generateTipsNew(videos, avgDuration, avgEngagement, avgTitleLength) {
     }
     
     // 참여율 팁
-    tips.push('영상 끝에 <strong>좋아요/구독 요청</strong>과 <strong>질문</strong>을 넣어 참여를 유도하세요');
+    const engRate = parseFloat(avgEngagement);
+    if (engRate >= 3) {
+        tips.push('참여율이 높은 트렌드! <strong>댓글 유도 질문</strong>을 영상에 포함하세요');
+    } else {
+        tips.push('영상 끝에 <strong>좋아요/구독 요청</strong>과 <strong>질문</strong>을 넣어 참여를 유도하세요');
+    }
+    
+    // 키워드 팁
+    const keywords = extractKeywords(videos).slice(0, 3);
+    if (keywords.length > 0) {
+        tips.push(`인기 키워드: <strong>${keywords.join(', ')}</strong> - 제목/태그에 활용하세요`);
+    }
     
     return tips.map(tip => `
         <div class="tip-item">
