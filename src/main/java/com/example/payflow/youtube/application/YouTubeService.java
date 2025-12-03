@@ -5,6 +5,8 @@ import com.example.payflow.youtube.domain.YouTubeVideoStatistics;
 import com.example.payflow.youtube.infrastructure.YouTubeApiClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -27,11 +29,21 @@ public class YouTubeService {
 
     /**
      * 특정 국가의 인기 급상승 영상 목록 조회 (채널 구독자 정보 포함)
+     * 캐시: 10분간 유지
      */
+    @Cacheable(value = "popularVideos", key = "#regionCode + '_' + #maxResults")
     public List<YouTubeVideo> getPopularVideos(String regionCode, int maxResults) {
-        log.info("Getting popular videos for region: {}, maxResults: {}", regionCode, maxResults);
+        log.info("Cache MISS - Fetching popular videos from YouTube API for region: {}, maxResults: {}", regionCode, maxResults);
         List<YouTubeVideo> videos = youTubeApiClient.getMostPopularVideos(regionCode, maxResults);
         return enrichWithChannelSubscribers(videos);
+    }
+    
+    /**
+     * 인기 영상 캐시 수동 갱신
+     */
+    @CacheEvict(value = "popularVideos", allEntries = true)
+    public void refreshPopularVideosCache() {
+        log.info("Popular videos cache cleared");
     }
 
     /**
@@ -78,11 +90,21 @@ public class YouTubeService {
 
     /**
      * 키워드로 영상 검색 (채널 구독자 정보 포함)
+     * 캐시: 10분간 유지
      */
+    @Cacheable(value = "searchVideos", key = "#query + '_' + #maxResults")
     public List<YouTubeVideo> searchVideos(String query, int maxResults) {
-        log.info("Searching videos with query: {}, maxResults: {}", query, maxResults);
+        log.info("Cache MISS - Searching videos from YouTube API with query: {}, maxResults: {}", query, maxResults);
         List<YouTubeVideo> videos = youTubeApiClient.searchVideos(query, maxResults);
         return enrichWithChannelSubscribers(videos);
+    }
+    
+    /**
+     * 검색 캐시 수동 갱신
+     */
+    @CacheEvict(value = "searchVideos", allEntries = true)
+    public void refreshSearchCache() {
+        log.info("Search videos cache cleared");
     }
 
     /**
