@@ -40,6 +40,15 @@ public class WebSocketSecurityConfig implements WebSocketMessageBrokerConfigurer
                     
                     // CONNECT 시 JWT 토큰 검증 및 인증 정보 설정
                     if (StompCommand.CONNECT.equals(command)) {
+                        // YouTube 익명 채팅은 인증 불필요 (X-Anonymous-User 헤더로 판단)
+                        String anonymousUser = accessor.getFirstNativeHeader("X-Anonymous-User");
+                        if (anonymousUser != null && !anonymousUser.isEmpty()) {
+                            accessor.getSessionAttributes().put("anonymousUser", anonymousUser);
+                            accessor.getSessionAttributes().put("isAnonymous", true);
+                            log.info("YouTube 익명 채팅 연결 - user: {}", anonymousUser);
+                            return message;
+                        }
+                        
                         String authHeader = accessor.getFirstNativeHeader("Authorization");
                         
                         if (authHeader != null && authHeader.startsWith("Bearer ")) {
@@ -80,6 +89,13 @@ public class WebSocketSecurityConfig implements WebSocketMessageBrokerConfigurer
                     
                     // SEND, SUBSCRIBE 등 다른 명령어는 이미 설정된 User 정보 사용
                     if (StompCommand.SEND.equals(command) || StompCommand.SUBSCRIBE.equals(command)) {
+                        // YouTube 익명 채팅은 인증 체크 스킵
+                        Boolean isAnonymous = (Boolean) accessor.getSessionAttributes().get("isAnonymous");
+                        if (isAnonymous != null && isAnonymous) {
+                            log.debug("{} 명령 - 익명 사용자", command);
+                            return message;
+                        }
+                        
                         if (accessor.getUser() == null) {
                             log.error("인증되지 않은 사용자의 {} 시도", command);
                             return null;  // 요청 거부

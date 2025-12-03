@@ -20,7 +20,13 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
+        // 기존 인증 필요한 채팅
         registry.addEndpoint("/ws/chat")
+                .setAllowedOriginPatterns("*")
+                .withSockJS();
+        
+        // YouTube 익명 채팅 (인증 불필요)
+        registry.addEndpoint("/ws/youtube-chat")
                 .setAllowedOriginPatterns("*")
                 .withSockJS();
     }
