@@ -16,6 +16,10 @@ public interface VideoFolderRepository extends JpaRepository<VideoFolder, Long> 
     // 사용자별 폴더 조회
     List<VideoFolder> findByUsernameOrderByCreatedAtDesc(String username);
     
+    // 사용자별 폴더 조회 (영상 개수 포함)
+    @Query("SELECT DISTINCT f FROM VideoFolder f LEFT JOIN FETCH f.videos WHERE f.username = :username ORDER BY f.createdAt DESC")
+    List<VideoFolder> findByUsernameWithVideos(String username);
+    
     @Query("SELECT f FROM VideoFolder f LEFT JOIN FETCH f.videos WHERE f.id = :id")
     Optional<VideoFolder> findByIdWithVideos(Long id);
     

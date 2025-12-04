@@ -474,3 +474,26 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+/* Toast 알림 */
+.toast {
+    position: fixed;
+    bottom: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(31, 41, 55, 0.95);
+    color: #fff;
+    padding: 16px 24px;
+    border-radius: 12px;
+    border: 1px solid #374151;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 10000;
+    transition: bottom 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.toast.show {
+    bottom: 32px;
+}

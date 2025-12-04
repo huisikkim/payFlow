@@ -28,7 +28,7 @@ public class VideoFolderService {
     // 사용자별 폴더 목록 조회
     @Transactional(readOnly = true)
     public List<VideoFolder> getUserFolders(String username) {
-        return folderRepository.findByUsernameOrderByCreatedAtDesc(username);
+        return folderRepository.findByUsernameWithVideos(username);
     }
     
     // 폴더 상세 조회 (영상 포함)
