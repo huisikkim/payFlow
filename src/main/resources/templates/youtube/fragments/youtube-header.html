@@ -15,14 +15,14 @@
             </a>
             
             <nav class="header-nav">
-                <button class="nav-btn active" data-view="videos" onclick="switchView('videos')">
+                <a href="/youtube/popular?view=videos" class="nav-btn active" data-view="videos" onclick="if (typeof switchView === 'function') switchView('videos', event)">
                     <span class="material-symbols-outlined">play_circle</span>
                     영상
-                </button>
-                <button class="nav-btn" data-view="channels" onclick="switchView('channels')">
+                </a>
+                <a href="/youtube/popular?view=channels" class="nav-btn" data-view="channels" onclick="if (typeof switchView === 'function') switchView('channels', event)">
                     <span class="material-symbols-outlined">subscriptions</span>
                     채널영상
-                </button>
+                </a>
                 <a href="/youtube/trends" class="nav-btn nav-link">
                     <span class="material-symbols-outlined">trending_up</span>
                     구글 트렌드

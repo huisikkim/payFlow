@@ -5255,3 +5255,22 @@ insert into inventories (created_at,product_id,product_name,quantity,reserved_qu
 [2m2025-12-04 17:30:00.010[0;39m [32m INFO[0;39m [35m34873[0;39m [2m---[0;39m [2m[MessageBroker-3][0;39m [36mc.e.p.g.a.GroupBuyingScheduler          [0;39m [2m:[0;39m 공동구매 주문 자동 생성 완료
 [2m2025-12-04 17:30:00.014[0;39m [32m INFO[0;39m [35m34873[0;39m [2m---[0;39m [2m[MessageBroker-7][0;39m [36mc.e.p.g.a.GroupBuyingScheduler          [0;39m [2m:[0;39m 만료된 공동구매 방 자동 마감 완료
 [2m2025-12-04 17:30:00.020[0;39m [32m INFO[0;39m [35m34873[0;39m [2m---[0;39m [2m[MessageBroker-8][0;39m [36mc.e.p.e.infrastructure.EscrowScheduler  [0;39m [2m:[0;39m 📊 에스크로 거래 현황: INITIATED=0, DEPOSITED=0, DELIVERED=0, VERIFIED=0, OWNERSHIP_TRANSFERRED=0, SETTLING=0, COMPLETED=0, DISPUTED=0
+
+> Task :bootRun FAILED
+
+[Incubating] Problems report is available at: file:///Users/kimhuisik/payFlow/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':bootRun'.
+> Process 'command '/opt/homebrew/Cellar/openjdk@17/17.0.17/libexec/openjdk.jdk/Contents/Home/bin/java'' finished with non-zero exit value 137
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 7m 16s
+4 actionable tasks: 4 executed

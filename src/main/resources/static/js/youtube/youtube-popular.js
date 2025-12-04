@@ -17,9 +17,19 @@ let hasMore = false;
 
 // 초기화
 document.addEventListener('DOMContentLoaded', () => {
-    // URL에서 검색어 파라미터 확인
+    // URL에서 파라미터 확인
     const urlParams = new URLSearchParams(window.location.search);
     const searchQuery = urlParams.get('search');
+    const viewParam = urlParams.get('view');
+    
+    // 뷰 파라미터가 있으면 해당 뷰로 전환
+    if (viewParam && (viewParam === 'videos' || viewParam === 'channels')) {
+        window.currentView = viewParam;
+        // 네비게이션 버튼 활성화 상태 변경
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.view === viewParam);
+        });
+    }
     
     if (searchQuery) {
         // 검색어가 있으면 검색 탭으로 전환하고 검색 실행
@@ -39,7 +49,12 @@ document.addEventListener('DOMContentLoaded', () => {
 /**
  * 뷰 전환 (영상 / 채널영상)
  */
-function switchView(view) {
+function switchView(view, event) {
+    // 이벤트가 있고 현재 페이지가 popular 페이지인 경우 기본 동작 방지
+    if (event && window.location.pathname === '/youtube/popular') {
+        event.preventDefault();
+    }
+    
     window.currentView = view;
     console.log('[View] Switched to:', view);
     
