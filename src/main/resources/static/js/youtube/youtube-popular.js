@@ -433,8 +433,9 @@ async function loadChannelVideos(append = false) {
             previewVideos.forEach(video => {
                 const videoPreview = document.createElement('div');
                 videoPreview.className = 'channel-video-preview';
+                const thumbnailUrl = video.thumbnailUrl || video.thumbnail || 'https://i.ytimg.com/vi/' + video.videoId + '/hqdefault.jpg';
                 videoPreview.innerHTML = `
-                    <img src="${video.thumbnail}" alt="${video.title}">
+                    <img src="${thumbnailUrl}" alt="${video.title}" onerror="this.src='https://i.ytimg.com/vi/${video.videoId}/hqdefault.jpg'">
                     <div class="preview-info">
                         <h4>${video.title}</h4>
                         <p>${formatNumber(video.viewCount)} 조회 • ${formatNumber(video.likeCount)} 좋아요</p>
