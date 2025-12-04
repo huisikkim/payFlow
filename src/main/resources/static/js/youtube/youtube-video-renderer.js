@@ -84,8 +84,6 @@ function renderVideos(videos, showRank = true) {
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="metrics-row">
                     ${viralIndex !== null ? `
                     <div class="tooltip-wrapper">
                         <div class="viral-badge ${viralInfo.class}">

@@ -207,23 +207,39 @@
     margin-bottom: 12px;
 }
 
-/* 지표 행 */
+/* 지표 행 - 한 줄로 표시 */
 .metrics-row {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 8px;
     margin-bottom: 8px;
+    overflow-x: auto;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+}
+
+.metrics-row::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
+}
+
+/* 모바일에서는 wrap 허용 */
+@media (max-width: 768px) {
+    .metrics-row {
+        flex-wrap: wrap;
+    }
 }
 
 /* 참여율 배지 */
 .engagement-badge {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
+    gap: 4px;
+    padding: 6px 10px;
     border-radius: 9999px;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 500;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .engagement-icon {
@@ -278,11 +294,13 @@
 .performance-badge {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
+    gap: 4px;
+    padding: 6px 10px;
     border-radius: 9999px;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 500;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .performance-icon {
@@ -299,13 +317,13 @@
 }
 
 .performance-level {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     color: white;
 }
@@ -365,11 +383,13 @@
 .viral-badge {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
+    gap: 4px;
+    padding: 6px 10px;
     border-radius: 9999px;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 500;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .viral-icon {
@@ -430,11 +450,13 @@
 .explosiveness-badge {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
+    gap: 4px;
+    padding: 6px 10px;
     border-radius: 9999px;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 500;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .explosiveness-icon {
