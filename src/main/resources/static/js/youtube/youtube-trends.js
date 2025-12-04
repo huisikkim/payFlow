@@ -91,9 +91,15 @@ function createTrendCard(trend) {
     const traffic = trend.traffic || '검색 급상승';
     const timeAgo = formatTimeAgo(trend.publishedAt);
     
+    // TOP 3 순위에 특별 클래스 추가
+    let rankClass = 'trend-rank';
+    if (trend.rank === 1) rankClass += ' top-1';
+    else if (trend.rank === 2) rankClass += ' top-2';
+    else if (trend.rank === 3) rankClass += ' top-3';
+    
     return `
         <div class="trend-card">
-            <div class="trend-rank">${trend.rank}</div>
+            <div class="${rankClass}">#${trend.rank}</div>
             ${trend.imageUrl ? `<img src="${imageUrl}" alt="${trend.title}" class="trend-image" onerror="this.style.display='none'">` : ''}
             <div class="trend-content">
                 <h3 class="trend-title">${escapeHtml(trend.title)}</h3>
