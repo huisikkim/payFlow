@@ -31,4 +31,12 @@ public class YouTubeWebController {
     public String myPage() {
         return "youtube/mypage";
     }
+
+    /**
+     * 구글 트렌드 페이지
+     */
+    @GetMapping("/trends")
+    public String trendsPage() {
+        return "youtube/trends";
+    }
 }

@@ -173,6 +173,16 @@
     font-size: 20px;
 }
 
+/* 네비게이션 링크 (a 태그용) */
+.nav-btn.nav-link {
+    text-decoration: none;
+}
+
+.nav-btn.nav-link:hover {
+    background: #1f2937;
+    color: #e5e7eb;
+}
+
 /* 검색 섹션 */
 .search-section {
     max-width: 640px;

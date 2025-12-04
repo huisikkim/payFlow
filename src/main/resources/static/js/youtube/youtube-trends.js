@@ -2,7 +2,7 @@
 let currentTrends = [];
 
 /**
- * 구글 트렌드 로드
+ * 구글 트렌드 로드 (탭용)
  */
 async function loadGoogleTrends() {
     const container = document.getElementById('video-list');
@@ -21,22 +21,50 @@ async function loadGoogleTrends() {
         
         if (data.success && data.trends && data.trends.length > 0) {
             currentTrends = data.trends;
-            renderTrends(data.trends);
+            renderTrends(data.trends, container);
         } else {
-            showTrendsEmpty();
+            showTrendsEmpty(container);
         }
     } catch (error) {
         console.error('트렌드 로드 실패:', error);
-        showTrendsError(error.message);
+        showTrendsError(error.message, container);
+    }
+}
+
+/**
+ * 구글 트렌드 로드 (전용 페이지용)
+ */
+async function loadGoogleTrendsPage() {
+    const container = document.getElementById('trends-container');
+    
+    // 로딩 표시
+    container.innerHTML = `
+        <div class="trends-loading">
+            <div class="loading-spinner"></div>
+            <p>구글 트렌드를 불러오는 중...</p>
+        </div>
+    `;
+    
+    try {
+        const response = await fetch('/api/youtube/trends');
+        const data = await response.json();
+        
+        if (data.success && data.trends && data.trends.length > 0) {
+            currentTrends = data.trends;
+            renderTrends(data.trends, container);
+        } else {
+            showTrendsEmpty(container);
+        }
+    } catch (error) {
+        console.error('트렌드 로드 실패:', error);
+        showTrendsError(error.message, container);
     }
 }
 
 /**
  * 트렌드 렌더링
  */
-function renderTrends(trends) {
-    const container = document.getElementById('video-list');
-    
+function renderTrends(trends, container) {
     const html = `
         <div class="trends-container">
             <div class="trends-header">
@@ -97,22 +125,14 @@ function createTrendCard(trend) {
  * 트렌드 키워드로 YouTube 검색
  */
 function searchTrendOnYouTube(keyword) {
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput) {
-        searchInput.value = keyword;
-    }
-    
-    // 검색 실행
-    if (typeof searchVideos === 'function') {
-        searchVideos();
-    }
+    // popular 페이지로 이동하면서 검색
+    window.location.href = `/youtube/popular?search=${encodeURIComponent(keyword)}`;
 }
 
 /**
  * 빈 상태 표시
  */
-function showTrendsEmpty() {
-    const container = document.getElementById('video-list');
+function showTrendsEmpty(container) {
     container.innerHTML = `
         <div class="trends-empty">
             <span class="material-symbols-outlined">trending_down</span>
@@ -125,14 +145,14 @@ function showTrendsEmpty() {
 /**
  * 에러 표시
  */
-function showTrendsError(message) {
-    const container = document.getElementById('video-list');
+function showTrendsError(message, container) {
+    const reloadFunc = container.id === 'trends-container' ? 'loadGoogleTrendsPage()' : 'loadGoogleTrends()';
     container.innerHTML = `
         <div class="trends-empty">
             <span class="material-symbols-outlined">error</span>
             <h3>오류가 발생했습니다</h3>
             <p>${escapeHtml(message)}</p>
-            <button class="btn-primary" onclick="loadGoogleTrends()" style="margin-top: 16px;">
+            <button class="btn-primary" onclick="${reloadFunc}" style="margin-top: 16px;">
                 다시 시도
             </button>
         </div>

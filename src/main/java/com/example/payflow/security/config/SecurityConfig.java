@@ -90,7 +90,7 @@ public class SecurityConfig {
                         .requestMatchers("/ws/crypto", "/ws/crypto/**").permitAll()  // 코인 시세 웹소켓 허용
                         .requestMatchers("/ws/chat", "/ws/chat/**").permitAll()  // 채팅 웹소켓 허용
                         .requestMatchers("/api/chat/**").authenticated()  // 채팅 API (인증 필요)
-                        .requestMatchers("/youtube/**").permitAll()  // YouTube 웹 페이지 허용
+                        .requestMatchers("/youtube/**").permitAll()  // YouTube 웹 페이지 허용 (trends 포함)
                         .requestMatchers("/api/youtube/popular/**", "/api/youtube/statistics/**", "/api/youtube/top-viewed", "/api/youtube/top-liked", "/api/youtube/search", "/api/youtube/revenue/**", "/api/youtube/channels/**", "/api/youtube/hot-channels", "/api/youtube/trends").permitAll()  // YouTube 공개 API
                         .requestMatchers("/api/youtube/folders/**").authenticated()  // YouTube 즐겨찾기 API (인증 필요)
                         .requestMatchers("/api/youtube/search-history/**").authenticated()  // YouTube 검색 기록 API (인증 필요)
