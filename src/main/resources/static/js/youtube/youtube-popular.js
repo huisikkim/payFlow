@@ -15,7 +15,22 @@ let hasMore = false;
 
 // 초기화
 document.addEventListener('DOMContentLoaded', () => {
-    loadVideos();
+    // URL에서 검색어 파라미터 확인
+    const urlParams = new URLSearchParams(window.location.search);
+    const searchQuery = urlParams.get('search');
+    
+    if (searchQuery) {
+        // 검색어가 있으면 검색 탭으로 전환하고 검색 실행
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.value = searchQuery;
+        }
+        switchTab('search', true);
+        doSearch(searchQuery);
+    } else {
+        loadVideos();
+    }
+    
     setupInfiniteScroll();
 });
 
@@ -92,7 +107,16 @@ async function doSearch(query) {
     list.innerHTML = '';
     
     try {
-        const response = await fetch(`/api/youtube/search?q=${encodeURIComponent(query)}&maxResults=${maxResults}`);
+        // JWT 토큰 가져오기
+        const token = localStorage.getItem('jwt_token');
+        const headers = {};
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+        
+        const response = await fetch(`/api/youtube/search?q=${encodeURIComponent(query)}&maxResults=${maxResults}`, {
+            headers: headers
+        });
         const data = await response.json();
         
         loading.style.display = 'none';

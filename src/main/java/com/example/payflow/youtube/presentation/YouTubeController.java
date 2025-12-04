@@ -18,6 +18,7 @@ import java.util.Map;
 public class YouTubeController {
 
     private final YouTubeService youTubeService;
+    private final com.example.payflow.youtube.application.SearchHistoryService searchHistoryService;
 
     /**
      * 한국 인기 급상승 영상 목록 조회
@@ -136,9 +137,25 @@ public class YouTubeController {
     @GetMapping("/search")
     public ResponseEntity<Map<String, Object>> searchVideos(
             @RequestParam String q,
-            @RequestParam(defaultValue = "25") int maxResults) {
+            @RequestParam(defaultValue = "25") int maxResults,
+            org.springframework.security.core.Authentication authentication) {
         try {
             List<YouTubeVideo> videos = youTubeService.searchVideos(q, maxResults);
+            
+            // 로그인한 사용자의 검색 기록 저장
+            if (authentication != null && authentication.isAuthenticated()) {
+                try {
+                    String username = authentication.getName();
+                    log.info("검색 기록 저장 시도 - username: {}, query: {}, resultCount: {}", username, q, videos.size());
+                    searchHistoryService.saveSearchHistory(username, q, videos.size());
+                    log.info("검색 기록 저장 성공");
+                } catch (Exception e) {
+                    log.error("검색 기록 저장 실패", e);
+                }
+            } else {
+                log.info("비로그인 사용자 검색 - 검색 기록 저장 안 함");
+            }
+            
             return ResponseEntity.ok(Map.of(
                 "success", true,
                 "query", q,

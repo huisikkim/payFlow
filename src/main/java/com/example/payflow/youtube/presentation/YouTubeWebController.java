@@ -23,4 +23,12 @@ public class YouTubeWebController {
     public String loginPage() {
         return "youtube/login";
     }
+
+    /**
+     * YouTube 마이페이지
+     */
+    @GetMapping("/mypage")
+    public String myPage() {
+        return "youtube/mypage";
+    }
 }

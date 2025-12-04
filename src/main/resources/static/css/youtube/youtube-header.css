@@ -50,6 +50,28 @@
     font-weight: 600;
 }
 
+.btn-mypage {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 14px;
+    background: #374151;
+    color: #e5e7eb;
+    text-decoration: none;
+    border-radius: 9999px;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.btn-mypage:hover {
+    background: #4b5563;
+}
+
+.btn-mypage .material-symbols-outlined {
+    font-size: 16px;
+}
+
 .btn-logout {
     padding: 6px 16px;
     background: #374151;

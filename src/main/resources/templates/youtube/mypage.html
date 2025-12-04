@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>마이페이지 - YouTube</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+    <link rel="stylesheet" th:href="@{/css/youtube/youtube-popular.css}">
+    <link rel="stylesheet" th:href="@{/css/youtube/youtube-mypage.css}">
+</head>
+<body>
+    <!-- 헤더 -->
+    <div th:replace="~{youtube/fragments/youtube-header :: header}"></div>
+
+    <div class="container">
+        <!-- 페이지 헤더 -->
+        <div class="page-header">
+            <h1>
+                <span class="material-symbols-outlined">person</span>
+                마이페이지
+            </h1>
+            <p id="welcome-message">내 활동 내역을 확인하세요</p>
+        </div>
+
+        <!-- 검색 기록 섹션 -->
+        <div class="mypage-section">
+            <div class="section-header">
+                <h2>
+                    <span class="material-symbols-outlined">history</span>
+                    검색 기록
+                </h2>
+                <button id="clearAllBtn" class="btn-clear-all">
+                    <span class="material-symbols-outlined">delete_sweep</span>
+                    전체 삭제
+                </button>
+            </div>
+
+            <div id="loading" class="loading" style="display: none;">
+                <div class="loading-spinner"></div>
+                <p>검색 기록을 불러오는 중...</p>
+            </div>
+
+            <div id="error" class="error-message" style="display: none;">
+                <h3>⚠️ 오류 발생</h3>
+                <p id="error-text"></p>
+            </div>
+
+            <div id="empty-state" class="empty-state" style="display: none;">
+                <span class="material-symbols-outlined">search_off</span>
+                <p>검색 기록이 없습니다</p>
+                <a href="/youtube/popular" class="btn-primary">영상 검색하러 가기</a>
+            </div>
+
+            <div id="search-history-list" class="search-history-list"></div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script th:src="@{/js/youtube/youtube-utils.js}"></script>
+    <script th:src="@{/js/youtube/youtube-auth.js}"></script>
+    <script th:src="@{/js/youtube/youtube-mypage.js}"></script>
+</body>
+</html>
