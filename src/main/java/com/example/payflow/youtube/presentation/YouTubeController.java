@@ -34,21 +34,17 @@ public class YouTubeController {
     }
 
     /**
-     * 특정 국가의 인기 급상승 영상 목록 조회
-     * GET /api/youtube/popular/{regionCode}?maxResults=25
+     * 특정 국가의 인기 급상승 영상 목록 조회 (페이지네이션 지원)
+     * GET /api/youtube/popular/{regionCode}?maxResults=25&pageToken=xxx
      */
     @GetMapping("/popular/{regionCode}")
     public ResponseEntity<Map<String, Object>> getPopularVideos(
             @PathVariable String regionCode,
-            @RequestParam(defaultValue = "25") int maxResults) {
+            @RequestParam(defaultValue = "25") int maxResults,
+            @RequestParam(required = false) String pageToken) {
         try {
-            List<YouTubeVideo> videos = youTubeService.getPopularVideos(regionCode, maxResults);
-            return ResponseEntity.ok(Map.of(
-                "success", true,
-                "regionCode", regionCode,
-                "count", videos.size(),
-                "videos", videos
-            ));
+            Map<String, Object> result = youTubeService.getPopularVideosWithPagination(regionCode, maxResults, pageToken);
+            return ResponseEntity.ok(result);
         } catch (Exception e) {
             log.error("YouTube API 호출 실패", e);
             return ResponseEntity.status(500).body(Map.of(

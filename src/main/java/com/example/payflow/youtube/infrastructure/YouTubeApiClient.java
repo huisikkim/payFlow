@@ -15,7 +15,9 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Component
@@ -123,6 +125,40 @@ public class YouTubeApiClient {
             throw new RuntimeException("YouTube API 호출 실패: " + e.getMessage(), e);
         }
     }
+    
+    /**
+     * 페이지네이션을 지원하는 인기 급상승 영상 목록 조회
+     */
+    public Map<String, Object> getMostPopularVideosWithPagination(String regionCode, int maxResults, String pageToken) {
+        log.info("Fetching most popular videos with pagination - region: {}, pageToken: {}", regionCode, pageToken);
+        
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl + "/videos")
+                .queryParam("part", "snippet,statistics,contentDetails")
+                .queryParam("chart", "mostPopular")
+                .queryParam("regionCode", regionCode)
+                .queryParam("maxResults", Math.min(maxResults, 50)) // API 제한: 최대 50
+                .queryParam("key", apiKey);
+        
+        // pageToken이 있으면 추가
+        if (pageToken != null && !pageToken.isEmpty()) {
+            builder.queryParam("pageToken", pageToken);
+        }
+        
+        URI uri = builder.build().encode().toUri();
+        
+        try {
+            String response = webClient.get()
+                    .uri(uri)
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block();
+            
+            return parseVideosResponseWithPagination(response);
+        } catch (Exception e) {
+            log.error("YouTube API 호출 실패: {}", e.getMessage());
+            throw new RuntimeException("YouTube API 호출 실패: " + e.getMessage(), e);
+        }
+    }
 
     /**
      * 특정 영상의 통계 정보 조회
@@ -208,6 +244,60 @@ public class YouTubeApiClient {
         }
         
         return videos;
+    }
+    
+    /**
+     * 페이지네이션 정보를 포함한 응답 파싱
+     */
+    private Map<String, Object> parseVideosResponseWithPagination(String response) {
+        List<YouTubeVideo> videos = new ArrayList<>();
+        String nextPageToken = null;
+        
+        try {
+            JsonObject json = JsonParser.parseString(response).getAsJsonObject();
+            JsonArray items = json.getAsJsonArray("items");
+            
+            // nextPageToken 추출
+            if (json.has("nextPageToken")) {
+                nextPageToken = json.get("nextPageToken").getAsString();
+            }
+            
+            for (JsonElement item : items) {
+                JsonObject videoObj = item.getAsJsonObject();
+                JsonObject snippet = videoObj.getAsJsonObject("snippet");
+                JsonObject statistics = videoObj.has("statistics") 
+                    ? videoObj.getAsJsonObject("statistics") : new JsonObject();
+                JsonObject contentDetails = videoObj.has("contentDetails")
+                    ? videoObj.getAsJsonObject("contentDetails") : new JsonObject();
+                
+                YouTubeVideo video = YouTubeVideo.builder()
+                    .videoId(videoObj.get("id").getAsString())
+                    .title(getStringOrNull(snippet, "title"))
+                    .description(getStringOrNull(snippet, "description"))
+                    .channelId(getStringOrNull(snippet, "channelId"))
+                    .channelTitle(getStringOrNull(snippet, "channelTitle"))
+                    .thumbnailUrl(getThumbnailUrl(snippet))
+                    .publishedAt(getStringOrNull(snippet, "publishedAt"))
+                    .viewCount(getLongOrNull(statistics, "viewCount"))
+                    .likeCount(getLongOrNull(statistics, "likeCount"))
+                    .commentCount(getLongOrNull(statistics, "commentCount"))
+                    .duration(getStringOrNull(contentDetails, "duration"))
+                    .categoryId(getStringOrNull(snippet, "categoryId"))
+                    .build();
+                
+                videos.add(video);
+            }
+        } catch (Exception e) {
+            log.error("Error parsing YouTube API response with pagination", e);
+        }
+        
+        Map<String, Object> result = new java.util.HashMap<>();
+        result.put("videos", videos);
+        if (nextPageToken != null) {
+            result.put("nextPageToken", nextPageToken);
+        }
+        
+        return result;
     }
 
     private YouTubeVideoStatistics parseStatisticsResponse(String response, String videoId) {

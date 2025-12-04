@@ -40,6 +40,29 @@ public class YouTubeService {
     }
     
     /**
+     * 페이지네이션을 지원하는 인기 영상 조회
+     */
+    public Map<String, Object> getPopularVideosWithPagination(String regionCode, int maxResults, String pageToken) {
+        log.info("Fetching popular videos with pagination - region: {}, maxResults: {}, pageToken: {}", 
+                regionCode, maxResults, pageToken);
+        
+        Map<String, Object> result = youTubeApiClient.getMostPopularVideosWithPagination(regionCode, maxResults, pageToken);
+        
+        @SuppressWarnings("unchecked")
+        List<YouTubeVideo> videos = (List<YouTubeVideo>) result.get("videos");
+        List<YouTubeVideo> enrichedVideos = enrichWithChannelSubscribers(videos);
+        
+        return Map.of(
+            "success", true,
+            "regionCode", regionCode,
+            "count", enrichedVideos.size(),
+            "videos", enrichedVideos,
+            "nextPageToken", result.getOrDefault("nextPageToken", ""),
+            "hasMore", result.containsKey("nextPageToken")
+        );
+    }
+    
+    /**
      * 인기 영상 캐시 수동 갱신
      */
     @CacheEvict(value = "popularVideos", allEntries = true)

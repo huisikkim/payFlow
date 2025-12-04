@@ -9,10 +9,14 @@ let lastSearchQuery = '';
 let isSearching = false;
 let allVideos = [];
 let currentShowRank = true;
+let nextPageToken = null;
+let isLoadingMore = false;
+let hasMore = false;
 
 // 초기화
 document.addEventListener('DOMContentLoaded', () => {
     loadVideos();
+    setupInfiniteScroll();
 });
 
 /**
@@ -115,7 +119,7 @@ async function doSearch(query) {
 /**
  * 인기 영상 로드
  */
-async function loadVideos() {
+async function loadVideos(append = false) {
     const regionCode = document.getElementById('regionCode').value;
     const maxResults = document.getElementById('maxResults').value;
     
@@ -123,27 +127,136 @@ async function loadVideos() {
     const error = document.getElementById('error');
     const list = document.getElementById('video-list');
     
-    loading.style.display = 'block';
-    error.style.display = 'none';
-    list.innerHTML = '';
+    if (!append) {
+        loading.style.display = 'block';
+        error.style.display = 'none';
+        list.innerHTML = '';
+        allVideos = [];
+        nextPageToken = null;
+    }
     
     try {
-        const response = await fetch(`/api/youtube/popular/${regionCode}?maxResults=${maxResults}`);
+        let url = `/api/youtube/popular/${regionCode}?maxResults=${maxResults}`;
+        if (append && nextPageToken) {
+            url += `&pageToken=${nextPageToken}`;
+        }
+        
+        const response = await fetch(url);
         const data = await response.json();
         
         loading.style.display = 'none';
         
         if (data.success && data.videos) {
-            allVideos = data.videos;
+            if (append) {
+                allVideos = [...allVideos, ...data.videos];
+            } else {
+                allVideos = data.videos;
+            }
+            
+            nextPageToken = data.nextPageToken || null;
+            hasMore = data.hasMore || false;
             currentShowRank = true;
-            renderVideos(data.videos, true);
-            generateInsights(data.videos);
-            updateFilterResultCount(data.videos.length, data.videos.length);
+            
+            renderVideos(allVideos, true);
+            
+            if (!append) {
+                generateInsights(allVideos);
+            }
+            
+            updateFilterResultCount(allVideos.length, allVideos.length);
+            updateLoadMoreButton();
         } else {
             showError('영상을 불러올 수 없습니다.');
         }
     } catch (err) {
         loading.style.display = 'none';
         showError('API 호출 중 오류가 발생했습니다: ' + err.message);
+    }
+}
+
+/**
+ * 무한 스크롤 설정
+ */
+function setupInfiniteScroll() {
+    window.addEventListener('scroll', () => {
+        if (isLoadingMore || !hasMore || currentTab !== 'popular') return;
+        
+        const scrollPosition = window.innerHeight + window.scrollY;
+        const threshold = document.documentElement.scrollHeight - 500;
+        
+        if (scrollPosition >= threshold) {
+            loadMoreVideos();
+        }
+    });
+}
+
+/**
+ * 더 많은 영상 로드
+ */
+async function loadMoreVideos() {
+    if (isLoadingMore || !hasMore) return;
+    
+    isLoadingMore = true;
+    showLoadingMore();
+    
+    await loadVideos(true);
+    
+    isLoadingMore = false;
+    hideLoadingMore();
+}
+
+/**
+ * 로딩 더보기 표시
+ */
+function showLoadingMore() {
+    let loader = document.getElementById('loading-more');
+    if (!loader) {
+        loader = document.createElement('div');
+        loader.id = 'loading-more';
+        loader.className = 'loading-more';
+        loader.innerHTML = `
+            <div class="loading-spinner-small"></div>
+            <p>더 많은 영상을 불러오는 중...</p>
+        `;
+        document.getElementById('video-list').after(loader);
+    }
+    loader.style.display = 'flex';
+}
+
+/**
+ * 로딩 더보기 숨기기
+ */
+function hideLoadingMore() {
+    const loader = document.getElementById('loading-more');
+    if (loader) {
+        loader.style.display = 'none';
+    }
+}
+
+/**
+ * 더보기 버튼 상태 업데이트
+ */
+function updateLoadMoreButton() {
+    const info = document.getElementById('load-more-info');
+    if (!info) {
+        const container = document.createElement('div');
+        container.id = 'load-more-info';
+        container.className = 'load-more-info';
+        document.getElementById('video-list').after(container);
+    }
+    
+    const infoEl = document.getElementById('load-more-info');
+    if (hasMore) {
+        infoEl.innerHTML = `
+            <p>스크롤하면 자동으로 더 많은 영상을 불러옵니다</p>
+            <button class="btn-load-more" onclick="loadMoreVideos()">
+                <span class="material-symbols-outlined">expand_more</span>
+                더 보기
+            </button>
+        `;
+        infoEl.style.display = 'flex';
+    } else {
+        infoEl.innerHTML = `<p>모든 영상을 불러왔습니다</p>`;
+        infoEl.style.display = 'flex';
     }
 }
