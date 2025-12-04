@@ -361,6 +361,10 @@ window.switchTab = function(tab, skipLoad = false) {
         if (videoList) videoList.style.display = 'none';
         if (insightsSection) insightsSection.style.display = 'none';
         
+        // 필터 & 정렬 섹션 숨기기
+        const filterSortSection = document.querySelector('.filter-sort-section');
+        if (filterSortSection) filterSortSection.style.display = 'none';
+        
         const regionFilter = document.getElementById('regionFilter');
         if (regionFilter) regionFilter.style.display = 'none';
         
@@ -379,6 +383,10 @@ window.switchTab = function(tab, skipLoad = false) {
     } else {
         if (favoritesSection) favoritesSection.style.display = 'none';
         if (videoList) videoList.style.display = 'flex';
+        
+        // 필터 & 정렬 섹션 다시 표시
+        const filterSortSection = document.querySelector('.filter-sort-section');
+        if (filterSortSection) filterSortSection.style.display = 'block';
         
         // 더보기 요소 다시 표시
         showLoadMoreElements();
