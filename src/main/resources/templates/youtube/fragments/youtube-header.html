@@ -14,6 +14,17 @@
                 YouTube 트렌드
             </a>
             
+            <nav class="header-nav">
+                <button class="nav-btn active" data-view="videos" onclick="switchView('videos')">
+                    <span class="material-symbols-outlined">play_circle</span>
+                    영상
+                </button>
+                <button class="nav-btn" data-view="channels" onclick="switchView('channels')">
+                    <span class="material-symbols-outlined">subscriptions</span>
+                    채널영상
+                </button>
+            </nav>
+            
             <div class="header-actions">
                 <div id="userInfo" class="user-info" style="display: none;">
                     <a href="/youtube/mypage" class="btn-mypage">

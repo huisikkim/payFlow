@@ -248,3 +248,56 @@ body {
 .btn-load-more .material-symbols-outlined {
     font-size: 20px;
 }
+
+/* 채널 정보 배너 */
+.channel-info-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.1) 100%);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 12px;
+    margin-bottom: 24px;
+}
+
+.channel-info-banner .material-symbols-outlined {
+    color: #60a5fa;
+    font-size: 24px;
+}
+
+.channel-info-banner p {
+    flex: 1;
+    color: #e5e7eb;
+    font-size: 14px;
+}
+
+.channel-info-banner strong {
+    color: #60a5fa;
+    font-weight: 700;
+}
+
+.btn-refresh-channel {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.btn-refresh-channel:hover {
+    background: rgba(59, 130, 246, 0.3);
+    border-color: rgba(59, 130, 246, 0.5);
+}
+
+.btn-refresh-channel .material-symbols-outlined {
+    font-size: 18px;
+}

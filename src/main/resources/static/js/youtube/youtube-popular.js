@@ -5,6 +5,7 @@
 
 // 전역 상태
 window.currentTab = window.currentTab || 'popular';  // window 객체에 저장하여 다른 스크립트와 공유
+window.currentView = window.currentView || 'videos';  // 'videos' 또는 'channels'
 let lastSearchQuery = '';
 let isSearching = false;
 let allVideos = [];
@@ -33,6 +34,48 @@ document.addEventListener('DOMContentLoaded', () => {
     
     setupInfiniteScroll();
 });
+
+/**
+ * 뷰 전환 (영상 / 채널영상)
+ */
+function switchView(view) {
+    window.currentView = view;
+    console.log('[View] Switched to:', view);
+    
+    // 네비게이션 버튼 활성화 상태 변경
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.view === view);
+    });
+    
+    // 페이지 헤더 텍스트 변경
+    const pageHeader = document.querySelector('.page-header h1');
+    const pageDesc = document.querySelector('.page-header p');
+    
+    if (view === 'videos') {
+        if (pageHeader) {
+            pageHeader.innerHTML = `
+                <span class="material-symbols-outlined fire-icon">local_fire_department</span>
+                YouTube 인기 급상승
+            `;
+        }
+        if (pageDesc) {
+            pageDesc.textContent = '실시간 인기 영상을 확인하세요';
+        }
+    } else if (view === 'channels') {
+        if (pageHeader) {
+            pageHeader.innerHTML = `
+                <span class="material-symbols-outlined fire-icon">subscriptions</span>
+                인기 채널 영상
+            `;
+        }
+        if (pageDesc) {
+            pageDesc.textContent = '인기 채널의 최신 영상을 확인하세요';
+        }
+    }
+    
+    // 현재 탭 새로고침
+    loadCurrentTab();
+}
 
 /**
  * 탭 전환
@@ -145,6 +188,12 @@ async function doSearch(query) {
  * 인기 영상 로드
  */
 async function loadVideos(append = false) {
+    // 채널영상 뷰인 경우 채널 영상 로드
+    if (window.currentView === 'channels') {
+        loadChannelVideos(append);
+        return;
+    }
+    
     const regionCode = document.getElementById('regionCode').value;
     const maxResults = document.getElementById('maxResults').value;
     
@@ -192,6 +241,66 @@ async function loadVideos(append = false) {
             updateLoadMoreButton();
         } else {
             showError('영상을 불러올 수 없습니다.');
+        }
+    } catch (err) {
+        loading.style.display = 'none';
+        showError('API 호출 중 오류가 발생했습니다: ' + err.message);
+    }
+}
+
+/**
+ * 채널 영상 로드 (인기 채널의 최신 영상)
+ */
+async function loadChannelVideos(append = false) {
+    const loading = document.getElementById('loading');
+    const error = document.getElementById('error');
+    const list = document.getElementById('video-list');
+    
+    if (!append) {
+        loading.style.display = 'block';
+        error.style.display = 'none';
+        list.innerHTML = '';
+        allVideos = [];
+    }
+    
+    try {
+        // 인기 채널 키워드로 검색 (예시)
+        const popularChannels = [
+            '침착맨', '워크맨', '백종원', '슈카월드', '문명특급',
+            '피식대학', '빠더너스', '김계란', '쯔양', '히밥'
+        ];
+        
+        const randomChannel = popularChannels[Math.floor(Math.random() * popularChannels.length)];
+        const maxResults = document.getElementById('maxResults').value;
+        
+        const response = await fetch(`/api/youtube/search?q=${encodeURIComponent(randomChannel)}&maxResults=${maxResults}`);
+        const data = await response.json();
+        
+        loading.style.display = 'none';
+        
+        if (data.success && data.videos) {
+            allVideos = data.videos;
+            currentShowRank = false;
+            hasMore = false;
+            
+            renderVideos(allVideos, false);
+            generateInsights(allVideos);
+            updateFilterResultCount(allVideos.length, allVideos.length);
+            
+            // 채널 정보 표시
+            const channelInfo = document.createElement('div');
+            channelInfo.className = 'channel-info-banner';
+            channelInfo.innerHTML = `
+                <span class="material-symbols-outlined">info</span>
+                <p>인기 채널 "<strong>${randomChannel}</strong>"의 영상을 보여드리고 있습니다</p>
+                <button class="btn-refresh-channel" onclick="loadChannelVideos()">
+                    <span class="material-symbols-outlined">refresh</span>
+                    다른 채널 보기
+                </button>
+            `;
+            list.insertBefore(channelInfo, list.firstChild);
+        } else {
+            showError('채널 영상을 불러올 수 없습니다.');
         }
     } catch (err) {
         loading.style.display = 'none';
