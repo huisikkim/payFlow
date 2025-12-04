@@ -257,8 +257,8 @@
         <div class="quick-login">
             <p>빠른 로그인</p>
             <div class="quick-login-btns">
-                <button class="btn-quick" onclick="quickLogin('user', 'password')">일반 사용자</button>
-                <button class="btn-quick" onclick="quickLogin('admin', 'admin')">관리자</button>
+                <button class="btn-quick" onclick="quickLogin('user', 'password')">시흥 호랑이</button>
+                <button class="btn-quick" onclick="quickLogin('admin', 'admin')">부천 사자</button>
             </div>
         </div>
 
@@ -316,6 +316,7 @@
                     const data = await response.json();
                     localStorage.setItem('jwt_token', data.accessToken);
                     localStorage.setItem('username', data.username);
+                    localStorage.setItem('nickname', data.nickname || data.username);
                     
                     // redirect 파라미터 확인
                     const urlParams = new URLSearchParams(window.location.search);
@@ -353,6 +354,7 @@
                     const data = await response.json();
                     localStorage.setItem('jwt_token', data.accessToken);
                     localStorage.setItem('username', data.username);
+                    localStorage.setItem('nickname', data.nickname || data.username);
                     
                     const urlParams = new URLSearchParams(window.location.search);
                     const redirect = urlParams.get('redirect');

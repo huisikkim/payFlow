@@ -1,5 +1,7 @@
 package com.example.payflow.security.presentation;
 
+import com.example.payflow.security.domain.User;
+import com.example.payflow.security.domain.UserRepository;
 import com.example.payflow.security.infrastructure.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +22,7 @@ public class AuthController {
     
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
+    private final UserRepository userRepository;
     
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
@@ -33,10 +36,19 @@ public class AuthController {
             
             String token = jwtTokenProvider.generateToken(authentication);
             
+            // 사용자 정보 조회하여 닉네임 포함
+            User user = userRepository.findByUsername(request.getUsername())
+                    .orElse(null);
+            
+            String nickname = (user != null && user.getNickname() != null) 
+                    ? user.getNickname() 
+                    : request.getUsername();
+            
             return ResponseEntity.ok(Map.of(
                     "success", true,
                     "accessToken", token,
-                    "username", request.getUsername()
+                    "username", request.getUsername(),
+                    "nickname", nickname
             ));
         } catch (AuthenticationException e) {
             log.error("Login failed for user: {}", request.getUsername(), e);

@@ -39,22 +39,24 @@ public class DataInitializer {
                         .username("user")
                         .password(passwordEncoder.encode("password"))
                         .email("user@example.com")
+                        .nickname("호랑이")
                         .roles(Set.of(Role.ROLE_USER))
                         .enabled(true)
                         .build();
                 userRepository.save(user);
-                log.info("Created default user: username=user, password=password");
+                log.info("Created default user: username=user, password=password, nickname=호랑이");
                 
                 // 관리자 생성
                 User admin = User.builder()
                         .username("admin")
                         .password(passwordEncoder.encode("admin"))
                         .email("admin@example.com")
+                        .nickname("사자")
                         .roles(Set.of(Role.ROLE_USER, Role.ROLE_ADMIN))
                         .enabled(true)
                         .build();
                 userRepository.save(admin);
-                log.info("Created default admin: username=admin, password=admin");
+                log.info("Created default admin: username=admin, password=admin, nickname=사자");
                 
                 // 매장 사용자 생성
                 User store001 = User.builder()

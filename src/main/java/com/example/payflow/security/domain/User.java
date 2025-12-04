@@ -31,6 +31,8 @@ public class User {
     @Column(unique = true, nullable = false)
     private String email;
     
+    private String nickname;        // 닉네임
+    
     @Enumerated(EnumType.STRING)
     private UserType userType;  // 회원 유형 (매장/유통업체) - 기존 데이터 호환을 위해 nullable
     
