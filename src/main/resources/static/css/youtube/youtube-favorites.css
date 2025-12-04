@@ -1,0 +1,465 @@
+/**
+ * YouTube 즐겨찾기 스타일
+ */
+
+/* 즐겨찾기 섹션 */
+.favorites-section {
+    max-width: 1280px;
+    margin: 0 auto;
+}
+
+/* 폴더 헤더 */
+.folders-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.folders-header h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.folders-header h2 .material-symbols-outlined {
+    color: #fbbf24;
+    font-size: 28px;
+}
+
+.btn-create-folder {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #ff0000;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.btn-create-folder:hover {
+    background: #dc2626;
+}
+
+.btn-create-folder .material-symbols-outlined {
+    font-size: 18px;
+}
+
+/* 폴더 목록 */
+.folders-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.folder-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: rgba(31, 41, 55, 0.6);
+    border: 1px solid rgba(55, 65, 81, 0.7);
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.folder-card:hover {
+    background: rgba(31, 41, 55, 0.9);
+    border-color: rgba(251, 191, 36, 0.5);
+    transform: translateY(-2px);
+}
+
+.folder-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(251, 191, 36, 0.15);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.folder-icon .material-symbols-outlined {
+    font-size: 28px;
+    color: #fbbf24;
+}
+
+.folder-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.folder-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 4px;
+}
+
+.folder-meta {
+    font-size: 13px;
+    color: #9ca3af;
+}
+
+.folder-arrow {
+    color: #6b7280;
+    font-size: 24px;
+}
+
+/* 빈 폴더 상태 */
+.empty-folders, .empty-videos {
+    text-align: center;
+    padding: 60px 20px;
+    color: #9ca3af;
+}
+
+.empty-folders .material-symbols-outlined,
+.empty-videos .material-symbols-outlined {
+    font-size: 64px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.empty-folders p, .empty-videos p {
+    font-size: 16px;
+    margin-bottom: 8px;
+}
+
+.empty-videos .sub {
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.btn-create-first {
+    margin-top: 16px;
+    padding: 12px 24px;
+    background: #ff0000;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-create-first:hover {
+    background: #dc2626;
+}
+
+/* 폴더 영상 헤더 */
+.folder-videos-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.btn-back {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: rgba(55, 65, 81, 0.5);
+    color: #e5e7eb;
+    border: 1px solid rgba(55, 65, 81, 0.7);
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-back:hover {
+    background: rgba(55, 65, 81, 0.8);
+}
+
+.folder-videos-header h3 {
+    flex: 1;
+    font-size: 20px;
+    font-weight: 600;
+    color: #fff;
+}
+
+.btn-delete-folder {
+    padding: 8px;
+    background: transparent;
+    color: #9ca3af;
+    border: 1px solid rgba(55, 65, 81, 0.7);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-delete-folder .material-symbols-outlined {
+    font-size: 20px;
+}
+
+.btn-delete-folder:hover {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.5);
+    color: #f87171;
+}
+
+/* 즐겨찾기 영상 아이템 */
+.favorite-video-item {
+    position: relative;
+}
+
+.btn-remove-video {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.6);
+    color: #9ca3af;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    opacity: 0;
+    z-index: 10;
+}
+
+.favorite-video-item:hover .btn-remove-video {
+    opacity: 1;
+}
+
+.btn-remove-video:hover {
+    background: rgba(239, 68, 68, 0.8);
+    color: white;
+}
+
+.btn-remove-video .material-symbols-outlined {
+    font-size: 18px;
+}
+
+.video-stats-inline {
+    display: flex;
+    gap: 16px;
+    font-size: 13px;
+    color: #9ca3af;
+    margin-top: 8px;
+}
+
+.video-stats-inline .icon {
+    font-size: 14px;
+    vertical-align: middle;
+    margin-right: 4px;
+}
+
+/* 모달 스타일 */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: #1f2937;
+    border: 1px solid #374151;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 400px;
+    overflow: hidden;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid #374151;
+}
+
+.modal-header h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #fff;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-close .material-symbols-outlined {
+    font-size: 20px;
+}
+
+.modal-close:hover {
+    color: #fff;
+}
+
+.modal-body {
+    padding: 24px;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group:last-child {
+    margin-bottom: 0;
+}
+
+.form-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #e5e7eb;
+    margin-bottom: 8px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px 16px;
+    background: #111827;
+    border: 1px solid #374151;
+    border-radius: 8px;
+    color: #e5e7eb;
+    font-size: 14px;
+    outline: none;
+}
+
+.form-group input:focus {
+    border-color: #ff0000;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 16px 24px;
+    border-top: 1px solid #374151;
+}
+
+.btn-cancel {
+    padding: 10px 20px;
+    background: transparent;
+    color: #9ca3af;
+    border: 1px solid #374151;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.btn-cancel:hover {
+    background: rgba(55, 65, 81, 0.5);
+}
+
+.btn-confirm {
+    padding: 10px 20px;
+    background: #ff0000;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-confirm:hover {
+    background: #dc2626;
+}
+
+/* 폴더 선택 모달 */
+.folder-select-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.folder-select-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    color: #e5e7eb;
+}
+
+.folder-select-item:hover {
+    background: rgba(55, 65, 81, 0.5);
+}
+
+.folder-select-item .material-symbols-outlined {
+    color: #fbbf24;
+    font-size: 20px;
+}
+
+.folder-select-item .video-count {
+    margin-left: auto;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.btn-new-folder-inline {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 12px;
+    margin-top: 16px;
+    background: transparent;
+    color: #9ca3af;
+    border: 1px dashed #374151;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-new-folder-inline:hover {
+    background: rgba(55, 65, 81, 0.3);
+    border-color: #6b7280;
+    color: #e5e7eb;
+}
+
+.btn-new-folder-inline .material-symbols-outlined {
+    font-size: 18px;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+    .folders-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+    
+    .btn-create-folder {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .folders-list {
+        grid-template-columns: 1fr;
+    }
+    
+    .folder-videos-header {
+        flex-wrap: wrap;
+    }
+}
