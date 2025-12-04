@@ -4,6 +4,7 @@ let pendingVideo = null;
 
 // 폴더 목록 로드
 async function loadFolders() {
+    console.log('[Favorites] loadFolders called');
     const foldersList = document.getElementById('folders-list');
     foldersList.innerHTML = '<div class="loading"><div class="loading-spinner"></div></div>';
     
@@ -58,6 +59,11 @@ function renderFolders(folders) {
 
 // 폴더 열기
 async function openFolder(folderId, folderName) {
+    // 이미 같은 폴더를 열려고 하는 경우 중복 로딩 방지
+    if (currentFolderId === folderId && document.getElementById('folder-videos').style.display === 'block') {
+        return;
+    }
+    
     currentFolderId = folderId;
     document.getElementById('folders-list').style.display = 'none';
     document.getElementById('folder-videos').style.display = 'block';
@@ -76,6 +82,7 @@ function showFoldersList() {
 
 // 폴더 내 영상 로드
 async function loadFolderVideos(folderId) {
+    console.log('[Favorites] loadFolderVideos called for folder:', folderId);
     const videoList = document.getElementById('folder-video-list');
     videoList.innerHTML = '<div class="loading"><div class="loading-spinner"></div></div>';
     
@@ -341,10 +348,8 @@ window.switchTab = function(tab, skipLoad = false) {
             return;
         }
         
-        // currentTab 업데이트 (무한 스크롤 방지)
-        if (typeof window.currentTab !== 'undefined') {
-            window.currentTab = 'favorites';
-        }
+        // currentTab 업데이트 (무한 스크롤 방지) - 반드시 먼저 설정
+        window.currentTab = 'favorites';
         
         if (favoritesSection) {
             favoritesSection.style.display = 'block';

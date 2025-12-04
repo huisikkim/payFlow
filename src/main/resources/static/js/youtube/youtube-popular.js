@@ -4,7 +4,7 @@
  */
 
 // 전역 상태
-let currentTab = 'popular';
+window.currentTab = window.currentTab || 'popular';  // window 객체에 저장하여 다른 스크립트와 공유
 let lastSearchQuery = '';
 let isSearching = false;
 let allVideos = [];
@@ -23,7 +23,8 @@ document.addEventListener('DOMContentLoaded', () => {
  * 탭 전환
  */
 function switchTab(tab, skipLoad = false) {
-    currentTab = tab;
+    window.currentTab = tab;
+    console.log('[Tab] Switched to:', tab);
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.tab === tab);
     });
@@ -43,7 +44,7 @@ function switchTab(tab, skipLoad = false) {
  * 현재 탭 새로고침
  */
 function loadCurrentTab() {
-    if (currentTab === 'popular') {
+    if (window.currentTab === 'popular') {
         loadVideos();
     } else if (lastSearchQuery) {
         doSearch(lastSearchQuery);
@@ -179,13 +180,18 @@ async function loadVideos(append = false) {
  */
 function setupInfiniteScroll() {
     window.addEventListener('scroll', () => {
-        // 즐겨찾기 탭에서는 무한 스크롤 비활성화
-        if (isLoadingMore || !hasMore || currentTab !== 'popular' || currentTab === 'favorites') return;
+        // 즐겨찾기 탭이거나 인기 탭이 아닌 경우 무한 스크롤 비활성화
+        if (window.currentTab === 'favorites') {
+            console.log('[Scroll] Blocked - favorites tab active, currentTab:', window.currentTab);
+            return;
+        }
+        if (isLoadingMore || !hasMore || window.currentTab !== 'popular') return;
         
         const scrollPosition = window.innerHeight + window.scrollY;
         const threshold = document.documentElement.scrollHeight - 500;
         
         if (scrollPosition >= threshold) {
+            console.log('[Scroll] Loading more videos... currentTab:', window.currentTab);
             loadMoreVideos();
         }
     });
@@ -239,7 +245,7 @@ function hideLoadingMore() {
  */
 function updateLoadMoreButton() {
     // 즐겨찾기 탭에서는 더보기 버튼을 표시하지 않음
-    if (currentTab === 'favorites') {
+    if (window.currentTab === 'favorites') {
         return;
     }
     
