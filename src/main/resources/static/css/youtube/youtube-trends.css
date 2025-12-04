@@ -16,6 +16,35 @@
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
+.trends-header {
+    text-align: center;
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 2px solid #374151;
+}
+
+.trends-header h2 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 12px;
+}
+
+.trends-header h2 .material-symbols-outlined {
+    font-size: 32px;
+    color: #ff0000;
+}
+
+.trends-header p {
+    font-size: 15px;
+    color: #9ca3af;
+    margin: 0;
+}
+
 .trends-grid {
     display: flex;
     flex-direction: column;
@@ -102,6 +131,7 @@
     flex-direction: column;
     gap: 12px;
     min-width: 0;
+    width: 100%;
 }
 
 .trend-header {
@@ -109,6 +139,7 @@
     align-items: flex-start;
     justify-content: space-between;
     gap: 12px;
+    width: 100%;
 }
 
 .trend-title {
@@ -117,6 +148,7 @@
     color: #fff;
     line-height: 1.4;
     flex: 1;
+    word-break: break-word;
 }
 
 .trend-badges {
@@ -209,21 +241,21 @@
 }
 
 .btn-search-youtube {
-    flex: 1;
-    padding: 10px;
+    padding: 6px 16px;
     background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
     color: white;
     border: none;
     border-radius: 9999px;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 600;
     cursor: pointer;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: 4px;
     transition: all 0.2s ease;
     box-shadow: 0 2px 8px rgba(255, 0, 0, 0.3);
+    width: auto;
 }
 
 .btn-search-youtube:hover {
@@ -232,15 +264,15 @@
 }
 
 .btn-view-news {
-    padding: 10px 16px;
+    padding: 6px 16px;
     background: transparent;
     color: #9ca3af;
     border: 1px solid #374151;
     border-radius: 9999px;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 600;
     cursor: pointer;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 4px;
     transition: all 0.2s ease;

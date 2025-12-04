@@ -87,7 +87,7 @@ function renderTrends(trends, container) {
  * 트렌드 카드 생성
  */
 function createTrendCard(trend) {
-    const imageUrl = trend.imageUrl || '/images/default-trend.jpg';
+    const imageUrl = trend.imageUrl || '/images/default-trend.svg';
     const traffic = trend.traffic || '검색 급상승';
     const timeAgo = formatTimeAgo(trend.publishedAt);
     
@@ -140,11 +140,9 @@ function createTrendCard(trend) {
         <div class="trend-card" onclick="searchTrendOnYouTube('${escapeHtml(trend.title)}')">
             <div class="${rankClass}">${trend.rank}</div>
             
-            ${trend.imageUrl ? `
-                <div class="trend-image-container">
-                    <img src="${imageUrl}" alt="${trend.title}" class="trend-image" onerror="this.style.display='none'">
-                </div>
-            ` : ''}
+            <div class="trend-image-container">
+                <img src="${imageUrl}" alt="${trend.title}" class="trend-image" onerror="this.src='/images/default-trend.svg'">
+            </div>
             
             <div class="trend-content">
                 <div class="trend-header">
