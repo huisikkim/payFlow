@@ -116,12 +116,27 @@ public class YouTubeApiClient {
             String response = webClient.get()
                     .uri(uri)
                     .retrieve()
+                    .onStatus(
+                        status -> status.is4xxClientError() || status.is5xxServerError(),
+                        clientResponse -> {
+                            log.error("YouTube API 에러 응답 - Status: {}, URI: {}", 
+                                clientResponse.statusCode(), uri);
+                            return clientResponse.bodyToMono(String.class)
+                                .flatMap(body -> {
+                                    log.error("YouTube API 에러 본문: {}", body);
+                                    return reactor.core.publisher.Mono.error(
+                                        new RuntimeException("YouTube API 에러: " + clientResponse.statusCode() + " - " + body)
+                                    );
+                                });
+                        }
+                    )
                     .bodyToMono(String.class)
                     .block();
             
             return parseVideosResponse(response);
         } catch (Exception e) {
-            log.error("YouTube API 호출 실패: {}", e.getMessage());
+            log.error("YouTube API 호출 실패 - region: {}, maxResults: {}, error: {}", 
+                regionCode, maxResults, e.getMessage(), e);
             throw new RuntimeException("YouTube API 호출 실패: " + e.getMessage(), e);
         }
     }
@@ -150,12 +165,27 @@ public class YouTubeApiClient {
             String response = webClient.get()
                     .uri(uri)
                     .retrieve()
+                    .onStatus(
+                        status -> status.is4xxClientError() || status.is5xxServerError(),
+                        clientResponse -> {
+                            log.error("YouTube API 에러 응답 - Status: {}, URI: {}", 
+                                clientResponse.statusCode(), uri);
+                            return clientResponse.bodyToMono(String.class)
+                                .flatMap(body -> {
+                                    log.error("YouTube API 에러 본문: {}", body);
+                                    return reactor.core.publisher.Mono.error(
+                                        new RuntimeException("YouTube API 에러: " + clientResponse.statusCode() + " - " + body)
+                                    );
+                                });
+                        }
+                    )
                     .bodyToMono(String.class)
                     .block();
             
             return parseVideosResponseWithPagination(response);
         } catch (Exception e) {
-            log.error("YouTube API 호출 실패: {}", e.getMessage());
+            log.error("YouTube API 호출 실패 - region: {}, maxResults: {}, error: {}", 
+                regionCode, maxResults, e.getMessage(), e);
             throw new RuntimeException("YouTube API 호출 실패: " + e.getMessage(), e);
         }
     }
