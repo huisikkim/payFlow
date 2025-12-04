@@ -427,7 +427,7 @@ public class YouTubeApiClient {
     }
 
     /**
-     * 채널 정보 조회 (구독자 수 + 설명 + 연락처 파싱)
+     * 채널 정보 조회 (구독자 수 + 설명 + 연락처 파싱 + 개설일 + 썸네일)
      */
     public java.util.Map<String, ChannelInfo> getChannelInfos(List<String> channelIds) {
         java.util.Map<String, ChannelInfo> channelInfos = new java.util.HashMap<>();
@@ -469,6 +469,27 @@ public class YouTubeApiClient {
                     
                     ChannelInfo info = new ChannelInfo();
                     
+                    // 채널 ID
+                    info.channelId = channelId;
+                    
+                    // 채널명
+                    info.channelTitle = getStringOrNull(snippet, "title");
+                    
+                    // 채널 개설일
+                    info.publishedAt = getStringOrNull(snippet, "publishedAt");
+                    
+                    // 채널 썸네일
+                    if (snippet.has("thumbnails")) {
+                        JsonObject thumbnails = snippet.getAsJsonObject("thumbnails");
+                        if (thumbnails.has("high")) {
+                            info.thumbnailUrl = thumbnails.getAsJsonObject("high").get("url").getAsString();
+                        } else if (thumbnails.has("medium")) {
+                            info.thumbnailUrl = thumbnails.getAsJsonObject("medium").get("url").getAsString();
+                        } else if (thumbnails.has("default")) {
+                            info.thumbnailUrl = thumbnails.getAsJsonObject("default").get("url").getAsString();
+                        }
+                    }
+                    
                     // 구독자 수
                     boolean isHidden = statistics.has("hiddenSubscriberCount") 
                         && statistics.get("hiddenSubscriberCount").getAsBoolean();
@@ -476,9 +497,22 @@ public class YouTubeApiClient {
                         info.subscriberCount = statistics.get("subscriberCount").getAsLong();
                     }
                     
+                    // 총 영상 수
+                    if (statistics.has("videoCount")) {
+                        info.videoCount = statistics.get("videoCount").getAsLong();
+                    }
+                    
+                    // 총 조회수
+                    if (statistics.has("viewCount")) {
+                        info.totalViewCount = statistics.get("viewCount").getAsLong();
+                    }
+                    
                     // 채널 설명
                     String description = getStringOrNull(snippet, "description");
                     info.description = description;
+                    
+                    // 국가
+                    info.country = getStringOrNull(snippet, "country");
                     
                     // 연락처 파싱
                     if (description != null) {
@@ -563,8 +597,15 @@ public class YouTubeApiClient {
     
     // 채널 정보 내부 클래스
     public static class ChannelInfo {
+        public String channelId;
+        public String channelTitle;
+        public String thumbnailUrl;
+        public String publishedAt;  // 채널 개설일
         public Long subscriberCount;
+        public Long videoCount;  // 총 영상 수
+        public Long totalViewCount;  // 총 조회수
         public String description;
+        public String country;
         public String email;
         public String instagram;
         public String twitter;

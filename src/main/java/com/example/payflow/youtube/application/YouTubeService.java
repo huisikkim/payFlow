@@ -221,5 +221,57 @@ public class YouTubeService {
                 .commentCount(stats.getCommentCount())
                 .build();
     }
+    
+    /**
+     * 채널 상세 정보 조회
+     */
+    public Map<String, YouTubeApiClient.ChannelInfo> getChannelInfos(List<String> channelIds) {
+        return youTubeApiClient.getChannelInfos(channelIds);
+    }
+    
+    /**
+     * 핫한 채널 분석 (인기 영상 + 채널 상세 정보 통합)
+     * 한 번의 API 호출로 모든 데이터 제공
+     */
+    public Map<String, Object> getHotChannelsAnalysis(String regionCode, int maxResults) {
+        log.info("Analyzing hot channels for region: {}, maxResults: {}", regionCode, maxResults);
+        
+        // 1. 인기 영상 가져오기
+        List<YouTubeVideo> videos = youTubeApiClient.getMostPopularVideos(regionCode, maxResults);
+        
+        // 2. 채널 ID 추출
+        List<String> channelIds = videos.stream()
+                .map(YouTubeVideo::getChannelId)
+                .filter(id -> id != null)
+                .distinct()
+                .collect(Collectors.toList());
+        
+        // 3. 채널 상세 정보 가져오기
+        Map<String, YouTubeApiClient.ChannelInfo> channelInfos = youTubeApiClient.getChannelInfos(channelIds);
+        
+        // 4. 영상에 채널 정보 추가
+        videos.forEach(video -> {
+            if (video.getChannelId() != null) {
+                YouTubeApiClient.ChannelInfo info = channelInfos.get(video.getChannelId());
+                if (info != null) {
+                    video.setChannelSubscriberCount(info.subscriberCount);
+                    video.setChannelDescription(info.description);
+                    video.setChannelEmail(info.email);
+                    video.setChannelInstagram(info.instagram);
+                    video.setChannelTwitter(info.twitter);
+                    video.setChannelWebsite(info.website);
+                }
+            }
+        });
+        
+        return Map.of(
+            "success", true,
+            "regionCode", regionCode,
+            "videoCount", videos.size(),
+            "channelCount", channelInfos.size(),
+            "videos", videos,
+            "channels", channelInfos
+        );
+    }
 
 }

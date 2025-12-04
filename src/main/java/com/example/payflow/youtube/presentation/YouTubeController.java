@@ -228,5 +228,59 @@ public class YouTubeController {
             ));
         }
     }
+    
+    /**
+     * 채널 상세 정보 조회
+     * POST /api/youtube/channels/details
+     * Body: { "channelIds": ["id1", "id2", ...] }
+     */
+    @PostMapping("/channels/details")
+    public ResponseEntity<Map<String, Object>> getChannelDetails(
+            @RequestBody Map<String, List<String>> request) {
+        try {
+            List<String> channelIds = request.get("channelIds");
+            if (channelIds == null || channelIds.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "channelIds is required"
+                ));
+            }
+            
+            Map<String, com.example.payflow.youtube.infrastructure.YouTubeApiClient.ChannelInfo> channelInfos = 
+                    youTubeService.getChannelInfos(channelIds);
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "count", channelInfos.size(),
+                "channels", channelInfos
+            ));
+        } catch (Exception e) {
+            log.error("채널 정보 조회 실패", e);
+            return ResponseEntity.status(500).body(Map.of(
+                "success", false,
+                "message", "채널 정보 조회 실패: " + e.getMessage()
+            ));
+        }
+    }
+    
+    /**
+     * 핫한 채널 분석 (인기 영상 + 채널 상세 정보 통합)
+     * GET /api/youtube/hot-channels?regionCode=KR&maxResults=50
+     */
+    @GetMapping("/hot-channels")
+    public ResponseEntity<Map<String, Object>> getHotChannels(
+            @RequestParam(defaultValue = "KR") String regionCode,
+            @RequestParam(defaultValue = "50") int maxResults) {
+        try {
+            Map<String, Object> result = youTubeService.getHotChannelsAnalysis(regionCode, maxResults);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            log.error("핫한 채널 분석 실패", e);
+            return ResponseEntity.status(500).body(Map.of(
+                "success", false,
+                "message", "핫한 채널 분석 실패: " + e.getMessage()
+            ));
+        }
+    }
 
 }

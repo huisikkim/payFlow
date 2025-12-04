@@ -8,6 +8,7 @@ window.currentTab = window.currentTab || 'popular';  // window 객체에 저장�
 window.currentView = window.currentView || 'videos';  // 'videos' 또는 'channels'
 let lastSearchQuery = '';
 let isSearching = false;
+let isLoadingChannels = false;  // 채널 영상 로딩 중 플래그
 let allVideos = [];
 let currentShowRank = true;
 let nextPageToken = null;
@@ -249,9 +250,17 @@ async function loadVideos(append = false) {
 }
 
 /**
- * 채널 영상 로드 (인기 채널의 최신 영상)
+ * 채널 영상 로드 (인기 급상승 영상 분석으로 핫한 채널 찾기)
  */
 async function loadChannelVideos(append = false) {
+    // 이미 로딩 중이면 중복 호출 방지
+    if (isLoadingChannels) {
+        console.log('[loadChannelVideos] Already loading, skipping...');
+        return;
+    }
+    
+    isLoadingChannels = true;
+    
     const loading = document.getElementById('loading');
     const error = document.getElementById('error');
     const list = document.getElementById('video-list');
@@ -264,48 +273,201 @@ async function loadChannelVideos(append = false) {
     }
     
     try {
-        // 인기 채널 키워드로 검색 (예시)
-        const popularChannels = [
-            '침착맨', '워크맨', '백종원', '슈카월드', '문명특급',
-            '피식대학', '빠더너스', '김계란', '쯔양', '히밥'
-        ];
-        
-        const randomChannel = popularChannels[Math.floor(Math.random() * popularChannels.length)];
-        const maxResults = document.getElementById('maxResults').value;
-        
-        const response = await fetch(`/api/youtube/search?q=${encodeURIComponent(randomChannel)}&maxResults=${maxResults}`);
+        // 1단계: 핫한 채널 분석 데이터 한 번에 가져오기 (인기 영상 + 채널 상세 정보)
+        const regionCode = document.getElementById('regionCode').value;
+        const response = await fetch(`/api/youtube/hot-channels?regionCode=${regionCode}&maxResults=50`);
         const data = await response.json();
         
-        loading.style.display = 'none';
-        
-        if (data.success && data.videos) {
-            allVideos = data.videos;
-            currentShowRank = false;
-            hasMore = false;
-            
-            renderVideos(allVideos, false);
-            generateInsights(allVideos);
-            updateFilterResultCount(allVideos.length, allVideos.length);
-            
-            // 채널 정보 표시
-            const channelInfo = document.createElement('div');
-            channelInfo.className = 'channel-info-banner';
-            channelInfo.innerHTML = `
-                <span class="material-symbols-outlined">info</span>
-                <p>인기 채널 "<strong>${randomChannel}</strong>"의 영상을 보여드리고 있습니다</p>
-                <button class="btn-refresh-channel" onclick="loadChannelVideos()">
-                    <span class="material-symbols-outlined">refresh</span>
-                    다른 채널 보기
-                </button>
-            `;
-            list.insertBefore(channelInfo, list.firstChild);
-        } else {
-            showError('채널 영상을 불러올 수 없습니다.');
+        if (!data.success || !data.videos || data.videos.length === 0) {
+            throw new Error('인기 영상을 불러올 수 없습니다.');
         }
+        
+        // 채널 상세 정보 (이미 포함되어 있음)
+        const channelDetails = data.channels || {};
+        
+        // 2단계: 채널별로 그룹화 및 분석
+        const channelMap = new Map();
+        
+        data.videos.forEach(video => {
+            const channelId = video.channelId;
+            const channelTitle = video.channelTitle;
+            
+            if (!channelMap.has(channelId)) {
+                // 채널 상세 정보 병합
+                const channelInfo = channelDetails[channelId] || {};
+                
+                channelMap.set(channelId, {
+                    channelId: channelId,
+                    channelTitle: channelTitle,
+                    channelThumbnail: video.channelThumbnail || channelInfo.thumbnailUrl,
+                    subscriberCount: video.subscriberCount || video.channelSubscriberCount || channelInfo.subscriberCount || 0,
+                    // 채널 상세 정보 추가
+                    thumbnailUrl: channelInfo.thumbnailUrl,
+                    publishedAt: channelInfo.publishedAt,
+                    videoCount: channelInfo.videoCount,
+                    totalViewCount: channelInfo.totalViewCount,
+                    description: channelInfo.description,
+                    country: channelInfo.country,
+                    // 영상 통계
+                    popularVideoCount: 0,
+                    totalViews: 0,
+                    totalLikes: 0,
+                    videos: []
+                });
+            }
+            
+            const channel = channelMap.get(channelId);
+            channel.popularVideoCount++;
+            channel.totalViews += video.viewCount || 0;
+            channel.totalLikes += video.likeCount || 0;
+            channel.videos.push(video);
+        });
+        
+        // 3단계: 채널 점수 계산 및 정렬
+        const channels = Array.from(channelMap.values()).map(channel => {
+            // 핫 스코어 = (인기 영상 등장 횟수 * 3) + (평균 조회수 / 10000) + (구독자 수 / 100000)
+            const avgViews = channel.totalViews / channel.popularVideoCount;
+            const hotScore = (channel.popularVideoCount * 3) + (avgViews / 10000) + (channel.subscriberCount / 100000);
+            
+            return {
+                ...channel,
+                avgViews: avgViews,
+                hotScore: hotScore
+            };
+        }).sort((a, b) => b.hotScore - a.hotScore);
+        
+        // 4단계: 상위 10개 핫한 채널 선택
+        const topChannels = channels.slice(0, 10);
+        
+        loading.style.display = 'none';
+        list.innerHTML = '';
+        
+        // 5단계: 핫한 채널 정보 표시
+        const channelListContainer = document.createElement('div');
+        channelListContainer.className = 'hot-channels-container';
+        
+        const channelHeader = document.createElement('div');
+        channelHeader.className = 'channel-info-banner';
+        channelHeader.innerHTML = `
+            <span class="material-symbols-outlined">trending_up</span>
+            <p>지금 가장 <strong>핫한 채널 TOP ${topChannels.length}</strong> (인기 급상승 영상 분석 기반)</p>
+            <button class="btn-refresh-channel" onclick="loadChannelVideos()">
+                <span class="material-symbols-outlined">refresh</span>
+                새로고침
+            </button>
+        `;
+        list.appendChild(channelHeader);
+        
+        // 6단계: 각 채널 카드 렌더링
+        topChannels.forEach((channel, index) => {
+            const channelCard = document.createElement('div');
+            channelCard.className = 'hot-channel-card';
+            
+            const rankBadge = index < 3 ? `<span class="rank-badge rank-${index + 1}">#${index + 1}</span>` : `<span class="rank-badge">#${index + 1}</span>`;
+            
+            // 채널 개설일 계산
+            let channelAge = '';
+            if (channel.publishedAt) {
+                const publishDate = new Date(channel.publishedAt);
+                const now = new Date();
+                const diffTime = Math.abs(now - publishDate);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                const diffYears = Math.floor(diffDays / 365);
+                const diffMonths = Math.floor((diffDays % 365) / 30);
+                
+                if (diffYears > 0) {
+                    channelAge = `${diffYears}년 ${diffMonths}개월 전`;
+                } else if (diffMonths > 0) {
+                    channelAge = `${diffMonths}개월 전`;
+                } else {
+                    channelAge = `${diffDays}일 전`;
+                }
+            }
+            
+            channelCard.innerHTML = `
+                <div class="channel-card-header">
+                    ${rankBadge}
+                    <div class="channel-thumbnail">
+                        <img src="${channel.thumbnailUrl || channel.channelThumbnail || '/images/default-channel.png'}" alt="${channel.channelTitle}">
+                    </div>
+                    <div class="channel-info">
+                        <h3 class="channel-name">${channel.channelTitle}</h3>
+                        ${channelAge ? `<p class="channel-age">📅 개설: ${channelAge}</p>` : ''}
+                        <div class="channel-stats">
+                            <span class="stat-item">
+                                <span class="material-symbols-outlined">group</span>
+                                ${formatNumber(channel.subscriberCount)} 구독자
+                            </span>
+                            <span class="stat-item">
+                                <span class="material-symbols-outlined">local_fire_department</span>
+                                인기 영상 ${channel.popularVideoCount}개
+                            </span>
+                            ${channel.videoCount ? `
+                            <span class="stat-item">
+                                <span class="material-symbols-outlined">video_library</span>
+                                총 ${formatNumber(channel.videoCount)} 영상
+                            </span>
+                            ` : ''}
+                            <span class="stat-item">
+                                <span class="material-symbols-outlined">visibility</span>
+                                평균 ${formatNumber(channel.avgViews)} 조회
+                            </span>
+                            ${channel.totalViewCount ? `
+                            <span class="stat-item">
+                                <span class="material-symbols-outlined">trending_up</span>
+                                누적 ${formatNumber(channel.totalViewCount)} 조회
+                            </span>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+                <div class="channel-videos-preview" id="channel-videos-${channel.channelId}"></div>
+            `;
+            
+            list.appendChild(channelCard);
+            
+            // 해당 채널의 영상 미리보기 (최대 3개)
+            const previewVideos = channel.videos.slice(0, 3);
+            const previewContainer = document.getElementById(`channel-videos-${channel.channelId}`);
+            
+            previewVideos.forEach(video => {
+                const videoPreview = document.createElement('div');
+                videoPreview.className = 'channel-video-preview';
+                videoPreview.innerHTML = `
+                    <img src="${video.thumbnail}" alt="${video.title}">
+                    <div class="preview-info">
+                        <h4>${video.title}</h4>
+                        <p>${formatNumber(video.viewCount)} 조회 • ${formatNumber(video.likeCount)} 좋아요</p>
+                    </div>
+                `;
+                videoPreview.onclick = () => window.open(`https://www.youtube.com/watch?v=${video.videoId}`, '_blank');
+                previewContainer.appendChild(videoPreview);
+            });
+        });
+        
+        // 전역 변수 업데이트
+        allVideos = data.videos;
+        currentShowRank = false;
+        hasMore = false;
+        
     } catch (err) {
         loading.style.display = 'none';
-        showError('API 호출 중 오류가 발생했습니다: ' + err.message);
+        showError('핫한 채널을 분석하는 중 오류가 발생했습니다: ' + err.message);
+    } finally {
+        isLoadingChannels = false;
     }
+}
+
+/**
+ * 배열 섞기 (Fisher-Yates 알고리즘)
+ */
+function shuffleArray(array) {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
 }
 
 /**
