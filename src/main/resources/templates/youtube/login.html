@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로그인 - YouTube 인기</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #111827;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #e5e7eb;
+        }
+
+        .login-container {
+            background: #1f2937;
+            border: 1px solid #374151;
+            border-radius: 16px;
+            padding: 48px 40px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 72px;
+            height: 72px;
+            background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+            border-radius: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 8px 24px rgba(255, 0, 0, 0.3);
+        }
+
+        .logo-icon svg {
+            width: 48px;
+            height: 48px;
+            fill: white;
+        }
+
+        .logo h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+
+        .logo p {
+            color: #9ca3af;
+            font-size: 14px;
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+            display: none;
+            color: #fca5a5;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #e5e7eb;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 15px;
+            background: #111827;
+            border: 2px solid #374151;
+            border-radius: 10px;
+            color: #fff;
+            transition: all 0.2s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #ff0000;
+            background: #1a1f2e;
+        }
+
+        .form-group input::placeholder {
+            color: #6b7280;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(255, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(255, 0, 0, 0.4);
+        }
+
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        .btn-login .material-symbols-outlined {
+            font-size: 20px;
+        }
+
+        .quick-login {
+            margin-top: 32px;
+            padding-top: 32px;
+            border-top: 1px solid #374151;
+        }
+
+        .quick-login p {
+            text-align: center;
+            color: #9ca3af;
+            font-size: 13px;
+            margin-bottom: 16px;
+        }
+
+        .quick-login-btns {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-quick {
+            flex: 1;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            background: #374151;
+            color: #e5e7eb;
+            border: 1px solid #4b5563;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-quick:hover {
+            background: #4b5563;
+            border-color: #6b7280;
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 24px;
+        }
+
+        .back-link a {
+            color: #60a5fa;
+            text-decoration: none;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: color 0.2s ease;
+        }
+
+        .back-link a:hover {
+            color: #93c5fd;
+        }
+
+        .back-link .material-symbols-outlined {
+            font-size: 18px;
+        }
+
+        /* 로딩 상태 */
+        .btn-login:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-login.loading {
+            pointer-events: none;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .btn-login.loading .material-symbols-outlined {
+            animation: spin 0.8s linear infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">
+            <div class="logo-icon">
+                <svg viewBox="0 0 120 84" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M117.6,13.2c-1.4-5.2-5.5-9.3-10.7-10.7C97.4,0,60,0,60,0S22.6,0,13.1,2.5C7.9,3.9,3.8,8,2.4,13.2C0,22.7,0,42,0,42s0,19.3,2.4,28.8c1.4,5.2,5.5,9.3,10.7,10.7C22.6,84,60,84,60,84s37.4,0,46.9-2.5c5.2-1.4,9.3-5.5,10.7-10.7C120,61.3,120,42,120,42S120,22.7,117.6,13.2z M48,60V24l31.2,18L48,60z"/>
+                </svg>
+            </div>
+            <h1>YouTube 인기</h1>
+            <p>로그인하여 더 많은 기능을 이용하세요</p>
+        </div>
+
+        <div id="errorMessage" class="error-message"></div>
+
+        <form onsubmit="login(event)">
+            <div class="form-group">
+                <label for="username">아이디</label>
+                <input type="text" id="username" placeholder="아이디를 입력하세요" required autofocus>
+            </div>
+
+            <div class="form-group">
+                <label for="password">비밀번호</label>
+                <input type="password" id="password" placeholder="비밀번호를 입력하세요" required>
+            </div>
+
+            <button type="submit" class="btn-login" id="loginBtn">
+                <span class="material-symbols-outlined">login</span>
+                로그인
+            </button>
+        </form>
+
+        <div class="quick-login">
+            <p>빠른 로그인</p>
+            <div class="quick-login-btns">
+                <button class="btn-quick" onclick="quickLogin('user', 'password')">일반 사용자</button>
+                <button class="btn-quick" onclick="quickLogin('admin', 'admin')">관리자</button>
+            </div>
+        </div>
+
+        <div class="back-link">
+            <a href="/youtube/popular">
+                <span class="material-symbols-outlined">arrow_back</span>
+                YouTube 인기로 돌아가기
+            </a>
+        </div>
+    </div>
+
+    <script>
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function setLoading(isLoading) {
+            const loginBtn = document.getElementById('loginBtn');
+            const inputs = document.querySelectorAll('input');
+            
+            if (isLoading) {
+                loginBtn.disabled = true;
+                loginBtn.classList.add('loading');
+                loginBtn.innerHTML = '<span class="material-symbols-outlined">progress_activity</span>로그인 중...';
+                inputs.forEach(input => input.disabled = true);
+            } else {
+                loginBtn.disabled = false;
+                loginBtn.classList.remove('loading');
+                loginBtn.innerHTML = '<span class="material-symbols-outlined">login</span>로그인';
+                inputs.forEach(input => input.disabled = false);
+            }
+        }
+
+        async function login(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            setLoading(true);
+            
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    localStorage.setItem('jwt_token', data.accessToken);
+                    localStorage.setItem('username', data.username);
+                    
+                    // redirect 파라미터 확인
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const redirect = urlParams.get('redirect');
+                    
+                    if (redirect) {
+                        location.href = redirect;
+                    } else {
+                        location.href = '/youtube/popular';
+                    }
+                } else {
+                    setLoading(false);
+                    showError('아이디 또는 비밀번호가 올바르지 않습니다.');
+                }
+            } catch (error) {
+                setLoading(false);
+                showError('로그인 중 오류가 발생했습니다.');
+            }
+        }
+
+        async function quickLogin(username, password) {
+            document.getElementById('username').value = username;
+            document.getElementById('password').value = password;
+            
+            setLoading(true);
+            
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    localStorage.setItem('jwt_token', data.accessToken);
+                    localStorage.setItem('username', data.username);
+                    
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const redirect = urlParams.get('redirect');
+                    
+                    if (redirect) {
+                        location.href = redirect;
+                    } else {
+                        location.href = '/youtube/popular';
+                    }
+                } else {
+                    setLoading(false);
+                    showError('로그인 실패');
+                }
+            } catch (error) {
+                setLoading(false);
+                showError('로그인 중 오류가 발생했습니다.');
+            }
+        }
+
+        // 이미 로그인되어 있으면 리다이렉트
+        const token = localStorage.getItem('jwt_token');
+        if (token) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const redirect = urlParams.get('redirect');
+            
+            if (redirect && redirect !== '/youtube/login') {
+                location.href = redirect;
+            } else if (!redirect) {
+                location.href = '/youtube/popular';
+            }
+        }
+    </script>
+</body>
+</html>

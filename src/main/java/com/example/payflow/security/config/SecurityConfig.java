@@ -55,7 +55,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/store/**").authenticated()  // 매장 정보 API (인증 필요)
                         .requestMatchers("/api/distributor/info/**").authenticated()  // 유통업체 정보 API (인증 필요)
                         .requestMatchers("/api/matching/**").authenticated()  // 매칭 API (인증 필요)
-                        .requestMatchers("/login", "/signup").permitAll()  // 로그인/회원가입 페이지 허용
+                        .requestMatchers("/login", "/signup", "/youtube/login").permitAll()  // 로그인/회원가입 페이지 허용
                         .requestMatchers("/api/saga/**").permitAll()  // Saga 테스트 API 허용
                         .requestMatchers("/api/test/**").permitAll()  // 카프카 테스트 API 허용
                         .requestMatchers("/h2-console/**").permitAll()
@@ -90,6 +90,9 @@ public class SecurityConfig {
                         .requestMatchers("/ws/crypto", "/ws/crypto/**").permitAll()  // 코인 시세 웹소켓 허용
                         .requestMatchers("/ws/chat", "/ws/chat/**").permitAll()  // 채팅 웹소켓 허용
                         .requestMatchers("/api/chat/**").authenticated()  // 채팅 API (인증 필요)
+                        .requestMatchers("/youtube/**").permitAll()  // YouTube 웹 페이지 허용
+                        .requestMatchers("/api/youtube/popular/**", "/api/youtube/statistics/**", "/api/youtube/top-viewed", "/api/youtube/top-liked", "/api/youtube/search", "/api/youtube/revenue/**").permitAll()  // YouTube 공개 API
+                        .requestMatchers("/api/youtube/folders/**").authenticated()  // YouTube 즐겨찾기 API (인증 필요)
                         .requestMatchers("/ingredient/**").permitAll()  // 식자재 발주 웹 페이지 허용 (개발용)
                         .requestMatchers("/api/ingredient-orders/**").permitAll()  // 식자재 발주 API 허용 (개발용)
                         .requestMatchers("/api/distributor/**").permitAll()  // 유통사 API 허용 (개발용)

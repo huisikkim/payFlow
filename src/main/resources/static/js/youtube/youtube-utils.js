@@ -213,3 +213,47 @@ function getExplosivenessLevel(explosiveness) {
         return { class: 'explosiveness-low', label: '느림' };
     }
 }
+
+/**
+ * 로그인 체크 및 리다이렉트
+ */
+function requireLogin(message = '로그인이 필요한 기능입니다.') {
+    const token = localStorage.getItem('jwt_token');
+    
+    if (!token) {
+        if (confirm(message + '\n로그인 페이지로 이동하시겠습니까?')) {
+            const currentUrl = encodeURIComponent(window.location.pathname + window.location.search);
+            window.location.href = `/youtube/login?redirect=${currentUrl}`;
+        }
+        return false;
+    }
+    
+    return true;
+}
+
+/**
+ * JWT 토큰 가져오기
+ */
+function getAuthToken() {
+    return localStorage.getItem('jwt_token');
+}
+
+/**
+ * 인증 헤더 생성
+ */
+function getAuthHeaders() {
+    const token = getAuthToken();
+    return token ? {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+    } : {
+        'Content-Type': 'application/json'
+    };
+}
+
+/**
+ * 로그인 상태 확인
+ */
+function isLoggedIn() {
+    return !!localStorage.getItem('jwt_token');
+}

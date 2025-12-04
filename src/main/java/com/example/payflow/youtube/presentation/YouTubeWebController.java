@@ -15,4 +15,12 @@ public class YouTubeWebController {
     public String popularVideosPage() {
         return "youtube/popular";
     }
+
+    /**
+     * YouTube 로그인 페이지
+     */
+    @GetMapping("/login")
+    public String loginPage() {
+        return "youtube/login";
+    }
 }

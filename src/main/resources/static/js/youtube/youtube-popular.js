@@ -179,7 +179,8 @@ async function loadVideos(append = false) {
  */
 function setupInfiniteScroll() {
     window.addEventListener('scroll', () => {
-        if (isLoadingMore || !hasMore || currentTab !== 'popular') return;
+        // 즐겨찾기 탭에서는 무한 스크롤 비활성화
+        if (isLoadingMore || !hasMore || currentTab !== 'popular' || currentTab === 'favorites') return;
         
         const scrollPosition = window.innerHeight + window.scrollY;
         const threshold = document.documentElement.scrollHeight - 500;
@@ -237,6 +238,11 @@ function hideLoadingMore() {
  * 더보기 버튼 상태 업데이트
  */
 function updateLoadMoreButton() {
+    // 즐겨찾기 탭에서는 더보기 버튼을 표시하지 않음
+    if (currentTab === 'favorites') {
+        return;
+    }
+    
     const info = document.getElementById('load-more-info');
     if (!info) {
         const container = document.createElement('div');

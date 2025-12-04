@@ -8,7 +8,9 @@ async function loadFolders() {
     foldersList.innerHTML = '<div class="loading"><div class="loading-spinner"></div></div>';
     
     try {
-        const response = await fetch('/api/youtube/folders');
+        const response = await fetch('/api/youtube/folders', {
+            headers: getAuthHeaders()
+        });
         const data = await response.json();
         
         if (data.success && data.folders) {
@@ -78,7 +80,9 @@ async function loadFolderVideos(folderId) {
     videoList.innerHTML = '<div class="loading"><div class="loading-spinner"></div></div>';
     
     try {
-        const response = await fetch(`/api/youtube/folders/${folderId}/videos`);
+        const response = await fetch(`/api/youtube/folders/${folderId}/videos`, {
+            headers: getAuthHeaders()
+        });
         const data = await response.json();
         
         if (data.success && data.videos) {
@@ -129,6 +133,11 @@ function renderFolderVideos(videos) {
 
 // 폴더 생성 모달 표시
 function showCreateFolderModal() {
+    // 로그인 체크
+    if (!requireLogin('폴더를 만들려면 로그인이 필요합니다.')) {
+        return;
+    }
+    
     document.getElementById('create-folder-modal').style.display = 'flex';
     document.getElementById('folder-name').value = '';
     document.getElementById('folder-desc').value = '';
@@ -153,7 +162,7 @@ async function createFolder() {
     try {
         const response = await fetch('/api/youtube/folders', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getAuthHeaders(),
             body: JSON.stringify({ name, description })
         });
         
@@ -186,7 +195,8 @@ async function deleteCurrentFolder() {
     
     try {
         const response = await fetch(`/api/youtube/folders/${currentFolderId}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            headers: getAuthHeaders()
         });
         
         const data = await response.json();
@@ -207,7 +217,8 @@ async function removeVideoFromFolder(videoId) {
     
     try {
         const response = await fetch(`/api/youtube/folders/${currentFolderId}/videos/${videoId}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            headers: getAuthHeaders()
         });
         
         const data = await response.json();
@@ -222,6 +233,11 @@ async function removeVideoFromFolder(videoId) {
 
 // 폴더 선택 모달 표시
 async function showSelectFolderModal(video) {
+    // 로그인 체크
+    if (!requireLogin('즐겨찾기 기능을 사용하려면 로그인이 필요합니다.')) {
+        return;
+    }
+    
     pendingVideo = video;
     document.getElementById('select-folder-modal').style.display = 'flex';
     
@@ -229,7 +245,9 @@ async function showSelectFolderModal(video) {
     folderSelectList.innerHTML = '<div class="loading"><div class="loading-spinner"></div></div>';
     
     try {
-        const response = await fetch('/api/youtube/folders');
+        const response = await fetch('/api/youtube/folders', {
+            headers: getAuthHeaders()
+        });
         const data = await response.json();
         
         if (data.success && data.folders) {
@@ -264,7 +282,7 @@ async function addVideoToFolder(folderId, video = null) {
     try {
         const response = await fetch(`/api/youtube/folders/${folderId}/videos`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getAuthHeaders(),
             body: JSON.stringify(videoToAdd)
         });
         
@@ -304,16 +322,45 @@ function showToast(message) {
 // 기존 switchTab 함수 확장
 const originalSwitchTab = window.switchTab;
 window.switchTab = function(tab, skipLoad = false) {
+    console.log('switchTab called:', tab);
+    
     // 즐겨찾기 섹션 표시/숨김
     const favoritesSection = document.getElementById('favorites-section');
     const videoList = document.getElementById('video-list');
     const insightsSection = document.getElementById('insights-section');
     
+    console.log('Elements found:', {
+        favoritesSection: !!favoritesSection,
+        videoList: !!videoList,
+        insightsSection: !!insightsSection
+    });
+    
     if (tab === 'favorites') {
-        favoritesSection.style.display = 'block';
-        videoList.style.display = 'none';
+        // 로그인 체크
+        if (!requireLogin('즐겨찾기를 보려면 로그인이 필요합니다.')) {
+            return;
+        }
+        
+        // currentTab 업데이트 (무한 스크롤 방지)
+        if (typeof window.currentTab !== 'undefined') {
+            window.currentTab = 'favorites';
+        }
+        
+        if (favoritesSection) {
+            favoritesSection.style.display = 'block';
+            console.log('Favorites section displayed');
+        } else {
+            console.error('favorites-section element not found!');
+        }
+        
+        if (videoList) videoList.style.display = 'none';
         if (insightsSection) insightsSection.style.display = 'none';
-        document.getElementById('regionFilter').style.display = 'none';
+        
+        const regionFilter = document.getElementById('regionFilter');
+        if (regionFilter) regionFilter.style.display = 'none';
+        
+        // "모든 영상을 불러왔습니다" 및 더보기 버튼 숨기기
+        hideLoadMoreElements();
         
         // 탭 버튼 활성화
         document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -325,11 +372,42 @@ window.switchTab = function(tab, skipLoad = false) {
             loadFolders();
         }
     } else {
-        favoritesSection.style.display = 'none';
-        videoList.style.display = 'flex';
+        if (favoritesSection) favoritesSection.style.display = 'none';
+        if (videoList) videoList.style.display = 'flex';
+        
+        // 더보기 요소 다시 표시
+        showLoadMoreElements();
         
         if (originalSwitchTab) {
             originalSwitchTab(tab, skipLoad);
         }
     }
+};
+
+// 더보기 관련 요소 숨기기
+function hideLoadMoreElements() {
+    const loadMoreInfo = document.getElementById('load-more-info');
+    const loadingMore = document.getElementById('loading-more');
+    
+    if (loadMoreInfo) loadMoreInfo.style.display = 'none';
+    if (loadingMore) loadingMore.style.display = 'none';
+    
+    // 혹시 나중에 생성될 수 있으니 100ms 후 다시 체크
+    setTimeout(() => {
+        const info = document.getElementById('load-more-info');
+        const loading = document.getElementById('loading-more');
+        if (info) info.style.display = 'none';
+        if (loading) loading.style.display = 'none';
+    }, 100);
+}
+
+// 더보기 관련 요소 표시
+function showLoadMoreElements() {
+    // 인기 탭이나 검색 탭으로 돌아갈 때만 표시
+    setTimeout(() => {
+        const loadMoreInfo = document.getElementById('load-more-info');
+        if (loadMoreInfo && window.currentTab !== 'favorites') {
+            loadMoreInfo.style.display = 'flex';
+        }
+    }, 50);
 };
