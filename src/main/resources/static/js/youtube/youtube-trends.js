@@ -97,21 +97,85 @@ function createTrendCard(trend) {
     else if (trend.rank === 2) rankClass += ' top-2';
     else if (trend.rank === 3) rankClass += ' top-3';
     
+    // 트렌드 배지 생성
+    const badges = [];
+    if (trend.rank <= 3) {
+        badges.push(`<span class="trend-badge"><span class="material-symbols-outlined">emoji_events</span>TOP ${trend.rank}</span>`);
+    }
+    if (trend.isNew) {
+        badges.push(`<span class="trend-badge"><span class="material-symbols-outlined">new_releases</span>NEW</span>`);
+    }
+    if (trend.isRising) {
+        badges.push(`<span class="trend-badge"><span class="material-symbols-outlined">trending_up</span>급상승</span>`);
+    }
+    
+    // 통계 정보 생성
+    const stats = [];
+    if (trend.searchVolume) {
+        stats.push(`
+            <div class="trend-stat-item">
+                <span class="material-symbols-outlined">search</span>
+                검색량: <strong>${formatNumber(trend.searchVolume)}</strong>
+            </div>
+        `);
+    }
+    if (trend.growthRate) {
+        stats.push(`
+            <div class="trend-stat-item">
+                <span class="material-symbols-outlined">show_chart</span>
+                증가율: <strong>+${trend.growthRate}%</strong>
+            </div>
+        `);
+    }
+    if (trend.relatedArticles) {
+        stats.push(`
+            <div class="trend-stat-item">
+                <span class="material-symbols-outlined">article</span>
+                관련 기사: <strong>${trend.relatedArticles}개</strong>
+            </div>
+        `);
+    }
+    
     return `
-        <div class="trend-card">
-            <div class="${rankClass}">#${trend.rank}</div>
-            ${trend.imageUrl ? `<img src="${imageUrl}" alt="${trend.title}" class="trend-image" onerror="this.style.display='none'">` : ''}
+        <div class="trend-card" onclick="searchTrendOnYouTube('${escapeHtml(trend.title)}')">
+            <div class="${rankClass}">${trend.rank}</div>
+            
+            ${trend.imageUrl ? `
+                <div class="trend-image-container">
+                    <img src="${imageUrl}" alt="${trend.title}" class="trend-image" onerror="this.style.display='none'">
+                </div>
+            ` : ''}
+            
             <div class="trend-content">
-                <h3 class="trend-title">${escapeHtml(trend.title)}</h3>
-                ${trend.description ? `<p class="trend-description">${escapeHtml(trend.description)}</p>` : ''}
-                <div class="trend-meta">
+                <div class="trend-header">
+                    <h3 class="trend-title">${escapeHtml(trend.title)}</h3>
+                </div>
+                
+                ${badges.length > 0 ? `
+                    <div class="trend-badges">
+                        ${badges.join('')}
+                    </div>
+                ` : ''}
+                
+                ${trend.description ? `
+                    <p class="trend-description">${escapeHtml(trend.description)}</p>
+                ` : ''}
+                
+                ${stats.length > 0 ? `
+                    <div class="trend-stats">
+                        ${stats.join('')}
+                    </div>
+                ` : ''}
+                
+                <div class="trend-footer">
                     <div class="trend-traffic">
                         <span class="material-symbols-outlined">local_fire_department</span>
                         ${traffic}
                     </div>
                     <div class="trend-time">${timeAgo}</div>
                 </div>
-                <div class="trend-actions">
+                
+                <div class="trend-actions" onclick="event.stopPropagation()">
                     <button class="btn-search-youtube" onclick="searchTrendOnYouTube('${escapeHtml(trend.title)}')">
                         <span class="material-symbols-outlined">play_circle</span>
                         YouTube 검색
@@ -119,12 +183,27 @@ function createTrendCard(trend) {
                     ${trend.newsUrl ? `
                         <button class="btn-view-news" onclick="window.open('${trend.newsUrl}', '_blank')">
                             <span class="material-symbols-outlined">article</span>
+                            뉴스 보기
                         </button>
                     ` : ''}
                 </div>
             </div>
         </div>
     `;
+}
+
+/**
+ * 숫자 포맷팅
+ */
+function formatNumber(num) {
+    if (!num) return '0';
+    if (num >= 1000000) {
+        return (num / 1000000).toFixed(1) + 'M';
+    }
+    if (num >= 1000) {
+        return (num / 1000).toFixed(1) + 'K';
+    }
+    return num.toLocaleString();
 }
 
 /**
