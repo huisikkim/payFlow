@@ -80,3 +80,8 @@ tasks.named('bootBuildImage') {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+// JAR 파일명 고정 (배포 편의성)
+tasks.named('bootJar') {
+    archiveFileName = 'payflow.jar'
+}
