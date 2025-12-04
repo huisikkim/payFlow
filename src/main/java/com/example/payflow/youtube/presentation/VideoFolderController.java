@@ -6,6 +6,8 @@ import com.example.payflow.youtube.domain.VideoFolder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -21,10 +23,11 @@ public class VideoFolderController {
     
     private final VideoFolderService folderService;
     
-    // 폴더 목록 조회
+    // 폴더 목록 조회 (사용자별)
     @GetMapping
     public ResponseEntity<Map<String, Object>> getAllFolders() {
-        List<VideoFolder> folders = folderService.getAllFolders();
+        String username = getCurrentUsername();
+        List<VideoFolder> folders = folderService.getUserFolders(username);
         
         List<Map<String, Object>> folderList = folders.stream()
                 .map(this::toFolderDto)
@@ -57,6 +60,7 @@ public class VideoFolderController {
     @PostMapping
     public ResponseEntity<Map<String, Object>> createFolder(@RequestBody Map<String, String> request) {
         try {
+            String username = getCurrentUsername();
             String name = request.get("name");
             String description = request.get("description");
             
@@ -64,7 +68,7 @@ public class VideoFolderController {
                 return ResponseEntity.badRequest().body(Map.of("success", false, "message", "폴더명을 입력해주세요"));
             }
             
-            VideoFolder folder = folderService.createFolder(name.trim(), description);
+            VideoFolder folder = folderService.createFolder(username, name.trim(), description);
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
@@ -83,10 +87,11 @@ public class VideoFolderController {
             @PathVariable Long folderId,
             @RequestBody Map<String, String> request) {
         try {
+            String username = getCurrentUsername();
             String name = request.get("name");
             String description = request.get("description");
             
-            VideoFolder folder = folderService.updateFolder(folderId, name, description);
+            VideoFolder folder = folderService.updateFolder(folderId, username, name, description);
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
@@ -102,7 +107,8 @@ public class VideoFolderController {
     @DeleteMapping("/{folderId}")
     public ResponseEntity<Map<String, Object>> deleteFolder(@PathVariable Long folderId) {
         try {
-            folderService.deleteFolder(folderId);
+            String username = getCurrentUsername();
+            folderService.deleteFolder(folderId, username);
             return ResponseEntity.ok(Map.of("success", true, "message", "폴더가 삭제되었습니다"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
@@ -115,6 +121,8 @@ public class VideoFolderController {
             @PathVariable Long folderId,
             @RequestBody Map<String, Object> request) {
         try {
+            String username = getCurrentUsername();
+            
             FavoriteVideo video = FavoriteVideo.builder()
                     .videoId((String) request.get("videoId"))
                     .title((String) request.get("title"))
@@ -125,7 +133,7 @@ public class VideoFolderController {
                     .duration((String) request.get("duration"))
                     .build();
             
-            FavoriteVideo saved = folderService.addVideoToFolder(folderId, video);
+            FavoriteVideo saved = folderService.addVideoToFolder(folderId, username, video);
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
@@ -144,7 +152,8 @@ public class VideoFolderController {
             @PathVariable Long folderId,
             @PathVariable String videoId) {
         try {
-            folderService.removeVideoFromFolder(folderId, videoId);
+            String username = getCurrentUsername();
+            folderService.removeVideoFromFolder(folderId, username, videoId);
             return ResponseEntity.ok(Map.of("success", true, "message", "영상이 삭제되었습니다"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
@@ -154,17 +163,31 @@ public class VideoFolderController {
     // 폴더 내 영상 목록 조회
     @GetMapping("/{folderId}/videos")
     public ResponseEntity<Map<String, Object>> getVideosInFolder(@PathVariable Long folderId) {
-        List<FavoriteVideo> videos = folderService.getVideosInFolder(folderId);
-        
-        List<Map<String, Object>> videoList = videos.stream()
-                .map(this::toVideoDto)
-                .collect(Collectors.toList());
-        
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", true);
-        response.put("videos", videoList);
-        
-        return ResponseEntity.ok(response);
+        try {
+            String username = getCurrentUsername();
+            List<FavoriteVideo> videos = folderService.getVideosInFolder(folderId, username);
+            
+            List<Map<String, Object>> videoList = videos.stream()
+                    .map(this::toVideoDto)
+                    .collect(Collectors.toList());
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("videos", videoList);
+            
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        }
+    }
+    
+    // 현재 로그인한 사용자명 가져오기
+    private String getCurrentUsername() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new IllegalStateException("인증되지 않은 사용자입니다.");
+        }
+        return authentication.getName();
     }
     
     private Map<String, Object> toFolderDto(VideoFolder folder) {

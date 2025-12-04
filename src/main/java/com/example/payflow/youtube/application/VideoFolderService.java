@@ -19,10 +19,16 @@ public class VideoFolderService {
     private final VideoFolderRepository folderRepository;
     private final FavoriteVideoRepository favoriteVideoRepository;
     
-    // 폴더 목록 조회
+    // 폴더 목록 조회 (전체 - 관리자용)
     @Transactional(readOnly = true)
     public List<VideoFolder> getAllFolders() {
         return folderRepository.findAllByOrderByCreatedAtDesc();
+    }
+    
+    // 사용자별 폴더 목록 조회
+    @Transactional(readOnly = true)
+    public List<VideoFolder> getUserFolders(String username) {
+        return folderRepository.findByUsernameOrderByCreatedAtDesc(username);
     }
     
     // 폴더 상세 조회 (영상 포함)
@@ -32,14 +38,22 @@ public class VideoFolderService {
                 .orElseThrow(() -> new IllegalArgumentException("폴더를 찾을 수 없습니다: " + folderId));
     }
     
+    // 사용자별 폴더 상세 조회 (영상 포함, 권한 체크)
+    @Transactional(readOnly = true)
+    public VideoFolder getUserFolderWithVideos(Long folderId, String username) {
+        return folderRepository.findByIdAndUsernameWithVideos(folderId, username)
+                .orElseThrow(() -> new IllegalArgumentException("폴더를 찾을 수 없거나 접근 권한이 없습니다."));
+    }
+    
     // 폴더 생성
     @Transactional
-    public VideoFolder createFolder(String name, String description) {
-        if (folderRepository.existsByName(name)) {
+    public VideoFolder createFolder(String username, String name, String description) {
+        if (folderRepository.existsByUsernameAndName(username, name)) {
             throw new IllegalArgumentException("이미 존재하는 폴더명입니다: " + name);
         }
         
         VideoFolder folder = VideoFolder.builder()
+                .username(username)
                 .name(name)
                 .description(description)
                 .build();
@@ -49,9 +63,14 @@ public class VideoFolderService {
     
     // 폴더 수정
     @Transactional
-    public VideoFolder updateFolder(Long folderId, String name, String description) {
+    public VideoFolder updateFolder(Long folderId, String username, String name, String description) {
         VideoFolder folder = folderRepository.findById(folderId)
                 .orElseThrow(() -> new IllegalArgumentException("폴더를 찾을 수 없습니다: " + folderId));
+        
+        // 권한 체크
+        if (!folder.getUsername().equals(username)) {
+            throw new IllegalArgumentException("폴더를 수정할 권한이 없습니다.");
+        }
         
         folder.setName(name);
         folder.setDescription(description);
@@ -61,18 +80,28 @@ public class VideoFolderService {
     
     // 폴더 삭제
     @Transactional
-    public void deleteFolder(Long folderId) {
-        if (!folderRepository.existsById(folderId)) {
-            throw new IllegalArgumentException("폴더를 찾을 수 없습니다: " + folderId);
+    public void deleteFolder(Long folderId, String username) {
+        VideoFolder folder = folderRepository.findById(folderId)
+                .orElseThrow(() -> new IllegalArgumentException("폴더를 찾을 수 없습니다: " + folderId));
+        
+        // 권한 체크
+        if (!folder.getUsername().equals(username)) {
+            throw new IllegalArgumentException("폴더를 삭제할 권한이 없습니다.");
         }
+        
         folderRepository.deleteById(folderId);
     }
     
     // 영상 즐겨찾기 추가
     @Transactional
-    public FavoriteVideo addVideoToFolder(Long folderId, FavoriteVideo video) {
+    public FavoriteVideo addVideoToFolder(Long folderId, String username, FavoriteVideo video) {
         VideoFolder folder = folderRepository.findById(folderId)
                 .orElseThrow(() -> new IllegalArgumentException("폴더를 찾을 수 없습니다: " + folderId));
+        
+        // 권한 체크
+        if (!folder.getUsername().equals(username)) {
+            throw new IllegalArgumentException("폴더에 영상을 추가할 권한이 없습니다.");
+        }
         
         if (favoriteVideoRepository.existsByFolderIdAndVideoId(folderId, video.getVideoId())) {
             throw new IllegalArgumentException("이미 추가된 영상입니다");
@@ -84,13 +113,29 @@ public class VideoFolderService {
     
     // 영상 즐겨찾기 삭제
     @Transactional
-    public void removeVideoFromFolder(Long folderId, String videoId) {
+    public void removeVideoFromFolder(Long folderId, String username, String videoId) {
+        VideoFolder folder = folderRepository.findById(folderId)
+                .orElseThrow(() -> new IllegalArgumentException("폴더를 찾을 수 없습니다: " + folderId));
+        
+        // 권한 체크
+        if (!folder.getUsername().equals(username)) {
+            throw new IllegalArgumentException("폴더에서 영상을 삭제할 권한이 없습니다.");
+        }
+        
         favoriteVideoRepository.deleteByFolderIdAndVideoId(folderId, videoId);
     }
     
     // 폴더 내 영상 목록 조회
     @Transactional(readOnly = true)
-    public List<FavoriteVideo> getVideosInFolder(Long folderId) {
+    public List<FavoriteVideo> getVideosInFolder(Long folderId, String username) {
+        VideoFolder folder = folderRepository.findById(folderId)
+                .orElseThrow(() -> new IllegalArgumentException("폴더를 찾을 수 없습니다: " + folderId));
+        
+        // 권한 체크
+        if (!folder.getUsername().equals(username)) {
+            throw new IllegalArgumentException("폴더를 조회할 권한이 없습니다.");
+        }
+        
         return favoriteVideoRepository.findByFolderIdOrderByAddedAtDesc(folderId);
     }
     

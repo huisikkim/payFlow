@@ -20,6 +20,9 @@ public class VideoFolder {
     private Long id;
     
     @Column(nullable = false, length = 100)
+    private String username;  // 폴더 소유자
+    
+    @Column(nullable = false, length = 100)
     private String name;
     
     @Column(length = 500)
