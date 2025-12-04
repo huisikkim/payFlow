@@ -175,11 +175,16 @@ function applySortAndFilter() {
         showError('필터 조건에 맞는 영상이 없습니다. 필터를 조정해보세요.');
     } else {
         document.getElementById('error').style.display = 'none';
-        renderVideos(filteredVideos, currentShowRank);
+        // 정렬이 적용되었으면 순위 번호 숨기기, 기본 순서면 원래 순위 표시
+        const showRank = sortBy === 'default' && currentShowRank;
+        renderVideos(filteredVideos, showRank);
     }
     
     // 필터 결과 카운트 업데이트
     updateFilterResultCount(filteredVideos.length, originalCount);
+    
+    // 정렬 정보 표시
+    updateSortInfo(sortBy);
 }
 
 /**
@@ -224,5 +229,31 @@ function updateFilterResultCount(filtered, total) {
         textEl.textContent = `${filtered}개 영상 표시 중 (전체 ${total}개)`;
     } else {
         countEl.style.display = 'none';
+    }
+}
+
+/**
+ * 정렬 정보 표시
+ */
+function updateSortInfo(sortBy) {
+    const sortInfoEl = document.getElementById('sortInfo');
+    const sortInfoText = document.getElementById('sortInfoText');
+    
+    const sortLabels = {
+        'views-desc': '조회수 높은순으로 정렬됨',
+        'views-asc': '조회수 낮은순으로 정렬됨',
+        'engagement-desc': '참여율 높은순으로 정렬됨',
+        'engagement-asc': '참여율 낮은순으로 정렬됨',
+        'performance-desc': '성과도 높은순으로 정렬됨',
+        'performance-asc': '성과도 낮은순으로 정렬됨',
+        'likes-desc': '좋아요 많은순으로 정렬됨',
+        'comments-desc': '댓글 많은순으로 정렬됨'
+    };
+    
+    if (sortBy !== 'default' && sortLabels[sortBy]) {
+        sortInfoEl.style.display = 'flex';
+        sortInfoText.textContent = sortLabels[sortBy];
+    } else {
+        sortInfoEl.style.display = 'none';
     }
 }
