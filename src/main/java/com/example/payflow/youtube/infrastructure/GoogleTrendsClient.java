@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -139,7 +140,7 @@ public class GoogleTrendsClient {
     }
 
     /**
-     * RSS pubDate 파싱
+     * RSS pubDate 파싱 (한국 시간대로 변환)
      * 형식: "Thu, 4 Dec 2025 04:00:00 -0800"
      */
     private LocalDateTime parsePublishDate(String pubDate) {
@@ -149,7 +150,9 @@ public class GoogleTrendsClient {
         try {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE, d MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
             ZonedDateTime zdt = ZonedDateTime.parse(pubDate, formatter);
-            return zdt.toLocalDateTime();
+            // 한국 시간대(KST)로 변환
+            ZonedDateTime kstTime = zdt.withZoneSameInstant(ZoneId.of("Asia/Seoul"));
+            return kstTime.toLocalDateTime();
         } catch (Exception e) {
             log.debug("날짜 파싱 실패, 현재 시간 사용: {}", pubDate);
             return LocalDateTime.now();
