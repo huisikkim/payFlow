@@ -89,6 +89,50 @@
             </div>
         </div>
 
+        <!-- 필터 & 정렬 섹션 -->
+        <div class="filter-sort-section">
+            <div class="filter-sort-header">
+                <span class="material-symbols-outlined">tune</span>
+                <span>필터 & 정렬</span>
+            </div>
+            <div class="filter-sort-controls">
+                <div class="sort-group">
+                    <label for="sortBy">정렬:</label>
+                    <select id="sortBy" onchange="applySortAndFilter()">
+                        <option value="default">기본 순서</option>
+                        <option value="views-desc">조회수 높은순</option>
+                        <option value="views-asc">조회수 낮은순</option>
+                        <option value="engagement-desc">참여율 높은순</option>
+                        <option value="engagement-asc">참여율 낮은순</option>
+                        <option value="performance-desc">성과도 높은순</option>
+                        <option value="performance-asc">성과도 낮은순</option>
+                        <option value="likes-desc">좋아요 많은순</option>
+                        <option value="comments-desc">댓글 많은순</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="minViews">최소 조회수:</label>
+                    <input type="number" id="minViews" placeholder="예: 10000" onchange="applySortAndFilter()">
+                </div>
+                <div class="filter-group">
+                    <label for="minEngagement">최소 참여율(%):</label>
+                    <input type="number" id="minEngagement" placeholder="예: 2" step="0.1" onchange="applySortAndFilter()">
+                </div>
+                <div class="filter-group">
+                    <label for="minPerformance">최소 성과도:</label>
+                    <input type="number" id="minPerformance" placeholder="예: 60" onchange="applySortAndFilter()">
+                </div>
+                <button class="btn-reset-filter" onclick="resetFilters()">
+                    <span class="material-symbols-outlined">restart_alt</span>
+                    초기화
+                </button>
+            </div>
+            <div class="filter-result-count" id="filterResultCount" style="display: none;">
+                <span class="material-symbols-outlined">info</span>
+                <span id="filterResultText"></span>
+            </div>
+        </div>
+
         <!-- 크리에이터 인사이트 섹션 -->
         <div id="insights-section" class="insights-section" style="display: none;">
             <div class="insights-header">
