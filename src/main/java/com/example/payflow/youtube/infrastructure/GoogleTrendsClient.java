@@ -9,82 +9,150 @@ import org.jsoup.select.Elements;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 @Slf4j
 @Component
 public class GoogleTrendsClient {
 
-    private static final String TRENDS_URL = "https://trends.google.com/trending?geo=KR&hours=24";
+    // Google Trends RSS 피드 URL (권장 방식)
+    private static final String RSS_URL_TEMPLATE = "https://trends.google.com/trending/rss?geo=%s";
     private static final int TIMEOUT_MS = 10000;
+    private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36";
 
     /**
-     * Google Trends 웹페이지에서 실시간 트렌드 조회
+     * Google Trends RSS 피드에서 실시간 트렌드 조회
      * 캐시 10분
      */
     @Cacheable(value = "googleTrends", key = "'KR'")
     public List<TrendingTopic> getDailyTrends() {
+        return getDailyTrends("KR");
+    }
+
+    /**
+     * 특정 국가의 실시간 트렌드 가져오기
+     * @param countryCode ISO 3166-2 국가 코드 (예: KR, US, JP)
+     * @return 트렌드 아이템 리스트
+     */
+    public List<TrendingTopic> getDailyTrends(String countryCode) {
+        String rssUrl = String.format(RSS_URL_TEMPLATE, countryCode);
         List<TrendingTopic> trends = new ArrayList<>();
-        
+
         try {
-            log.info("Google Trends 조회 시작");
-            
-            // 샘플 데이터 생성 (실제 스크래핑은 Google의 정책상 제한될 수 있음)
-            trends = createSampleTrends();
-            
+            log.info("Google Trends RSS 피드 조회 시작: {}", rssUrl);
+
+            // RSS 피드 파싱
+            Document doc = Jsoup.connect(rssUrl)
+                    .timeout(TIMEOUT_MS)
+                    .userAgent(USER_AGENT)
+                    .get();
+
+            Elements items = doc.select("item");
+            log.info("Google Trends RSS에서 {}개 항목 발견", items.size());
+
+            int rank = 1;
+            for (Element item : items) {
+                TrendingTopic topic = parseTrendItem(item, rank++);
+                if (topic != null) {
+                    trends.add(topic);
+                }
+            }
+
             log.info("Google Trends 조회 완료 - {}개 항목", trends.size());
-            
-        } catch (Exception e) {
-            log.error("Google Trends 조회 실패", e);
-            // 실패 시에도 샘플 데이터 반환
-            trends = createSampleTrends();
+
+        } catch (IOException e) {
+            log.error("Google Trends RSS 피드 조회 실패: {}", e.getMessage());
+            // 실패 시 빈 리스트 반환 (또는 캐시된 데이터 사용)
         }
-        
+
         return trends;
     }
-    
+
     /**
-     * 샘플 트렌드 데이터 생성
-     * 실제 환경에서는 Google Trends API 또는 서드파티 API 사용 권장
+     * RSS item 요소를 TrendingTopic으로 파싱
      */
-    private List<TrendingTopic> createSampleTrends() {
-        List<TrendingTopic> trends = new ArrayList<>();
-        LocalDateTime now = LocalDateTime.now();
-        
-        String[][] sampleData = {
-            {"BTS 신곡 발매", "방탄소년단이 새로운 앨범을 발표했습니다", "500K+"},
-            {"날씨 한파 경보", "전국에 한파 경보가 발령되었습니다", "300K+"},
-            {"주식 시장 급등", "코스피가 사상 최고치를 경신했습니다", "250K+"},
-            {"축구 국가대표 경기", "한국 축구 대표팀의 경기가 예정되어 있습니다", "400K+"},
-            {"신작 드라마 방영", "화제의 드라마가 첫 방송을 시작했습니다", "350K+"},
-            {"K-POP 아이돌 컴백", "인기 아이돌 그룹이 컴백 무대를 공개했습니다", "450K+"},
-            {"영화 개봉", "기대작 영화가 극장에서 개봉했습니다", "200K+"},
-            {"게임 업데이트", "인기 게임의 대규모 업데이트가 진행되었습니다", "180K+"},
-            {"맛집 추천", "SNS에서 화제가 된 맛집이 소개되었습니다", "150K+"},
-            {"패션 트렌드", "올 겨울 패션 트렌드가 공개되었습니다", "120K+"},
-            {"IT 신제품 출시", "새로운 스마트폰이 출시되었습니다", "280K+"},
-            {"여행지 추천", "겨울 여행지 베스트 10이 발표되었습니다", "160K+"},
-            {"건강 정보", "겨울철 건강 관리 팁이 화제입니다", "140K+"},
-            {"요리 레시피", "간단한 집밥 레시피가 인기를 끌고 있습니다", "130K+"},
-            {"운동 루틴", "홈트레이닝 루틴이 공유되고 있습니다", "110K+"}
-        };
-        
-        for (int i = 0; i < sampleData.length; i++) {
-            TrendingTopic topic = TrendingTopic.builder()
-                    .title(sampleData[i][0])
-                    .description(sampleData[i][1])
-                    .newsUrl("https://www.google.com/search?q=" + sampleData[i][0])
-                    .imageUrl(null)
-                    .traffic(sampleData[i][2] + " 검색")
-                    .publishedAt(now.minusHours(i))
-                    .rank(i + 1)
+    private TrendingTopic parseTrendItem(Element item, int rank) {
+        try {
+            String title = getTextContent(item, "title");
+            if (title == null || title.isEmpty()) {
+                return null;
+            }
+
+            // 트래픽 정보 (ht:approx_traffic)
+            String traffic = getTextContent(item, "ht|approx_traffic");
+            if (traffic != null && !traffic.isEmpty()) {
+                traffic = traffic + " 검색";
+            }
+
+            // 발행 날짜 파싱
+            LocalDateTime publishedAt = parsePublishDate(getTextContent(item, "pubDate"));
+
+            // 이미지 URL (ht:picture)
+            String imageUrl = getTextContent(item, "ht|picture");
+
+            // 뉴스 정보 (첫 번째 뉴스 아이템)
+            String newsUrl = null;
+            String description = null;
+            Element newsItem = item.selectFirst("ht|news_item");
+            if (newsItem != null) {
+                newsUrl = getTextContent(newsItem, "ht|news_item_url");
+                description = getTextContent(newsItem, "ht|news_item_title");
+            }
+
+            // 뉴스 URL이 없으면 Google 검색 링크로 대체
+            if (newsUrl == null || newsUrl.isEmpty()) {
+                newsUrl = "https://www.google.com/search?q=" + title;
+            }
+
+            return TrendingTopic.builder()
+                    .title(title)
+                    .description(description != null ? description : "")
+                    .newsUrl(newsUrl)
+                    .imageUrl(imageUrl)
+                    .traffic(traffic)
+                    .publishedAt(publishedAt)
+                    .rank(rank)
                     .build();
-            
-            trends.add(topic);
+
+        } catch (Exception e) {
+            log.warn("트렌드 아이템 파싱 실패: {}", e.getMessage());
+            return null;
         }
-        
-        return trends;
+    }
+
+    /**
+     * Element에서 텍스트 추출 (null-safe)
+     */
+    private String getTextContent(Element parent, String selector) {
+        Elements elements = parent.select(selector);
+        if (elements.isEmpty()) {
+            return null;
+        }
+        String text = elements.first().text();
+        return text != null && !text.isEmpty() ? text : null;
+    }
+
+    /**
+     * RSS pubDate 파싱
+     * 형식: "Thu, 4 Dec 2025 04:00:00 -0800"
+     */
+    private LocalDateTime parsePublishDate(String pubDate) {
+        if (pubDate == null || pubDate.isEmpty()) {
+            return LocalDateTime.now();
+        }
+        try {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE, d MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
+            ZonedDateTime zdt = ZonedDateTime.parse(pubDate, formatter);
+            return zdt.toLocalDateTime();
+        } catch (Exception e) {
+            log.debug("날짜 파싱 실패, 현재 시간 사용: {}", pubDate);
+            return LocalDateTime.now();
+        }
     }
 }
