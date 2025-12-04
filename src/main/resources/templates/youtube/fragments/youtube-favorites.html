@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <!-- 즐겨찾기 섹션 Fragment -->
+    <div th:fragment="favorites" id="favorites-section" class="favorites-section" style="display: none;">
+        <div class="folders-header">
+            <h2>
+                <span class="material-symbols-outlined">folder_special</span>
+                내 즐겨찾기 폴더
+            </h2>
+            <button class="btn-create-folder" onclick="showCreateFolderModal()">
+                <span class="material-symbols-outlined">create_new_folder</span>
+                새 폴더
+            </button>
+        </div>
+        <div id="folders-list" class="folders-list"></div>
+        <div id="folder-videos" class="folder-videos" style="display: none;">
+            <div class="folder-videos-header">
+                <button class="btn-back" onclick="showFoldersList()">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                    폴더 목록
+                </button>
+                <h3 id="current-folder-name"></h3>
+                <button class="btn-delete-folder" onclick="deleteCurrentFolder()">
+                    <span class="material-symbols-outlined">delete</span>
+                </button>
+            </div>
+            <div id="folder-video-list" class="video-list"></div>
+        </div>
+    </div>
+</body>
+</html>

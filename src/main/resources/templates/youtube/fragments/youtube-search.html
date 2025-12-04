@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <!-- 검색 섹션 Fragment -->
+    <div th:fragment="search" class="search-section">
+        <div class="search-box">
+            <input type="text" id="searchQuery" placeholder="검색어를 입력하세요..." onkeypress="handleSearchKeypress(event)">
+            <button class="btn-search" onclick="searchVideos()">
+                <span class="material-symbols-outlined">search</span>
+                검색
+            </button>
+        </div>
+    </div>
+</body>
+</html>

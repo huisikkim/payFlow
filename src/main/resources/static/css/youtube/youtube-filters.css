@@ -1,0 +1,282 @@
+/**
+ * YouTube 필터 & 정렬 스타일
+ */
+
+/* 탭 & 컨트롤 섹션 */
+.controls-section {
+    margin-bottom: 24px;
+}
+
+.tab-menu {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    gap: 16px;
+}
+
+.tab-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.tab-btn {
+    padding: 10px 20px;
+    background: #1f2937;
+    border: 1px solid #374151;
+    border-radius: 8px;
+    color: #9ca3af;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.tab-btn:hover {
+    background: #374151;
+    color: #e5e7eb;
+}
+
+.tab-btn.active {
+    background: #ff0000;
+    border-color: #ff0000;
+    color: white;
+}
+
+.tab-btn .material-symbols-outlined {
+    font-size: 18px;
+}
+
+.btn-refresh {
+    padding: 10px 20px;
+    background: #1f2937;
+    border: 1px solid #374151;
+    border-radius: 8px;
+    color: #9ca3af;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.btn-refresh:hover {
+    background: #374151;
+    color: #e5e7eb;
+}
+
+.btn-refresh .material-symbols-outlined {
+    font-size: 18px;
+}
+
+/* 필터 섹션 */
+.filter-section {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 16px;
+    background: #1f2937;
+    border-radius: 12px;
+    border: 1px solid #374151;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.filter-group label {
+    font-size: 13px;
+    color: #9ca3af;
+    font-weight: 500;
+}
+
+.filter-group select,
+.filter-group input {
+    padding: 8px 12px;
+    background: #111827;
+    border: 1px solid #374151;
+    border-radius: 8px;
+    color: #e5e7eb;
+    font-size: 14px;
+    min-width: 150px;
+    transition: all 0.2s;
+}
+
+.filter-group select:hover,
+.filter-group input:hover {
+    border-color: #60a5fa;
+}
+
+.filter-group select:focus,
+.filter-group input:focus {
+    outline: none;
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+}
+
+/* 필터 & 정렬 섹션 */
+.filter-sort-section {
+    background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+    border: 1px solid #374151;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 0;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.filter-sort-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #f3f4f6;
+    margin-bottom: 16px;
+}
+
+.filter-sort-header .material-symbols-outlined {
+    color: #60a5fa;
+    font-size: 24px;
+}
+
+.filter-sort-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: flex-end;
+}
+
+.sort-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.sort-group label {
+    font-size: 13px;
+    color: #9ca3af;
+    font-weight: 500;
+}
+
+.sort-group select {
+    padding: 8px 12px;
+    background: #111827;
+    border: 1px solid #374151;
+    border-radius: 8px;
+    color: #e5e7eb;
+    font-size: 14px;
+    min-width: 150px;
+    transition: all 0.2s;
+}
+
+.sort-group select:hover {
+    border-color: #60a5fa;
+}
+
+.sort-group select:focus {
+    outline: none;
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+}
+
+.btn-reset-filter {
+    padding: 8px 16px;
+    background: #374151;
+    border: 1px solid #4b5563;
+    border-radius: 8px;
+    color: #e5e7eb;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+    height: fit-content;
+    margin-top: auto;
+}
+
+.btn-reset-filter:hover {
+    background: #4b5563;
+    border-color: #6b7280;
+}
+
+.btn-reset-filter .material-symbols-outlined {
+    font-size: 18px;
+}
+
+.filter-result-count {
+    margin-top: 16px;
+    padding: 12px 16px;
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #93c5fd;
+}
+
+.filter-result-count .material-symbols-outlined {
+    font-size: 20px;
+    color: #60a5fa;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+    .tab-menu {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .tab-buttons {
+        width: 100%;
+    }
+    
+    .tab-btn {
+        flex: 1;
+        justify-content: center;
+    }
+    
+    .btn-refresh {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .filter-section {
+        flex-direction: column;
+    }
+    
+    .filter-group select,
+    .filter-group input {
+        width: 100%;
+    }
+    
+    .filter-sort-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .sort-group,
+    .filter-group {
+        width: 100%;
+    }
+    
+    .sort-group select,
+    .filter-group input,
+    .filter-group select {
+        width: 100%;
+    }
+    
+    .btn-reset-filter {
+        width: 100%;
+        justify-content: center;
+    }
+}

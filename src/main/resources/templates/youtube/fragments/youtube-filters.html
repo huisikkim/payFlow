@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <!-- 탭 & 필터 Fragment -->
+    <div th:fragment="controls" class="controls-section">
+        <div class="tab-menu">
+            <div class="tab-buttons">
+                <button class="tab-btn active" data-tab="popular" onclick="switchTab('popular')">
+                    <span class="material-symbols-outlined">local_fire_department</span>
+                    인기 급상승
+                </button>
+                <button class="tab-btn" data-tab="search" onclick="switchTab('search')">
+                    <span class="material-symbols-outlined">search</span>
+                    검색 결과
+                </button>
+                <button class="tab-btn" data-tab="favorites" onclick="switchTab('favorites')">
+                    <span class="material-symbols-outlined">folder_special</span>
+                    즐겨찾기
+                </button>
+            </div>
+            <button class="btn-refresh" onclick="loadCurrentTab()">
+                <span class="material-symbols-outlined">refresh</span>
+                새로고침
+            </button>
+        </div>
+
+        <div class="filter-section" id="regionFilter">
+            <div class="filter-group">
+                <label for="regionCode">국가:</label>
+                <select id="regionCode">
+                    <option value="KR" selected>🇰🇷 한국</option>
+                    <option value="US">🇺🇸 미국</option>
+                    <option value="JP">🇯🇵 일본</option>
+                    <option value="GB">🇬🇧 영국</option>
+                    <option value="DE">🇩🇪 독일</option>
+                    <option value="FR">🇫🇷 프랑스</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="maxResults">개수:</label>
+                <select id="maxResults">
+                    <option value="10">10개</option>
+                    <option value="25" selected>25개</option>
+                    <option value="50">50개</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- 필터 & 정렬 섹션 Fragment -->
+    <div th:fragment="sort-filter" class="filter-sort-section">
+        <div class="filter-sort-header">
+            <span class="material-symbols-outlined">tune</span>
+            <span>필터 & 정렬</span>
+        </div>
+        <div class="filter-sort-controls">
+            <div class="sort-group">
+                <label for="sortBy">정렬:</label>
+                <select id="sortBy" onchange="applySortAndFilter()">
+                    <option value="default">기본 순서</option>
+                    <option value="views-desc">조회수 높은순</option>
+                    <option value="views-asc">조회수 낮은순</option>
+                    <option value="engagement-desc">참여율 높은순</option>
+                    <option value="engagement-asc">참여율 낮은순</option>
+                    <option value="performance-desc">성과도 높은순</option>
+                    <option value="performance-asc">성과도 낮은순</option>
+                    <option value="likes-desc">좋아요 많은순</option>
+                    <option value="comments-desc">댓글 많은순</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="minViews">최소 조회수:</label>
+                <input type="number" id="minViews" placeholder="예: 10000" onchange="applySortAndFilter()">
+            </div>
+            <div class="filter-group">
+                <label for="minEngagement">최소 참여율(%):</label>
+                <input type="number" id="minEngagement" placeholder="예: 2" step="0.1" onchange="applySortAndFilter()">
+            </div>
+            <div class="filter-group">
+                <label for="minPerformance">최소 성과도:</label>
+                <input type="number" id="minPerformance" placeholder="예: 60" onchange="applySortAndFilter()">
+            </div>
+            <button class="btn-reset-filter" onclick="resetFilters()">
+                <span class="material-symbols-outlined">restart_alt</span>
+                초기화
+            </button>
+        </div>
+        <div class="filter-result-count" id="filterResultCount" style="display: none;">
+            <span class="material-symbols-outlined">info</span>
+            <span id="filterResultText"></span>
+        </div>
+    </div>
+</body>
+</html>

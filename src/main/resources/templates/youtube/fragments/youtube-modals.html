@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <!-- 폴더 생성 모달 Fragment -->
+    <div th:fragment="create-folder-modal" id="create-folder-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>새 폴더 만들기</h3>
+                <button class="modal-close" onclick="hideCreateFolderModal()">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="folder-name">폴더명</label>
+                    <input type="text" id="folder-name" placeholder="폴더명을 입력하세요">
+                </div>
+                <div class="form-group">
+                    <label for="folder-desc">설명 (선택)</label>
+                    <input type="text" id="folder-desc" placeholder="폴더 설명">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="hideCreateFolderModal()">취소</button>
+                <button class="btn-confirm" onclick="createFolder()">만들기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 폴더 선택 모달 Fragment -->
+    <div th:fragment="select-folder-modal" id="select-folder-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>폴더에 추가</h3>
+                <button class="modal-close" onclick="hideSelectFolderModal()">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="folder-select-list" class="folder-select-list"></div>
+                <button class="btn-new-folder-inline" onclick="hideSelectFolderModal(); showCreateFolderModal();">
+                    <span class="material-symbols-outlined">add</span>
+                    새 폴더 만들기
+                </button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,95 @@
+/**
+ * YouTube 헤더 스타일
+ */
+
+.youtube-header {
+    background: #111827;
+    padding: 16px 0;
+    border-bottom: 1px solid rgba(55, 65, 81, 0.5);
+}
+
+.header-content {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 16px;
+}
+
+.youtube-header .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    text-decoration: none;
+    letter-spacing: -0.025em;
+}
+
+.youtube-icon {
+    width: 28px;
+    height: 20px;
+}
+
+.youtube-icon svg {
+    width: 100%;
+    height: 100%;
+}
+
+/* 검색 섹션 */
+.search-section {
+    max-width: 640px;
+    margin: 0 auto 24px;
+}
+
+.search-box {
+    position: relative;
+    display: flex;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 12px 120px 12px 20px;
+    border-radius: 9999px;
+    border: 1px solid #374151;
+    background: #1f2937;
+    color: #e5e7eb;
+    font-size: 15px;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.search-box input:focus {
+    border-color: #ff0000;
+    box-shadow: 0 0 0 2px rgba(255, 0, 0, 0.2);
+}
+
+.search-box input::placeholder {
+    color: #6b7280;
+}
+
+.btn-search {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 8px 20px;
+    background: #ff0000;
+    color: white;
+    border: none;
+    border-radius: 9999px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s ease;
+}
+
+.btn-search:hover {
+    background: #cc0000;
+}
+
+.btn-search .material-symbols-outlined {
+    font-size: 18px;
+}

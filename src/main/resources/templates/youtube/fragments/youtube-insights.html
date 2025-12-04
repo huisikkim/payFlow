@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <!-- 크리에이터 인사이트 Fragment -->
+    <div th:fragment="insights" id="insights-section" class="insights-section" style="display: none;">
+        <div class="insights-header">
+            <h1>크리에이터 인사이트</h1>
+            <p>인기 영상 데이터를 분석한 트렌드 정보</p>
+        </div>
+        
+        <!-- 메트릭 카드 그리드 -->
+        <div class="insights-grid">
+            <div class="insight-card">
+                <div class="insight-card-header">
+                    <span class="material-symbols-outlined">local_fire_department</span>
+                    <span>인기 키워드</span>
+                </div>
+                <div class="insight-value-large" id="insight-keywords">-</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-card-header">
+                    <span class="material-symbols-outlined">schedule</span>
+                    <span>평균 영상 길이</span>
+                </div>
+                <div class="insight-value-xl" id="insight-duration">-</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-card-header">
+                    <span class="material-symbols-outlined">thumb_up</span>
+                    <span>평균 참여율</span>
+                </div>
+                <div class="insight-value-xl" id="insight-engagement">-</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-card-header">
+                    <span class="material-symbols-outlined">visibility</span>
+                    <span>평균 조회수</span>
+                </div>
+                <div class="insight-value-xl" id="insight-views">-</div>
+            </div>
+            <div class="insight-card">
+                <div class="insight-card-header">
+                    <span class="material-symbols-outlined">title</span>
+                    <span>평균 제목 길이</span>
+                </div>
+                <div class="insight-value-xl" id="insight-title-length">-</div>
+            </div>
+            <div class="insight-card insight-card-highlight">
+                <div class="insight-card-header highlight">
+                    <span class="material-symbols-outlined">trophy</span>
+                    <span>참여율 TOP 영상</span>
+                </div>
+                <div class="insight-value-large" id="insight-top-engagement">-</div>
+            </div>
+        </div>
+        
+        <!-- 하단 2컬럼 레이아웃 -->
+        <div class="insights-bottom">
+            <!-- 콘텐츠 제작 팁 -->
+            <div class="insights-tips-section">
+                <h2>
+                    <span class="material-symbols-outlined">auto_awesome</span>
+                    콘텐츠 제작 팁
+                </h2>
+                <div class="tips-list" id="insight-tips">
+                    데이터를 분석 중입니다...
+                </div>
+            </div>
+            
+            <!-- TOP 영상 리스트 -->
+            <div class="insights-top-videos">
+                <h3>참여율 TOP 영상</h3>
+                <ul class="top-videos-list" id="insight-top-videos-list">
+                    <!-- JS로 동적 생성 -->
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
