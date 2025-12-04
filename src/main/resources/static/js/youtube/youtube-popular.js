@@ -93,8 +93,6 @@ function switchTab(tab, skipLoad = false) {
     if (!skipLoad) {
         if (tab === 'popular') {
             loadVideos();
-        } else if (tab === 'trends') {
-            loadGoogleTrends();
         } else if (tab === 'search' && lastSearchQuery) {
             doSearch(lastSearchQuery);
         }
@@ -107,8 +105,6 @@ function switchTab(tab, skipLoad = false) {
 function loadCurrentTab() {
     if (window.currentTab === 'popular') {
         loadVideos();
-    } else if (window.currentTab === 'trends') {
-        loadGoogleTrends();
     } else if (lastSearchQuery) {
         doSearch(lastSearchQuery);
     }
