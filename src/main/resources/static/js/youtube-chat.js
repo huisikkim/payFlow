@@ -1,8 +1,24 @@
-// YouTube 익명 채팅 기능
+// YouTube 채팅 기능
 let stompClient = null;
 let isConnected = false;
-let anonymousUsername = null;
+let chatUsername = null;
 let onlineUsers = 0;
+
+// 사용자명 가져오기 (로그인한 경우 닉네임, 아니면 랜덤 생성)
+function getChatUsername() {
+    // 로그인한 사용자의 닉네임 확인
+    const nickname = localStorage.getItem('nickname');
+    const username = localStorage.getItem('username');
+    
+    if (nickname) {
+        return nickname;
+    } else if (username) {
+        return username;
+    } else {
+        // 로그인하지 않은 경우 랜덤 익명 사용자명 생성
+        return generateAnonymousUsername();
+    }
+}
 
 // 랜덤 익명 사용자명 생성
 function generateAnonymousUsername() {
@@ -22,7 +38,7 @@ let typingTimeout = null;
 function connectChat() {
     if (isConnected) return;
     
-    anonymousUsername = generateAnonymousUsername();
+    chatUsername = getChatUsername();
     
     const socket = new SockJS('/ws/youtube-chat');
     stompClient = Stomp.over(socket);
@@ -30,13 +46,13 @@ function connectChat() {
     // 디버그 로그 비활성화
     stompClient.debug = null;
     
-    // 연결 헤더에 익명 사용자 정보 추가
+    // 연결 헤더에 사용자 정보 추가
     const headers = {
-        'X-Anonymous-User': anonymousUsername
+        'X-Anonymous-User': chatUsername
     };
     
     stompClient.connect(headers, function(frame) {
-        console.log('YouTube 채팅 연결됨:', anonymousUsername);
+        console.log('YouTube 채팅 연결됨:', chatUsername);
         isConnected = true;
         
         // 채팅방 구독
@@ -88,7 +104,7 @@ function displayMessage(data) {
     const messageDiv = document.createElement('div');
     
     // 내 메시지인지 확인
-    const isMyMessage = data.username === anonymousUsername;
+    const isMyMessage = data.username === chatUsername;
     messageDiv.className = `chat-message ${data.type || 'message'} ${isMyMessage ? 'my-message' : 'other-message'}`;
     
     if (data.type === 'join') {
@@ -124,7 +140,7 @@ function escapeHtml(text) {
 // 타이핑 인디케이터 처리
 function handleTypingIndicator(data) {
     // 자기 자신의 타이핑은 무시
-    if (data.username === anonymousUsername) {
+    if (data.username === chatUsername) {
         return;
     }
     
