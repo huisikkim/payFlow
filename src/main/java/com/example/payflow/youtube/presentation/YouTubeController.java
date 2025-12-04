@@ -19,6 +19,7 @@ public class YouTubeController {
 
     private final YouTubeService youTubeService;
     private final com.example.payflow.youtube.application.SearchHistoryService searchHistoryService;
+    private final com.example.payflow.youtube.application.GoogleTrendsService googleTrendsService;
 
     /**
      * 한국 인기 급상승 영상 목록 조회
@@ -279,6 +280,28 @@ public class YouTubeController {
             return ResponseEntity.status(500).body(Map.of(
                 "success", false,
                 "message", "핫한 채널 분석 실패: " + e.getMessage()
+            ));
+        }
+    }
+
+    /**
+     * 구글 트렌드 실시간 검색어 조회
+     * GET /api/youtube/trends
+     */
+    @GetMapping("/trends")
+    public ResponseEntity<Map<String, Object>> getGoogleTrends() {
+        try {
+            List<com.example.payflow.youtube.domain.TrendingTopic> trends = googleTrendsService.getDailyTrends();
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "count", trends.size(),
+                "trends", trends
+            ));
+        } catch (Exception e) {
+            log.error("구글 트렌드 조회 실패", e);
+            return ResponseEntity.status(500).body(Map.of(
+                "success", false,
+                "message", "구글 트렌드 조회 실패: " + e.getMessage()
             ));
         }
     }
