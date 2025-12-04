@@ -46,7 +46,7 @@ function renderVideos(videos, showRank = true) {
                 <div class="video-title">${escapeHtml(video.title)}</div>
                 <div class="channel-name">${escapeHtml(video.channelTitle || '')}${video.channelSubscriberCount ? ` · 구독자 ${formatNumber(video.channelSubscriberCount)}명` : ''}</div>
                 <div class="metrics-row">
-                    <div class="tooltip-wrapper">
+                    <div class="tooltip-wrapper" onclick="event.stopPropagation()">
                         <div class="engagement-badge ${engagementInfo.class}">
                             <span class="material-symbols-outlined engagement-icon">local_fire_department</span>
                             <span class="engagement-label">참여율</span>
@@ -65,7 +65,7 @@ function renderVideos(videos, showRank = true) {
                             </div>
                         </div>
                     </div>
-                    <div class="tooltip-wrapper">
+                    <div class="tooltip-wrapper" onclick="event.stopPropagation()">
                         <div class="performance-badge ${performanceInfo.class}">
                             <span class="material-symbols-outlined performance-icon">star</span>
                             <span class="performance-label">성과도</span>
@@ -85,7 +85,7 @@ function renderVideos(videos, showRank = true) {
                         </div>
                     </div>
                     ${viralIndex !== null ? `
-                    <div class="tooltip-wrapper">
+                    <div class="tooltip-wrapper" onclick="event.stopPropagation()">
                         <div class="viral-badge ${viralInfo.class}">
                             <span class="material-symbols-outlined viral-icon">rocket_launch</span>
                             <span class="viral-label">바이럴</span>
@@ -105,7 +105,7 @@ function renderVideos(videos, showRank = true) {
                         </div>
                     </div>
                     ` : ''}
-                    <div class="tooltip-wrapper">
+                    <div class="tooltip-wrapper" onclick="event.stopPropagation()">
                         <div class="explosiveness-badge ${explosivenessInfo.class}">
                             <span class="material-symbols-outlined explosiveness-icon">bolt</span>
                             <span class="explosiveness-label">폭발력</span>
