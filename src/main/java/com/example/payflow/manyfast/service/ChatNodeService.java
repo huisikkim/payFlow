@@ -122,6 +122,13 @@ public class ChatNodeService {
         StringBuilder sb = new StringBuilder();
         sb.append("당신은 소프트웨어 기능 설계 전문가입니다. 사용자의 요청을 분석하여 새로운 기능을 정의해주세요.\n\n");
         
+        // 한글 강제 지시
+        sb.append("★★★ 중요: 반드시 한글로만 응답하세요! ★★★\n");
+        sb.append("- 한자(漢字) 사용 금지\n");
+        sb.append("- 일본어 사용 금지\n");
+        sb.append("- 기능명, 설명 모두 순수 한글과 영문만 사용\n");
+        sb.append("- 예: 검색機能(X) → 검색 기능(O), 登録(X) → 등록(O)\n\n");
+        
         if (!existingNodes.isEmpty()) {
             sb.append("=== 현재 프로젝트의 기존 기능 목록 ===\n");
             for (int i = 0; i < existingNodes.size(); i++) {
@@ -138,12 +145,13 @@ public class ChatNodeService {
         sb.append("사용자 요청: ").append(userMessage).append("\n\n");
         sb.append("중요 규칙:\n");
         sb.append("1. 사용자가 '~에', '~의', '~기능에' 등으로 기존 기능을 언급하면 해당 기능을 parent로 지정하세요.\n");
-        sb.append("2. parent는 위 기존 기능 목록에서 정확한 이름을 복사해서 사용하세요.\n\n");
+        sb.append("2. parent는 위 기존 기능 목록에서 정확한 이름을 복사해서 사용하세요.\n");
+        sb.append("3. 모든 텍스트는 한글과 영문만 사용하세요. 한자 절대 금지!\n\n");
         sb.append("반드시 다음 형식으로 기능을 정의해주세요:\n");
         sb.append("[NODE]\n");
-        sb.append("title: 새 기능 이름\n");
+        sb.append("title: 새 기능 이름 (한글/영문만)\n");
         sb.append("type: FEATURE\n");
-        sb.append("description: 기능 설명\n");
+        sb.append("description: 기능 설명 (한글/영문만)\n");
         sb.append("parent: 상위 기능 이름 (기존 기능 목록에서 복사)\n");
         sb.append("[/NODE]\n\n");
         sb.append("예시 - '공고내용 목록에 검색 추가해줘' 요청 시:\n");
@@ -250,7 +258,9 @@ public class ChatNodeService {
             if (line.contains(":")) {
                 String[] parts = line.split(":", 2);
                 if (parts.length == 2) {
-                    nodeData.put(parts[0].trim().toLowerCase(), parts[1].trim());
+                    // 한자를 한글로 변환 후 저장
+                    String value = convertHanjaToKorean(parts[1].trim());
+                    nodeData.put(parts[0].trim().toLowerCase(), value);
                 }
             }
         }
@@ -258,8 +268,86 @@ public class ChatNodeService {
     }
     
     private String cleanResponse(String response) {
-        return response.replaceAll("\\[NODE\\].*?\\[/NODE\\]", "").trim()
+        String cleaned = response.replaceAll("\\[NODE\\].*?\\[/NODE\\]", "").trim()
             .replaceAll("\n{3,}", "\n\n");
+        return convertHanjaToKorean(cleaned);
+    }
+    
+    /**
+     * 한자를 한글로 변환 (자주 나오는 한자 매핑)
+     */
+    private String convertHanjaToKorean(String text) {
+        if (text == null) return null;
+        
+        // 자주 나오는 한자 → 한글 매핑
+        Map<String, String> hanjaMap = new LinkedHashMap<>();
+        hanjaMap.put("機能", "기능");
+        hanjaMap.put("検索", "검색");
+        hanjaMap.put("登録", "등록");
+        hanjaMap.put("削除", "삭제");
+        hanjaMap.put("修正", "수정");
+        hanjaMap.put("編集", "편집");
+        hanjaMap.put("一覧", "목록");
+        hanjaMap.put("詳細", "상세");
+        hanjaMap.put("管理", "관리");
+        hanjaMap.put("設定", "설정");
+        hanjaMap.put("追加", "추가");
+        hanjaMap.put("確認", "확인");
+        hanjaMap.put("保存", "저장");
+        hanjaMap.put("取消", "취소");
+        hanjaMap.put("完了", "완료");
+        hanjaMap.put("開始", "시작");
+        hanjaMap.put("終了", "종료");
+        hanjaMap.put("入力", "입력");
+        hanjaMap.put("出力", "출력");
+        hanjaMap.put("表示", "표시");
+        hanjaMap.put("非表示", "숨김");
+        hanjaMap.put("有効", "유효");
+        hanjaMap.put("無効", "무효");
+        hanjaMap.put("新規", "신규");
+        hanjaMap.put("更新", "갱신");
+        hanjaMap.put("変更", "변경");
+        hanjaMap.put("選択", "선택");
+        hanjaMap.put("解除", "해제");
+        hanjaMap.put("実行", "실행");
+        hanjaMap.put("停止", "정지");
+        hanjaMap.put("再開", "재개");
+        hanjaMap.put("送信", "전송");
+        hanjaMap.put("受信", "수신");
+        hanjaMap.put("認証", "인증");
+        hanjaMap.put("権限", "권한");
+        hanjaMap.put("使用者", "사용자");
+        hanjaMap.put("利用者", "이용자");
+        hanjaMap.put("画面", "화면");
+        hanjaMap.put("情報", "정보");
+        hanjaMap.put("内容", "내용");
+        hanjaMap.put("項目", "항목");
+        hanjaMap.put("条件", "조건");
+        hanjaMap.put("結果", "결과");
+        hanjaMap.put("処理", "처리");
+        hanjaMap.put("作成", "작성");
+        hanjaMap.put("生成", "생성");
+        hanjaMap.put("分析", "분석");
+        hanjaMap.put("統計", "통계");
+        hanjaMap.put("報告", "보고");
+        hanjaMap.put("履歴", "이력");
+        hanjaMap.put("記録", "기록");
+        hanjaMap.put("日付", "날짜");
+        hanjaMap.put("時間", "시간");
+        hanjaMap.put("期間", "기간");
+        hanjaMap.put("数量", "수량");
+        hanjaMap.put("金額", "금액");
+        hanjaMap.put("価格", "가격");
+        hanjaMap.put("合計", "합계");
+        hanjaMap.put("小計", "소계");
+        hanjaMap.put("総計", "총계");
+        
+        String result = text;
+        for (Map.Entry<String, String> entry : hanjaMap.entrySet()) {
+            result = result.replace(entry.getKey(), entry.getValue());
+        }
+        
+        return result;
     }
     
     private String extractParentHint(String userMessage, List<ProjectNode> existingNodes) {
