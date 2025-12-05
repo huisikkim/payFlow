@@ -129,6 +129,9 @@
         .ia-page-features-title { font-size: 11px; color: #64748b; margin-bottom: 8px; }
         .ia-feature-item { font-size: 12px; padding: 6px 0; border-bottom: 1px solid #334155; color: #e2e8f0; }
         .ia-feature-item:last-child { border-bottom: none; }
+        
+        /* IA SVG 트리 스타일 */
+        .ia-node-item { min-width: 280px; }
     </style>
 </head>
 <body>
@@ -463,25 +466,11 @@
             );
         }
 
-        // IA 뷰 - CSS 기반 세로 트리 (재귀적으로 모든 노드 표시)
+        // IA 뷰 - SVG 기반 세로 트리
         function IAView({ treeData, projectName, onPRDClick }) {
             if (!treeData || treeData.length === 0) {
                 return <div className="empty-state"><h3>기능을 추가해보세요</h3><p>채팅창에서 기능을 요청해보세요</p></div>;
             }
-            
-            // 모든 노드를 평탄화하여 수집 (재귀)
-            const collectAllNodes = (nodes, depth = 0) => {
-                let result = [];
-                nodes.forEach(node => {
-                    result.push({ ...node, depth, features: node.children || [] });
-                    if (node.children && node.children.length > 0) {
-                        result = result.concat(collectAllNodes(node.children, depth + 1));
-                    }
-                });
-                return result;
-            };
-            
-            const allNodes = collectAllNodes(treeData);
             
             return (
                 <div className="ia-tree">
@@ -494,15 +483,74 @@
                         </div>
                     </div>
                     
-                    {/* 세로 연결선 */}
-                    <div className="ia-vline"></div>
+                    {/* 1단계 노드들 - SVG 연결선 포함 */}
+                    <IANodeBranch nodes={treeData} depth={1} />
+                </div>
+            );
+        }
+        
+        // SVG 기반 IA 브랜치 컴포넌트
+        function IANodeBranch({ nodes, depth }) {
+            const containerRef = useRef(null);
+            const [nodePositions, setNodePositions] = useState([]);
+            
+            useEffect(() => {
+                if (containerRef.current) {
+                    const nodeElements = containerRef.current.querySelectorAll(':scope > .ia-node-item');
+                    const positions = Array.from(nodeElements).map(el => {
+                        const rect = el.getBoundingClientRect();
+                        const containerRect = containerRef.current.getBoundingClientRect();
+                        return {
+                            left: rect.left - containerRect.left,
+                            width: rect.width,
+                            center: rect.left - containerRect.left + rect.width / 2
+                        };
+                    });
+                    setNodePositions(positions);
+                }
+            }, [nodes]);
+            
+            if (!nodes || nodes.length === 0) return null;
+            
+            const totalWidth = nodePositions.length > 0 
+                ? nodePositions[nodePositions.length - 1].left + nodePositions[nodePositions.length - 1].width
+                : nodes.length * 300;
+            
+            const firstCenter = nodePositions[0]?.center || 140;
+            const lastCenter = nodePositions[nodePositions.length - 1]?.center || totalWidth - 140;
+            const midX = totalWidth / 2;
+            
+            return (
+                <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+                    {/* 연결선 SVG - 세로 */}
+                    <svg width={totalWidth} height="50" style={{flexShrink: 0, minWidth: totalWidth}}>
+                        {/* 위에서 내려오는 세로선 */}
+                        <line x1={midX} y1="0" x2={midX} y2="25" stroke="#475569" strokeWidth="2"/>
+                        
+                        {nodes.length > 1 && nodePositions.length > 1 ? (
+                            <>
+                                {/* 가로선 */}
+                                <line x1={firstCenter} y1="25" x2={lastCenter} y2="25" stroke="#475569" strokeWidth="2"/>
+                                {/* 각 노드로 내려가는 세로선 */}
+                                {nodePositions.map((pos, idx) => (
+                                    <line key={idx} x1={pos.center} y1="25" x2={pos.center} y2="50" stroke="#475569" strokeWidth="2"/>
+                                ))}
+                            </>
+                        ) : (
+                            <line x1={midX} y1="25" x2={midX} y2="50" stroke="#475569" strokeWidth="2"/>
+                        )}
+                    </svg>
                     
-                    {/* 가로 분기 + 카드들 */}
-                    <div className="ia-branch">
-                        {allNodes.map((page, idx) => (
-                            <div key={page.id} className="ia-branch-item">
-                                <div className="ia-branch-vline"></div>
-                                <IAPageCard page={page} />
+                    {/* 노드들 - 가로 배치 */}
+                    <div ref={containerRef} style={{display: 'flex', gap: '24px', justifyContent: 'center'}}>
+                        {nodes.map((node) => (
+                            <div key={node.id} className="ia-node-item" style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+                                <IAPageCard page={node} depth={depth} />
+                                
+                                {/* 자식 노드가 있으면 재귀 */}
+                                {node.children && node.children.length > 0 && (
+                                    <IANodeBranch nodes={node.children} depth={depth + 1} />
+                                )}
                             </div>
                         ))}
                     </div>
@@ -510,9 +558,9 @@
             );
         }
         
-        function IAPageCard({ page }) {
+        function IAPageCard({ page, depth }) {
             const pageId = `P-${page.id.toString().padStart(4, '0')}`;
-            const depthLabel = page.depth === 0 ? '1d' : `${page.depth + 1}d`;
+            const depthLabel = `${depth}d`;
             
             return (
                 <div className="ia-page-card">
@@ -528,12 +576,12 @@
                         </div>
                     )}
                     
-                    {page.features && page.features.length > 0 && (
+                    {page.children && page.children.length > 0 && (
                         <div className="ia-page-features">
-                            <div className="ia-page-features-title">{page.title} 하위 기능</div>
-                            {page.features.map(feature => (
-                                <div key={feature.id} className="ia-feature-item">
-                                    {feature.title}
+                            <div className="ia-page-features-title">하위 {page.children.length}개</div>
+                            {page.children.map(child => (
+                                <div key={child.id} className="ia-feature-item">
+                                    {child.title}
                                 </div>
                             ))}
                         </div>
