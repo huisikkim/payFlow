@@ -140,6 +140,10 @@ function renderVideos(videos, showRank = true) {
                     <span class="value">${formatNumber(video.commentCount)}</span>
                 </div>
                 ${renderContactInfo(video)}
+                <button class="btn-analyze-video" onclick="event.stopPropagation(); analyzeVideoFromList('${video.videoId}')" title="이 영상 분석하기">
+                    <span class="material-symbols-outlined">analytics</span>
+                    <span>영상 분석</span>
+                </button>
             </div>
         `;
         
@@ -251,4 +255,12 @@ function addToFavorites(video) {
     } else {
         alert('즐겨찾기 기능을 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
     }
+}
+
+/**
+ * 영상 분석 페이지로 이동
+ */
+function analyzeVideoFromList(videoId) {
+    // 영상 분석 페이지로 이동하면서 videoId를 URL 파라미터로 전달
+    window.location.href = `/youtube/analysis?videoId=${videoId}`;
 }

@@ -338,4 +338,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+    
+    // URL 파라미터에서 videoId 확인하고 자동 분석
+    const urlParams = new URLSearchParams(window.location.search);
+    const videoId = urlParams.get('videoId');
+    if (videoId) {
+        // 입력 필드에 videoId 설정
+        urlInput.value = videoId;
+        // 자동으로 분석 시작
+        analyzeVideo();
+    }
 });
