@@ -12,7 +12,7 @@
 </head>
 <body>
     <!-- 헤더 -->
-    <div th:replace="~{youtube/fragments/youtube-header :: header}"></div>
+    <div th:replace="~{youtube/fragments/youtube-header :: header('trends')}"></div>
 
     <div class="container">
         <!-- 트렌드 섹션 -->
@@ -40,19 +40,6 @@
     <script>
         // 페이지 로드 시 트렌드 자동 로드
         document.addEventListener('DOMContentLoaded', () => {
-            // 헤더 네비게이션 활성화 상태 설정
-            const navButtons = document.querySelectorAll('.nav-btn');
-            navButtons.forEach(btn => {
-                btn.classList.remove('active');
-            });
-            
-            // 구글 트렌드 링크 활성화
-            const trendsLink = document.querySelector('a[href="/youtube/trends"]');
-            if (trendsLink) {
-                trendsLink.classList.add('active');
-            }
-            
-            // 트렌드 로드
             loadGoogleTrendsPage();
         });
     </script>

@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
     <!-- YouTube 헤더 Fragment -->
-    <header th:fragment="header" class="youtube-header">
+    <header th:fragment="header(activePage)" class="youtube-header">
         <div class="header-content">
             <a href="/youtube/popular" class="logo">
                 <span class="youtube-icon">
@@ -15,7 +15,7 @@
             </a>
             
             <nav class="header-nav">
-                <a href="/youtube/popular?view=videos" class="nav-btn active" data-view="videos" onclick="if (typeof switchView === 'function') switchView('videos', event)">
+                <a href="/youtube/popular?view=videos" class="nav-btn" th:classappend="${activePage == 'popular'} ? 'active' : ''" data-view="videos" onclick="if (typeof switchView === 'function') switchView('videos', event)">
                     <span class="material-symbols-outlined">play_circle</span>
                     영상
                 </a>
@@ -23,11 +23,11 @@
                     <span class="material-symbols-outlined">subscriptions</span>
                     채널영상
                 </a>
-                <a href="/youtube/trends" class="nav-btn nav-link">
+                <a href="/youtube/trends" class="nav-btn nav-link" th:classappend="${activePage == 'trends'} ? 'active' : ''">
                     <span class="material-symbols-outlined">trending_up</span>
                     구글 트렌드
                 </a>
-                <a href="/youtube/analysis" class="nav-btn nav-link">
+                <a href="/youtube/analysis" class="nav-btn nav-link" th:classappend="${activePage == 'analysis'} ? 'active' : ''">
                     <span class="material-symbols-outlined">analytics</span>
                     영상 분석
                 </a>
