@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>CSS 로딩 테스트</title>
+    <link rel="stylesheet" href="http://localhost:8080/css/youtube/youtube-header.css">
+    <link rel="stylesheet" href="http://localhost:8080/css/youtube/youtube-analysis.css">
+</head>
+<body>
+    <h1>CSS 로딩 테스트</h1>
+    
+    <div class="youtube-header">
+        <div class="header-content">
+            <a href="#" class="logo">YouTube 트렌드</a>
+            <nav class="header-nav">
+                <a href="#" class="nav-btn active">영상</a>
+                <a href="#" class="nav-btn">채널영상</a>
+                <a href="#" class="nav-btn nav-link">영상 분석</a>
+            </nav>
+        </div>
+    </div>
+    
+    <div class="analysis-container">
+        <div class="input-section">
+            <h1>🎯 YouTube 영상 분석</h1>
+            <p class="subtitle">CSS가 제대로 적용되었는지 확인</p>
+        </div>
+    </div>
+    
+    <script>
+        console.log('페이지 로드 완료');
+        
+        // CSS 로딩 확인
+        const header = document.querySelector('.youtube-header');
+        const styles = window.getComputedStyle(header);
+        console.log('헤더 배경색:', styles.backgroundColor);
+        console.log('헤더 패딩:', styles.padding);
+        
+        if (styles.backgroundColor === 'rgb(17, 24, 39)') {
+            console.log('✅ CSS가 정상적으로 로드되었습니다!');
+        } else {
+            console.log('❌ CSS가 로드되지 않았습니다.');
+        }
+    </script>
+</body>
+</html>
