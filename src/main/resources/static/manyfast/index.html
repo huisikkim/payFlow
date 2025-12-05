@@ -19,12 +19,29 @@
         .new-project-btn { width: 100%; margin-top: 8px; padding: 8px; background: transparent; border: 1px dashed #475569; border-radius: 6px; color: #64748b; cursor: pointer; }
         .new-project-btn:hover { border-color: #3b82f6; color: #3b82f6; }
         .chat-messages { flex: 1; overflow-y: auto; padding: 12px; }
-        .message { margin-bottom: 12px; }
+        .message { margin-bottom: 16px; }
         .message.user { text-align: right; }
-        .message-bubble { display: inline-block; max-width: 90%; padding: 8px 12px; border-radius: 10px; font-size: 13px; line-height: 1.5; }
-        .message.user .message-bubble { background: #3b82f6; }
-        .message.ai .message-bubble { background: #334155; }
+        .message-bubble { display: inline-block; max-width: 90%; padding: 10px 14px; border-radius: 12px; font-size: 13px; line-height: 1.5; }
+        .message.user .message-bubble { background: #3b82f6; border-radius: 12px 12px 4px 12px; }
+        .message.ai .message-bubble { background: transparent; padding: 0; max-width: 100%; }
         .typing { color: #64748b; font-size: 12px; padding: 8px; }
+        
+        /* AI 응답 카드 스타일 */
+        .ai-response { background: #1e293b; border-radius: 12px; overflow: hidden; }
+        .ai-response-header { padding: 12px 14px; border-bottom: 1px solid #334155; display: flex; align-items: center; gap: 8px; }
+        .ai-response-header .icon { width: 20px; height: 20px; background: linear-gradient(135deg, #8b5cf6, #3b82f6); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; }
+        .ai-response-header .title { font-weight: 600; font-size: 13px; }
+        .ai-response-body { padding: 12px 14px; }
+        .ai-step { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid #334155; }
+        .ai-step:last-child { border-bottom: none; }
+        .ai-step-icon { width: 20px; height: 20px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; margin-top: 2px; }
+        .ai-step-icon.thinking { background: #334155; color: #94a3b8; }
+        .ai-step-icon.done { background: #065f46; color: #34d399; }
+        .ai-step-icon.feature { background: #3f1e5f; color: #a78bfa; }
+        .ai-step-content { flex: 1; }
+        .ai-step-title { font-size: 13px; font-weight: 500; margin-bottom: 2px; }
+        .ai-step-desc { font-size: 11px; color: #94a3b8; }
+        .ai-summary { background: #0f172a; padding: 10px 12px; border-radius: 8px; margin-top: 8px; font-size: 12px; color: #94a3b8; line-height: 1.5; }
         .chat-input-area { padding: 12px; border-top: 1px solid #334155; }
         .chat-input { width: 100%; padding: 10px; background: #334155; border: none; border-radius: 6px; color: white; resize: none; font-size: 13px; }
         .chat-input:focus { outline: 1px solid #3b82f6; }
@@ -177,10 +194,26 @@
                         <div className="chat-messages">
                             {messages.map((msg, i) => (
                                 <div key={i} className={`message ${msg.type}`}>
-                                    <div className="message-bubble">{msg.text}</div>
+                                    {msg.type === 'user' ? (
+                                        <div className="message-bubble">{msg.text}</div>
+                                    ) : (
+                                        <AIResponseCard text={msg.text} />
+                                    )}
                                 </div>
                             ))}
-                            {isTyping && <div className="typing">생각 중...</div>}
+                            {isTyping && (
+                                <div className="ai-response" style={{margin: '8px 0'}}>
+                                    <div className="ai-response-body">
+                                        <div className="ai-step">
+                                            <div className="ai-step-icon thinking">⏳</div>
+                                            <div className="ai-step-content">
+                                                <div className="ai-step-title">생각함</div>
+                                                <div className="ai-step-desc">기능을 분석하고 있습니다...</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                             <div ref={messagesEndRef} />
                         </div>
                         <div className="chat-input-area">
@@ -306,6 +339,94 @@
                             </div>
                         ))}
                     </div>
+                </div>
+            );
+        }
+
+        // AI 응답을 파싱해서 카드로 표시
+        function AIResponseCard({ text }) {
+            const parseResponse = (text) => {
+                const steps = [];
+                const lines = text.split('\n');
+                
+                // "N개의 기능이 추가되었습니다" 패턴 찾기
+                const countMatch = text.match(/(\d+)개의 기능이 추가/);
+                if (countMatch) {
+                    steps.push({ type: 'done', title: 'Feature completed', desc: `${countMatch[1]}개의 기능이 추가되었습니다` });
+                }
+                
+                // [NODE] 블록 파싱
+                const nodeMatches = text.matchAll(/\[NODE\]([\s\S]*?)\[\/NODE\]/gi);
+                for (const match of nodeMatches) {
+                    const block = match[1];
+                    const titleMatch = block.match(/title:\s*(.+)/i);
+                    const typeMatch = block.match(/type:\s*(.+)/i);
+                    const descMatch = block.match(/description:\s*(.+)/i);
+                    
+                    if (titleMatch) {
+                        steps.push({
+                            type: 'feature',
+                            title: titleMatch[1].trim(),
+                            desc: typeMatch ? typeMatch[1].trim() : 'FEATURE',
+                            fullDesc: descMatch ? descMatch[1].trim() : ''
+                        });
+                    }
+                }
+                
+                // [FEATURE], [TASK] 등 패턴
+                const altMatches = text.matchAll(/\[(FEATURE|TASK|REQUIREMENT)\]\s*([^\n]+)/gi);
+                for (const match of altMatches) {
+                    steps.push({
+                        type: 'feature',
+                        title: match[2].trim().replace(/^title:\s*/i, ''),
+                        desc: match[1]
+                    });
+                }
+                
+                // 나머지 설명 텍스트 추출
+                let summary = text
+                    .replace(/\[NODE\][\s\S]*?\[\/NODE\]/gi, '')
+                    .replace(/\[(FEATURE|TASK|REQUIREMENT)\][^\n]*/gi, '')
+                    .replace(/\d+개의 기능이 추가되었습니다\.?/g, '')
+                    .replace(/title:.*\n?/gi, '')
+                    .replace(/type:.*\n?/gi, '')
+                    .replace(/description:.*\n?/gi, '')
+                    .replace(/parent:.*\n?/gi, '')
+                    .trim();
+                
+                // 여러 줄 공백 정리
+                summary = summary.replace(/\n{3,}/g, '\n\n').trim();
+                
+                return { steps, summary };
+            };
+            
+            const { steps, summary } = parseResponse(text);
+            
+            // 파싱된 내용이 없으면 기본 텍스트로 표시
+            if (steps.length === 0 && !summary) {
+                return <div className="ai-response"><div className="ai-response-body" style={{fontSize: '13px'}}>{text}</div></div>;
+            }
+            
+            return (
+                <div className="ai-response">
+                    {steps.length > 0 && (
+                        <div className="ai-response-body">
+                            {steps.map((step, idx) => (
+                                <div key={idx} className="ai-step">
+                                    <div className={`ai-step-icon ${step.type}`}>
+                                        {step.type === 'done' ? '✓' : step.type === 'feature' ? '◆' : '○'}
+                                    </div>
+                                    <div className="ai-step-content">
+                                        <div className="ai-step-title">{step.title}</div>
+                                        <div className="ai-step-desc">{step.desc}</div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                    {summary && summary.length > 10 && (
+                        <div className="ai-summary">{summary.substring(0, 200)}{summary.length > 200 ? '...' : ''}</div>
+                    )}
                 </div>
             );
         }
