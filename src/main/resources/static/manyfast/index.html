@@ -325,6 +325,51 @@
         
         /* IA SVG 트리 스타일 */
         .ia-node-item { min-width: 280px; }
+        
+        /* Directory 뷰 스타일 */
+        .directory-view { display: flex; height: 100%; background: #1a1a1a; }
+        .directory-sidebar { width: 420px; background: #222; border-right: 1px solid #333; display: flex; flex-direction: column; }
+        .directory-tabs { display: flex; border-bottom: 1px solid #333; background: #1a1a1a; }
+        .directory-tab { flex: 1; padding: 12px 16px; background: transparent; border: none; color: #888; cursor: pointer; font-size: 12px; font-weight: 500; border-bottom: 2px solid transparent; transition: all 0.2s; }
+        .directory-tab:hover { color: #ccc; background: rgba(255,255,255,0.03); }
+        .directory-tab.active { color: #e8e8e8; border-bottom-color: #8b5cf6; background: rgba(139, 92, 246, 0.05); }
+        .directory-tree { flex: 1; overflow-y: auto; padding: 12px; }
+        .directory-tree::-webkit-scrollbar { width: 6px; }
+        .directory-tree::-webkit-scrollbar-track { background: transparent; }
+        .directory-tree::-webkit-scrollbar-thumb { background: #3a3a3a; border-radius: 3px; }
+        .tree-item { margin-bottom: 4px; }
+        .tree-item-header { display: flex; align-items: center; padding: 8px 10px; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+        .tree-item-header:hover { background: rgba(255,255,255,0.05); }
+        .tree-item-header.selected { background: rgba(139, 92, 246, 0.15); border-left: 2px solid #8b5cf6; }
+        .tree-item-icon { width: 16px; height: 16px; margin-right: 8px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #666; }
+        .tree-item-expand { width: 16px; height: 16px; margin-right: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #666; cursor: pointer; }
+        .tree-item-expand:hover { color: #aaa; }
+        .tree-item-title { flex: 1; font-size: 13px; color: #ccc; }
+        .tree-item-count { font-size: 11px; color: #666; background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px; }
+        .tree-item-children { margin-left: 20px; }
+        .directory-detail { flex: 1; padding: 24px; overflow-y: auto; }
+        .directory-detail::-webkit-scrollbar { width: 6px; }
+        .directory-detail::-webkit-scrollbar-track { background: transparent; }
+        .directory-detail::-webkit-scrollbar-thumb { background: #3a3a3a; border-radius: 3px; }
+        .detail-header { margin-bottom: 24px; }
+        .detail-breadcrumb { font-size: 12px; color: #666; margin-bottom: 12px; }
+        .detail-title { font-size: 20px; font-weight: 600; color: #e8e8e8; margin-bottom: 16px; }
+        .detail-section { margin-bottom: 24px; }
+        .detail-section-title { font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; font-weight: 600; }
+        .detail-field { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+        .detail-field-label { font-size: 12px; color: #888; min-width: 100px; }
+        .detail-field-value { font-size: 13px; color: #ccc; }
+        .detail-status { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 500; }
+        .detail-status.todo { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+        .detail-importance { display: flex; align-items: center; gap: 4px; }
+        .detail-importance-bar { width: 60px; height: 4px; background: #333; border-radius: 2px; overflow: hidden; }
+        .detail-importance-fill { height: 100%; background: #8b5cf6; }
+        .detail-description { font-size: 13px; color: #aaa; line-height: 1.6; }
+        .detail-spec-list { list-style: none; }
+        .detail-spec-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: rgba(255,255,255,0.03); border-radius: 6px; margin-bottom: 8px; }
+        .detail-spec-item:hover { background: rgba(255,255,255,0.05); }
+        .detail-spec-name { font-size: 13px; color: #ccc; }
+        .detail-spec-id { font-size: 11px; color: #666; }
     </style>
 </head>
 <body>
@@ -468,7 +513,7 @@
                             {activeTab === 'PRD' && <PRDView content={prdContent} onGenerate={generatePRD} />}
                             {activeTab === 'IA' && <IAView treeData={treeData} projectName={currentProject?.name} onPRDClick={() => setShowPRD(true)} />}
                             {activeTab === 'Tree' && <TreeView treeData={treeData} />}
-                            {activeTab === 'Directory' && <div className="empty-state"><h3>Directory 뷰 준비 중</h3></div>}
+                            {activeTab === 'Directory' && <DirectoryView treeData={treeData} projectName={currentProject?.name} />}
                         </div>
                     </div>
                     {showNewProject && <NewProjectModal onClose={() => setShowNewProject(false)} onCreate={createProject} />}
@@ -898,6 +943,172 @@
             );
         }
 
+        // Directory 뷰 - manyfast.io 스타일
+        function DirectoryView({ treeData, projectName }) {
+            const [activeTab, setActiveTab] = useState('requirement');
+            const [selectedNode, setSelectedNode] = useState(null);
+            const [expandedNodes, setExpandedNodes] = useState(new Set());
+            
+            if (!treeData || treeData.length === 0) {
+                return <div className="empty-state"><h3>기능을 추가해보세요</h3></div>;
+            }
+            
+            const toggleExpand = (nodeId) => {
+                const newExpanded = new Set(expandedNodes);
+                if (newExpanded.has(nodeId)) {
+                    newExpanded.delete(nodeId);
+                } else {
+                    newExpanded.add(nodeId);
+                }
+                setExpandedNodes(newExpanded);
+            };
+            
+            const countChildren = (node) => {
+                if (!node.children || node.children.length === 0) return 0;
+                return node.children.length + node.children.reduce((sum, child) => sum + countChildren(child), 0);
+            };
+            
+            const renderTreeItem = (node, level = 0) => {
+                const hasChildren = node.children && node.children.length > 0;
+                const isExpanded = expandedNodes.has(node.id);
+                const isSelected = selectedNode?.id === node.id;
+                const childCount = countChildren(node);
+                
+                return (
+                    <div key={node.id} className="tree-item">
+                        <div 
+                            className={`tree-item-header ${isSelected ? 'selected' : ''}`}
+                            onClick={() => setSelectedNode(node)}
+                        >
+                            {hasChildren ? (
+                                <div className="tree-item-expand" onClick={(e) => { e.stopPropagation(); toggleExpand(node.id); }}>
+                                    {isExpanded ? '▼' : '▶'}
+                                </div>
+                            ) : (
+                                <div className="tree-item-expand"></div>
+                            )}
+                            <div className="tree-item-icon">📄</div>
+                            <div className="tree-item-title">{node.title}</div>
+                            {childCount > 0 && <div className="tree-item-count">{childCount}</div>}
+                        </div>
+                        {hasChildren && isExpanded && (
+                            <div className="tree-item-children">
+                                {node.children.map(child => renderTreeItem(child, level + 1))}
+                            </div>
+                        )}
+                    </div>
+                );
+            };
+            
+            const filterByType = (nodes, type) => {
+                if (type === 'requirement') {
+                    return nodes.filter(n => n.nodeType === 'REQUIREMENT' || n.nodeType === 'FEATURE');
+                } else {
+                    return nodes.filter(n => n.nodeType === 'FEATURE' || n.nodeType === 'TASK');
+                }
+            };
+            
+            const filteredData = filterByType(treeData, activeTab);
+            
+            return (
+                <div className="directory-view">
+                    <div className="directory-sidebar">
+                        <div className="directory-tabs">
+                            <button 
+                                className={`directory-tab ${activeTab === 'requirement' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('requirement')}
+                            >
+                                Requirement
+                            </button>
+                            <button 
+                                className={`directory-tab ${activeTab === 'feature' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('feature')}
+                            >
+                                Feature / Specification
+                            </button>
+                        </div>
+                        <div className="directory-tree">
+                            {filteredData.map(node => renderTreeItem(node))}
+                        </div>
+                    </div>
+                    
+                    <div className="directory-detail">
+                        {selectedNode ? (
+                            <DirectoryDetail node={selectedNode} projectName={projectName} />
+                        ) : (
+                            <div className="empty-state">
+                                <h3>항목을 선택하세요</h3>
+                                <p>왼쪽에서 항목을 클릭하면 상세 정보가 표시됩니다</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+        
+        function DirectoryDetail({ node, projectName }) {
+            const generateId = (title) => {
+                const prefix = node.nodeType === 'FEATURE' ? 'F' : 'R';
+                const hash = title.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+                return `${prefix}-${hash.toString(16).toUpperCase().substring(0, 6)}`;
+            };
+            
+            return (
+                <div>
+                    <div className="detail-header">
+                        <div className="detail-breadcrumb">
+                            {projectName} / {node.nodeType === 'FEATURE' ? '메뉴 선택' : node.title}
+                        </div>
+                        <div className="detail-title">{node.title}</div>
+                    </div>
+                    
+                    <div className="detail-section">
+                        <div className="detail-field">
+                            <div className="detail-field-label">ID</div>
+                            <div className="detail-field-value">{generateId(node.title)}</div>
+                        </div>
+                        <div className="detail-field">
+                            <div className="detail-field-label">Status</div>
+                            <div className="detail-field-value">
+                                <span className="detail-status todo">● To Do</span>
+                            </div>
+                        </div>
+                        <div className="detail-field">
+                            <div className="detail-field-label">Importance</div>
+                            <div className="detail-field-value">
+                                <div className="detail-importance">
+                                    <div className="detail-importance-bar">
+                                        <div className="detail-importance-fill" style={{width: '70%'}}></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {node.description && (
+                        <div className="detail-section">
+                            <div className="detail-section-title">Description</div>
+                            <div className="detail-description">{node.description}</div>
+                        </div>
+                    )}
+                    
+                    {node.children && node.children.length > 0 && (
+                        <div className="detail-section">
+                            <div className="detail-section-title">Specification</div>
+                            <ul className="detail-spec-list">
+                                {node.children.map(child => (
+                                    <li key={child.id} className="detail-spec-item">
+                                        <span className="detail-spec-name">{child.title}</span>
+                                        <span className="detail-spec-id">{generateId(child.title)}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+        
         function PRDView({ content, onGenerate }) {
             return (
                 <div style={{padding: '20px', maxWidth: '800px'}}>
