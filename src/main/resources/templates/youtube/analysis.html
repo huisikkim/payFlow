@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube 영상 분석 - AI 기반 수익/조회수/경쟁 분석</title>
+    
+    <!-- Google Material Symbols -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    
+    <!-- CSS -->
+    <link rel="stylesheet" th:href="@{/css/youtube/youtube-common.css}">
+    <link rel="stylesheet" th:href="@{/css/youtube/youtube-analysis.css}">
+</head>
+<body>
+    <!-- 헤더 -->
+    <div th:replace="~{youtube/fragments/youtube-header :: header}"></div>
+    
+    <div class="analysis-container">
+        <!-- 입력 섹션 -->
+        <div class="input-section">
+            <h1>🎯 YouTube 영상 분석</h1>
+            <p class="subtitle">영상 URL을 입력하면 AI가 수익, 조회수, 경쟁도를 자동으로 분석합니다</p>
+            
+            <div class="input-box">
+                <input 
+                    type="text" 
+                    id="videoUrl" 
+                    placeholder="YouTube URL 또는 Video ID를 입력하세요 (예: https://youtube.com/watch?v=xxx)"
+                    class="url-input"
+                >
+                <button onclick="analyzeVideo()" class="btn-analyze">
+                    <span class="material-symbols-outlined">analytics</span>
+                    분석 시작
+                </button>
+            </div>
+            
+            <div class="example-urls">
+                <p>예시:</p>
+                <button onclick="setExampleUrl('https://www.youtube.com/watch?v=dQw4w9WgXcQ')" class="btn-example">
+                    예시 URL 1
+                </button>
+                <button onclick="setExampleUrl('dQw4w9WgXcQ')" class="btn-example">
+                    예시 Video ID
+                </button>
+            </div>
+        </div>
+        
+        <!-- 로딩 -->
+        <div id="loading" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>영상을 분석하고 있습니다...</p>
+            <p class="loading-detail">조회수 예측, 경쟁도 분석, 수익 계산 중</p>
+        </div>
+        
+        <!-- 에러 메시지 -->
+        <div id="error" class="error-message" style="display: none;">
+            <span class="material-symbols-outlined">error</span>
+            <p id="errorText"></p>
+        </div>
+        
+        <!-- 분석 결과 -->
+        <div id="reportSection" class="report-section" style="display: none;">
+            <!-- 영상 정보 -->
+            <div class="video-info-card">
+                <img id="thumbnail" src="" alt="Thumbnail" class="video-thumbnail">
+                <div class="video-details">
+                    <h2 id="videoTitle"></h2>
+                    <p class="channel-name">
+                        <span class="material-symbols-outlined">account_circle</span>
+                        <span id="channelName"></span>
+                        <span id="subscriberCount" class="subscriber-badge"></span>
+                    </p>
+                    <p class="publish-date" id="publishDate"></p>
+                </div>
+            </div>
+            
+            <!-- 종합 점수 -->
+            <div class="overall-score-card">
+                <div class="score-circle">
+                    <div class="score-value" id="overallScore">0</div>
+                    <div class="score-label">종합 점수</div>
+                </div>
+                <div class="grade-badge" id="gradeBadge">-</div>
+                <div class="score-description" id="scoreDescription"></div>
+            </div>
+            
+            <!-- 핵심 지표 -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <span class="material-symbols-outlined">visibility</span>
+                    <h3>현재 조회수</h3>
+                    <p class="metric-value" id="currentViews">0</p>
+                    <p class="metric-sub">일평균: <span id="dailyGrowth">0</span></p>
+                </div>
+                
+                <div class="metric-card highlight">
+                    <span class="material-symbols-outlined">trending_up</span>
+                    <h3>예측 조회수</h3>
+                    <p class="metric-value" id="predictedViews">0</p>
+                    <p class="metric-sub growth">+<span id="predictedGrowth">0</span> 증가 예상</p>
+                </div>
+                
+                <div class="metric-card">
+                    <span class="material-symbols-outlined">payments</span>
+                    <h3>현재 예상 수익</h3>
+                    <p class="metric-value" id="currentRevenue">₩0</p>
+                    <p class="metric-sub" id="revenueRange">₩0 ~ ₩0</p>
+                </div>
+                
+                <div class="metric-card highlight">
+                    <span class="material-symbols-outlined">account_balance_wallet</span>
+                    <h3>미래 예상 수익</h3>
+                    <p class="metric-value" id="predictedRevenue">₩0</p>
+                    <p class="metric-sub">30일 후 예상</p>
+                </div>
+            </div>
+            
+            <!-- 상세 분석 탭 -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('competition')">경쟁 분석</button>
+                <button class="tab-btn" onclick="switchTab('engagement')">참여율 분석</button>
+                <button class="tab-btn" onclick="switchTab('recommendations')">추천 사항</button>
+                <button class="tab-btn" onclick="switchTab('contact')">채널 연락처</button>
+            </div>
+            
+            <!-- 경쟁 분석 탭 -->
+            <div id="competitionTab" class="tab-content active">
+                <h3>🔥 경쟁도 분석</h3>
+                <div class="competition-score">
+                    <div class="score-bar">
+                        <div class="score-fill" id="competitionBar" style="width: 0%"></div>
+                    </div>
+                    <p class="score-text">
+                        경쟁도: <strong id="competitionScore">0</strong>/100 
+                        (<span id="competitionLevel">-</span>)
+                    </p>
+                </div>
+                <div class="competition-details">
+                    <p>📊 최근 30일 경쟁 영상: <strong id="recentCompetitors">0</strong>개</p>
+                    <p>👁️ 경쟁 영상 평균 조회수: <strong id="avgCompetitorViews">0</strong></p>
+                    <p class="recommendation-text" id="competitionRecommendation"></p>
+                </div>
+            </div>
+            
+            <!-- 참여율 분석 탭 -->
+            <div id="engagementTab" class="tab-content">
+                <h3>💬 참여율 분석</h3>
+                <div class="engagement-stats">
+                    <div class="stat-item">
+                        <span class="material-symbols-outlined">thumb_up</span>
+                        <p>좋아요</p>
+                        <p class="stat-value" id="likeCount">0</p>
+                    </div>
+                    <div class="stat-item">
+                        <span class="material-symbols-outlined">comment</span>
+                        <p>댓글</p>
+                        <p class="stat-value" id="commentCount">0</p>
+                    </div>
+                    <div class="stat-item">
+                        <span class="material-symbols-outlined">percent</span>
+                        <p>참여율</p>
+                        <p class="stat-value" id="engagementRate">0%</p>
+                    </div>
+                </div>
+                <div class="engagement-bar">
+                    <div class="bar-fill" id="engagementBar" style="width: 0%"></div>
+                </div>
+                <p class="engagement-description" id="engagementDescription"></p>
+            </div>
+            
+            <!-- 추천 사항 탭 -->
+            <div id="recommendationsTab" class="tab-content">
+                <h3>💡 추천 사항</h3>
+                <div id="recommendationsList" class="recommendations-list"></div>
+                
+                <h4>📝 제목 개선 제안</h4>
+                <div id="titleRecommendations" class="title-recommendations"></div>
+                
+                <h4>🏷️ 추출된 키워드</h4>
+                <div id="keywords" class="keywords"></div>
+            </div>
+            
+            <!-- 채널 연락처 탭 -->
+            <div id="contactTab" class="tab-content">
+                <h3>📧 채널 연락처</h3>
+                <div id="contactInfo" class="contact-info">
+                    <p class="no-contact">연락처 정보가 없습니다.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- JavaScript -->
+    <script th:src="@{/js/youtube/youtube-auth.js}"></script>
+    <script th:src="@{/js/youtube/youtube-analysis.js}"></script>
+</body>
+</html>

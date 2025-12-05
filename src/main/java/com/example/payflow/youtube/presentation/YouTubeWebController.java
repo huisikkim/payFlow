@@ -39,4 +39,12 @@ public class YouTubeWebController {
     public String trendsPage() {
         return "youtube/trends";
     }
+
+    /**
+     * 영상 분석 페이지
+     */
+    @GetMapping("/analysis")
+    public String analysisPage() {
+        return "youtube/analysis";
+    }
 }
