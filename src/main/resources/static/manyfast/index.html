@@ -12,12 +12,11 @@
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; }
         .app { display: flex; height: 100vh; }
         
-        /* 채팅 패널 */
         .chat-panel { width: 300px; background: #1e293b; display: flex; flex-direction: column; border-right: 1px solid #334155; }
         .chat-header { padding: 16px; border-bottom: 1px solid #334155; }
         .chat-header h2 { font-size: 14px; color: #94a3b8; margin-bottom: 8px; }
         .project-select { width: 100%; padding: 8px 12px; background: #334155; border: none; border-radius: 6px; color: white; font-size: 13px; }
-        .new-project-btn { width: 100%; margin-top: 8px; padding: 8px; background: transparent; border: 1px dashed #475569; border-radius: 6px; color: #64748b; cursor: pointer; font-size: 13px; }
+        .new-project-btn { width: 100%; margin-top: 8px; padding: 8px; background: transparent; border: 1px dashed #475569; border-radius: 6px; color: #64748b; cursor: pointer; }
         .new-project-btn:hover { border-color: #3b82f6; color: #3b82f6; }
         .chat-messages { flex: 1; overflow-y: auto; padding: 12px; }
         .message { margin-bottom: 12px; }
@@ -29,86 +28,58 @@
         .chat-input-area { padding: 12px; border-top: 1px solid #334155; }
         .chat-input { width: 100%; padding: 10px; background: #334155; border: none; border-radius: 6px; color: white; resize: none; font-size: 13px; }
         .chat-input:focus { outline: 1px solid #3b82f6; }
-        .chat-input::placeholder { color: #64748b; }
         
-        /* 메인 영역 */
         .main-area { flex: 1; display: flex; flex-direction: column; }
         .toolbar { padding: 10px 16px; background: #1e293b; border-bottom: 1px solid #334155; display: flex; align-items: center; gap: 8px; }
         .toolbar h1 { font-size: 16px; font-weight: 500; margin-right: 20px; }
-        .tab-btn { padding: 6px 14px; background: transparent; border: 1px solid #334155; border-radius: 6px; color: #94a3b8; cursor: pointer; font-size: 13px; transition: all 0.2s; }
+        .tab-btn { padding: 6px 14px; background: transparent; border: 1px solid #334155; border-radius: 6px; color: #94a3b8; cursor: pointer; font-size: 13px; }
         .tab-btn:hover { border-color: #475569; color: #e2e8f0; }
         .tab-btn.active { background: #334155; border-color: #475569; color: white; }
-        .export-btn { margin-left: auto; padding: 6px 14px; background: #3b82f6; border: none; border-radius: 6px; color: white; cursor: pointer; font-size: 13px; }
-        .export-btn:hover { background: #2563eb; }
+        .export-btn { margin-left: auto; padding: 6px 14px; background: #3b82f6; border: none; border-radius: 6px; color: white; cursor: pointer; }
         
-        /* FS 뷰 - 가로 마인드맵 */
         .fs-container { flex: 1; overflow: auto; padding: 40px; background: #0f172a; }
-        .fs-mindmap { display: flex; align-items: flex-start; min-width: max-content; padding-left: 20px; }
         
-        /* 루트 노드 */
-        .root-node { display: flex; align-items: center; }
-        .root-card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 16px 20px; min-width: 120px; }
-        .root-card h3 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
-        .root-card .prd-link { font-size: 11px; color: #3b82f6; cursor: pointer; }
-        .root-card .prd-link:hover { text-decoration: underline; }
+        /* 마인드맵 레이아웃 */
+        .mindmap { display: flex; align-items: center; gap: 0; }
+        .node-column { display: flex; flex-direction: column; gap: 20px; position: relative; }
         
-        /* 연결선 컨테이너 */
-        .connector-h { width: 60px; height: 2px; background: #334155; position: relative; }
-        .connector-h::after { content: ''; position: absolute; right: -4px; top: -3px; width: 8px; height: 8px; background: #475569; border-radius: 50%; }
+        /* 노드 카드 */
+        .node-card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 14px 18px; min-width: 200px; max-width: 300px; position: relative; }
+        .node-card:hover { border-color: #475569; }
+        .node-card.root { background: linear-gradient(135deg, #1e293b, #334155); }
+        .node-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+        .node-desc { font-size: 11px; color: #94a3b8; line-height: 1.4; margin-bottom: 8px; }
+        .node-meta { display: flex; gap: 6px; flex-wrap: wrap; }
+        .badge { font-size: 10px; padding: 2px 8px; border-radius: 4px; }
+        .badge.todo { background: #1e3a5f; color: #60a5fa; }
+        .badge.admin { background: #3f1e5f; color: #a78bfa; }
+        .prd-link { font-size: 11px; color: #3b82f6; cursor: pointer; }
         
-        /* Feature 컬럼 */
-        .features-column { display: flex; flex-direction: column; gap: 16px; }
-        .feature-row { display: flex; align-items: flex-start; }
-        .feature-connector { width: 30px; display: flex; align-items: center; position: relative; }
-        .feature-connector::before { content: ''; width: 100%; height: 2px; background: #334155; }
-        .v-line { position: absolute; left: 0; width: 2px; background: #334155; }
+        /* 연결선 - 가로 */
+        .h-connector { width: 50px; height: 2px; background: #475569; align-self: center; }
         
-        /* Feature 카드 */
-        .feature-card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 14px 16px; min-width: 280px; max-width: 320px; }
-        .feature-card:hover { border-color: #475569; }
-        .feature-title { font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #f1f5f9; }
-        .feature-desc { font-size: 11px; color: #94a3b8; line-height: 1.5; margin-bottom: 10px; }
-        .feature-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-        .status-badge { font-size: 10px; padding: 2px 8px; border-radius: 4px; background: #334155; color: #94a3b8; }
-        .status-badge.todo { background: #1e3a5f; color: #60a5fa; }
-        .criteria-link { font-size: 10px; color: #8b5cf6; cursor: pointer; }
+        /* 연결선 - 세로 브랜치 */
+        .branch-container { display: flex; align-items: stretch; }
+        .v-branch { width: 50px; position: relative; display: flex; flex-direction: column; justify-content: center; }
+        .v-branch::before { content: ''; position: absolute; left: 0; top: 50%; width: 100%; height: 2px; background: #475569; }
+        .v-branch-line { position: absolute; left: 0; width: 2px; background: #475569; }
         
-        /* Sub-feature 컬럼 */
-        .subfeatures-column { display: flex; flex-direction: column; gap: 12px; margin-left: 40px; }
-        .subfeature-row { display: flex; align-items: flex-start; }
-        .sub-connector { width: 40px; display: flex; align-items: center; }
-        .sub-connector::before { content: ''; width: 100%; height: 2px; background: #334155; }
-        
-        /* Sub-feature 카드 */
-        .subfeature-card { background: #1e293b; border: 1px solid #334155; border-radius: 6px; padding: 10px 14px; min-width: 200px; }
-        .subfeature-card:hover { border-color: #475569; }
-        .subfeature-title { font-size: 12px; font-weight: 500; margin-bottom: 4px; }
-        .subfeature-tags { display: flex; gap: 6px; flex-wrap: wrap; }
-        .tag { font-size: 9px; padding: 2px 6px; border-radius: 3px; background: #334155; }
-        .tag.tester { background: #1e3a5f; color: #60a5fa; }
-        .tag.admin { background: #3f1e5f; color: #a78bfa; }
-        .tag.developer { background: #1e3f3f; color: #5eead4; }
-        
-        /* Task 컬럼 */
-        .tasks-column { display: flex; flex-direction: column; gap: 8px; margin-left: 30px; }
-        .task-row { display: flex; align-items: center; }
-        .task-connector { width: 30px; height: 2px; background: #334155; }
-        .task-card { background: #1e293b; border: 1px solid #334155; border-radius: 4px; padding: 8px 12px; font-size: 11px; min-width: 160px; }
-        .task-card:hover { border-color: #475569; }
+        /* 브랜치 아이템 */
+        .branch-item { display: flex; align-items: center; position: relative; }
+        .branch-connector { width: 50px; height: 2px; background: #475569; }
         
         /* 모달 */
         .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 100; }
         .modal-content { background: #1e293b; padding: 24px; border-radius: 12px; width: 500px; max-height: 80vh; overflow-y: auto; }
-        .modal-content h2 { margin-bottom: 16px; font-size: 18px; }
-        .modal-content input, .modal-content textarea, .modal-content select { width: 100%; padding: 10px; background: #334155; border: 1px solid #475569; border-radius: 6px; color: white; margin-bottom: 12px; font-size: 13px; }
+        .modal-content h2 { margin-bottom: 16px; }
+        .modal-content input, .modal-content textarea { width: 100%; padding: 10px; background: #334155; border: 1px solid #475569; border-radius: 6px; color: white; margin-bottom: 12px; }
         .modal-buttons { display: flex; gap: 8px; margin-top: 8px; }
-        .modal-buttons button { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; }
+        .modal-buttons button { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; }
         .modal-buttons .primary { background: #3b82f6; color: white; }
         .modal-buttons .secondary { background: #334155; color: #e2e8f0; }
-        .prd-content { background: #0f172a; padding: 16px; border-radius: 8px; white-space: pre-wrap; line-height: 1.6; font-size: 13px; max-height: 400px; overflow-y: auto; }
+        .prd-content { background: #0f172a; padding: 16px; border-radius: 8px; white-space: pre-wrap; line-height: 1.6; font-size: 13px; }
         
-        /* 빈 상태 */
-        .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #64748b; text-align: center; }
+        .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #64748b; }
         .empty-state h3 { color: #94a3b8; margin-bottom: 8px; }
     </style>
 </head>
@@ -135,7 +106,7 @@
             useEffect(() => { 
                 if (currentProject) { 
                     loadProjectTree(); 
-                    setMessages([{ type: 'ai', text: `"${currentProject.name}" 프로젝트입니다. 어떤 기능을 추가할까요?` }]); 
+                    setMessages([{ type: 'ai', text: `"${currentProject.name}" 프로젝트입니다.` }]); 
                 } 
             }, [currentProject]);
             useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
@@ -169,11 +140,9 @@
                 setMessages(prev => [...prev, { type: 'user', text: userMessage }]);
                 setInputText('');
                 setIsTyping(true);
-
                 try {
                     const res = await fetch(`${API_BASE}/projects/${currentProject.projectId}/chat`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ message: userMessage })
                     });
                     const data = await res.json();
@@ -205,7 +174,6 @@
                             </select>
                             <button className="new-project-btn" onClick={() => setShowNewProject(true)}>+ 새 프로젝트</button>
                         </div>
-                        
                         <div className="chat-messages">
                             {messages.map((msg, i) => (
                                 <div key={i} className={`message ${msg.type}`}>
@@ -215,7 +183,6 @@
                             {isTyping && <div className="typing">생각 중...</div>}
                             <div ref={messagesEndRef} />
                         </div>
-                        
                         <div className="chat-input-area">
                             <textarea className="chat-input" placeholder="What do you want to create?"
                                 value={inputText} onChange={e => setInputText(e.target.value)}
@@ -233,149 +200,93 @@
                             ))}
                             <button className="export-btn" onClick={generatePRD}>Export</button>
                         </div>
-                        
                         <div className="fs-container">
-                            {activeTab === 'FS' && <FSView treeData={treeData} projectName={currentProject?.name} onPRDClick={() => setShowPRD(true)} />}
+                            {activeTab === 'FS' && <MindmapView treeData={treeData} projectName={currentProject?.name} onPRDClick={() => setShowPRD(true)} />}
                             {activeTab === 'PRD' && <PRDView content={prdContent} onGenerate={generatePRD} />}
                             {activeTab === 'Tree' && <TreeView treeData={treeData} />}
-                            {(activeTab === 'IA' || activeTab === 'Directory') && (
-                                <div className="empty-state"><h3>{activeTab} 뷰</h3><p>준비 중입니다</p></div>
-                            )}
+                            {(activeTab === 'IA' || activeTab === 'Directory') && <div className="empty-state"><h3>{activeTab} 뷰 준비 중</h3></div>}
                         </div>
                     </div>
-
                     {showNewProject && <NewProjectModal onClose={() => setShowNewProject(false)} onCreate={createProject} />}
                     {showPRD && <PRDModal content={prdContent} onClose={() => setShowPRD(false)} />}
                 </div>
             );
         }
 
-        // FS 뷰 - 가로 마인드맵
-        function FSView({ treeData, projectName, onPRDClick }) {
+        // 마인드맵 뷰 - SVG 연결선 사용
+        function MindmapView({ treeData, projectName, onPRDClick }) {
             if (!treeData || treeData.length === 0) {
-                return (
-                    <div className="empty-state">
-                        <h3>기능을 추가해보세요</h3>
-                        <p>채팅창에서 "로그인 기능 추가해줘" 라고 입력해보세요</p>
-                    </div>
-                );
+                return <div className="empty-state"><h3>기능을 추가해보세요</h3><p>채팅창에서 기능을 요청해보세요</p></div>;
             }
-
-            // 트리를 Feature(1단계), SubFeature(2단계), Task(3단계)로 분류
-            const features = treeData.filter(n => !n.parentId || n.nodeType === 'FEATURE' || n.nodeType === 'ROOT');
             
             return (
-                <div className="fs-mindmap">
+                <div className="mindmap">
                     {/* 루트 노드 */}
-                    <div className="root-node">
-                        <div className="root-card">
-                            <h3>{projectName || 'Project'}</h3>
-                            <span className="prd-link" onClick={onPRDClick}>↗ PRD</span>
-                        </div>
-                        <div className="connector-h"></div>
+                    <div className="node-card root">
+                        <div className="node-title">{projectName || 'Project'}</div>
+                        <span className="prd-link" onClick={onPRDClick}>↗ PRD</span>
                     </div>
                     
-                    {/* Features 컬럼 */}
-                    <div className="features-column">
-                        {treeData.map((feature, idx) => (
-                            <FeatureRow key={feature.id} feature={feature} isFirst={idx === 0} isLast={idx === treeData.length - 1} totalCount={treeData.length} />
+                    {/* 1단계 연결선 */}
+                    <div className="h-connector"></div>
+                    
+                    {/* 1단계 노드들 */}
+                    <NodeBranch nodes={treeData} level={1} />
+                </div>
+            );
+        }
+        
+        function NodeBranch({ nodes, level }) {
+            if (!nodes || nodes.length === 0) return null;
+            
+            const totalHeight = nodes.length * 80; // 각 노드 높이 + 간격
+            
+            return (
+                <div className="branch-container">
+                    {/* 세로 연결선 */}
+                    {nodes.length > 1 && (
+                        <svg width="50" height={totalHeight} style={{overflow: 'visible'}}>
+                            {/* 메인 가로선 */}
+                            <line x1="0" y1={totalHeight/2} x2="25" y2={totalHeight/2} stroke="#475569" strokeWidth="2"/>
+                            {/* 세로선 */}
+                            <line x1="25" y1={nodes.length > 1 ? 40 : totalHeight/2} x2="25" y2={totalHeight - 40} stroke="#475569" strokeWidth="2"/>
+                            {/* 각 노드로 가는 가로선 */}
+                            {nodes.map((_, idx) => (
+                                <line key={idx} x1="25" y1={40 + idx * 80} x2="50" y2={40 + idx * 80} stroke="#475569" strokeWidth="2"/>
+                            ))}
+                        </svg>
+                    )}
+                    {nodes.length === 1 && <div className="h-connector"></div>}
+                    
+                    {/* 노드 컬럼 */}
+                    <div className="node-column">
+                        {nodes.map((node, idx) => (
+                            <div key={node.id} className="branch-item">
+                                <div className="node-card">
+                                    <div className="node-title">{node.title}</div>
+                                    {node.description && <div className="node-desc">{node.description.substring(0, 60)}...</div>}
+                                    <div className="node-meta">
+                                        <span className="badge todo">To Do</span>
+                                        {node.nodeType === 'FEATURE' && <span className="badge admin">Admin</span>}
+                                    </div>
+                                </div>
+                                
+                                {/* 자식 노드가 있으면 재귀 */}
+                                {node.children && node.children.length > 0 && (
+                                    <>
+                                        <div className="h-connector"></div>
+                                        <NodeBranch nodes={node.children} level={level + 1} />
+                                    </>
+                                )}
+                            </div>
                         ))}
                     </div>
                 </div>
             );
         }
 
-        function FeatureRow({ feature, isFirst, isLast, totalCount }) {
-            const children = feature.children || [];
-            const subFeatures = children.filter(c => c.nodeType === 'FEATURE' || c.nodeType === 'REQUIREMENT');
-            const tasks = children.filter(c => c.nodeType === 'TASK');
-            
-            return (
-                <div className="feature-row">
-                    <div className="feature-connector">
-                        {totalCount > 1 && (
-                            <div className="v-line" style={{
-                                top: isFirst ? '50%' : 0,
-                                bottom: isLast ? '50%' : 0,
-                                height: isFirst || isLast ? '50%' : '100%'
-                            }}></div>
-                        )}
-                    </div>
-                    
-                    <div className="feature-card">
-                        <div className="feature-title">{feature.title}</div>
-                        {feature.description && <div className="feature-desc">{feature.description}</div>}
-                        <div className="feature-meta">
-                            <span className="status-badge todo">To Do</span>
-                            <span className="criteria-link">Acceptance Criteria: 0/2</span>
-                        </div>
-                    </div>
-                    
-                    {children.length > 0 && (
-                        <>
-                            <div className="connector-h" style={{width: '40px'}}></div>
-                            <div className="subfeatures-column">
-                                {children.map((child, idx) => (
-                                    <SubFeatureRow key={child.id} node={child} isFirst={idx === 0} isLast={idx === children.length - 1} totalCount={children.length} />
-                                ))}
-                            </div>
-                        </>
-                    )}
-                </div>
-            );
-        }
-
-        function SubFeatureRow({ node, isFirst, isLast, totalCount }) {
-            const children = node.children || [];
-            const tags = ['To Do'];
-            if (node.nodeType === 'TASK') tags.push('Tester');
-            if (node.nodeType === 'REQUIREMENT') tags.push('Developer');
-            if (node.nodeType === 'FEATURE') tags.push('Admin');
-            
-            return (
-                <div className="subfeature-row">
-                    <div className="sub-connector" style={{position: 'relative'}}>
-                        {totalCount > 1 && (
-                            <div className="v-line" style={{
-                                position: 'absolute', left: 0,
-                                top: isFirst ? '50%' : 0,
-                                bottom: isLast ? '50%' : 0,
-                                height: isFirst || isLast ? '50%' : '100%'
-                            }}></div>
-                        )}
-                    </div>
-                    
-                    <div className="subfeature-card">
-                        <div className="subfeature-title">{node.title}</div>
-                        <div className="subfeature-tags">
-                            <span className="tag tester">To Do</span>
-                            {node.nodeType === 'TASK' && <span className="tag tester">Tester</span>}
-                            {node.nodeType === 'REQUIREMENT' && <span className="tag developer">Developer</span>}
-                            {node.nodeType === 'FEATURE' && <span className="tag admin">Admin</span>}
-                        </div>
-                    </div>
-                    
-                    {children.length > 0 && (
-                        <>
-                            <div className="task-connector"></div>
-                            <div className="tasks-column">
-                                {children.map(task => (
-                                    <div key={task.id} className="task-row">
-                                        <div className="task-connector"></div>
-                                        <div className="task-card">{task.title}</div>
-                                    </div>
-                                ))}
-                            </div>
-                        </>
-                    )}
-                </div>
-            );
-        }
-
         function TreeView({ treeData }) {
-            if (!treeData || treeData.length === 0) {
-                return <div className="empty-state"><h3>노드가 없습니다</h3></div>;
-            }
+            if (!treeData || treeData.length === 0) return <div className="empty-state"><h3>노드가 없습니다</h3></div>;
             return (
                 <div style={{padding: '20px'}}>
                     {treeData.map(node => <TreeNode key={node.id} node={node} level={0} />)}
@@ -386,9 +297,9 @@
         function TreeNode({ node, level }) {
             return (
                 <div style={{marginLeft: level * 24 + 'px', marginBottom: '8px'}}>
-                    <div className="feature-card" style={{display: 'inline-block', minWidth: '200px'}}>
-                        <div className="feature-title">{node.title}</div>
-                        <div className="feature-meta"><span className="status-badge">{node.nodeType}</span></div>
+                    <div className="node-card" style={{display: 'inline-block'}}>
+                        <div className="node-title">{node.title}</div>
+                        <div className="node-meta"><span className="badge todo">{node.nodeType}</span></div>
                     </div>
                     {node.children?.map(child => <TreeNode key={child.id} node={child} level={level + 1} />)}
                 </div>
@@ -399,12 +310,10 @@
             return (
                 <div style={{padding: '20px', maxWidth: '800px'}}>
                     <h2 style={{marginBottom: '16px'}}>PRD Document</h2>
-                    {content ? (
-                        <div className="prd-content">{content}</div>
-                    ) : (
+                    {content ? <div className="prd-content">{content}</div> : (
                         <div className="empty-state">
                             <h3>PRD가 없습니다</h3>
-                            <button className="export-btn" onClick={onGenerate} style={{marginTop: '16px'}}>PRD 생성하기</button>
+                            <button className="export-btn" onClick={onGenerate} style={{marginTop: '16px'}}>PRD 생성</button>
                         </div>
                     )}
                 </div>
