@@ -12,39 +12,52 @@
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; }
         .app { display: flex; height: 100vh; }
         
-        .chat-panel { width: 300px; background: #1e293b; display: flex; flex-direction: column; border-right: 1px solid #334155; }
-        .chat-header { padding: 16px; border-bottom: 1px solid #334155; }
-        .chat-header h2 { font-size: 14px; color: #94a3b8; margin-bottom: 8px; }
-        .project-select { width: 100%; padding: 8px 12px; background: #334155; border: none; border-radius: 6px; color: white; font-size: 13px; }
-        .new-project-btn { width: 100%; margin-top: 8px; padding: 8px; background: transparent; border: 1px dashed #475569; border-radius: 6px; color: #64748b; cursor: pointer; }
-        .new-project-btn:hover { border-color: #3b82f6; color: #3b82f6; }
-        .chat-messages { flex: 1; overflow-y: auto; padding: 12px; }
-        .message { margin-bottom: 16px; }
-        .message.user { text-align: right; }
-        .message-bubble { display: inline-block; max-width: 90%; padding: 10px 14px; border-radius: 12px; font-size: 13px; line-height: 1.5; }
-        .message.user .message-bubble { background: #3b82f6; border-radius: 12px 12px 4px 12px; }
+        .chat-panel { width: 340px; background: linear-gradient(180deg, #1a1625 0%, #1e293b 100%); display: flex; flex-direction: column; border-right: 1px solid #2d2640; }
+        .chat-header { padding: 20px; border-bottom: 1px solid #2d2640; background: rgba(139, 92, 246, 0.03); }
+        .chat-header h2 { font-size: 11px; color: #8b5cf6; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+        .project-select { width: 100%; padding: 10px 14px; background: #2d2640; border: 1px solid #3d3455; border-radius: 10px; color: white; font-size: 13px; cursor: pointer; transition: all 0.2s; }
+        .project-select:hover { border-color: #8b5cf6; }
+        .project-select:focus { outline: none; border-color: #8b5cf6; box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1); }
+        .new-project-btn { width: 100%; margin-top: 10px; padding: 10px; background: transparent; border: 1px dashed #3d3455; border-radius: 10px; color: #6b7280; cursor: pointer; font-size: 13px; transition: all 0.2s; }
+        .new-project-btn:hover { border-color: #8b5cf6; color: #8b5cf6; background: rgba(139, 92, 246, 0.05); }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 16px; scroll-behavior: smooth; }
+        .chat-messages::-webkit-scrollbar { width: 4px; }
+        .chat-messages::-webkit-scrollbar-track { background: transparent; }
+        .chat-messages::-webkit-scrollbar-thumb { background: #3d3455; border-radius: 4px; }
+        .message { margin-bottom: 16px; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .message.user { display: flex; justify-content: flex-end; }
+        .message-bubble { display: inline-block; max-width: 85%; padding: 12px 16px; border-radius: 16px; font-size: 13px; line-height: 1.6; }
+        .message.user .message-bubble { background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%); border-radius: 16px 16px 4px 16px; box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3); }
         .message.ai .message-bubble { background: transparent; padding: 0; max-width: 100%; }
         .typing { color: #64748b; font-size: 12px; padding: 8px; }
         
         /* AI 응답 카드 스타일 */
-        .ai-response { background: #1e293b; border-radius: 12px; overflow: hidden; }
-        .ai-response-header { padding: 12px 14px; border-bottom: 1px solid #334155; display: flex; align-items: center; gap: 8px; }
-        .ai-response-header .icon { width: 20px; height: 20px; background: linear-gradient(135deg, #8b5cf6, #3b82f6); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; }
-        .ai-response-header .title { font-weight: 600; font-size: 13px; }
-        .ai-response-body { padding: 12px 14px; }
-        .ai-step { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid #334155; }
+        .ai-response { background: linear-gradient(135deg, #1e1b2e 0%, #252040 100%); border-radius: 16px; overflow: hidden; border: 1px solid #2d2640; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); }
+        .ai-response-header { padding: 14px 16px; border-bottom: 1px solid #2d2640; display: flex; align-items: center; gap: 10px; background: rgba(139, 92, 246, 0.05); }
+        .ai-response-header .icon { width: 24px; height: 24px; background: linear-gradient(135deg, #8b5cf6, #6366f1); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+        .ai-response-header .title { font-weight: 600; font-size: 13px; color: #e2e8f0; }
+        .ai-response-body { padding: 14px 16px; }
+        .ai-step { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(139, 92, 246, 0.1); }
         .ai-step:last-child { border-bottom: none; }
-        .ai-step-icon { width: 20px; height: 20px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; margin-top: 2px; }
-        .ai-step-icon.thinking { background: #334155; color: #94a3b8; }
-        .ai-step-icon.done { background: #065f46; color: #34d399; }
-        .ai-step-icon.feature { background: #3f1e5f; color: #a78bfa; }
+        .ai-step-icon { width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; margin-top: 2px; }
+        .ai-step-icon.thinking { background: #2d2640; color: #94a3b8; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .ai-step-icon.done { background: rgba(52, 211, 153, 0.15); color: #34d399; }
+        .ai-step-icon.feature { background: rgba(139, 92, 246, 0.15); color: #a78bfa; }
         .ai-step-content { flex: 1; }
-        .ai-step-title { font-size: 13px; font-weight: 500; margin-bottom: 2px; }
-        .ai-step-desc { font-size: 11px; color: #94a3b8; }
-        .ai-summary { background: #0f172a; padding: 10px 12px; border-radius: 8px; margin-top: 8px; font-size: 12px; color: #94a3b8; line-height: 1.5; }
-        .chat-input-area { padding: 12px; border-top: 1px solid #334155; }
-        .chat-input { width: 100%; padding: 10px; background: #334155; border: none; border-radius: 6px; color: white; resize: none; font-size: 13px; }
-        .chat-input:focus { outline: 1px solid #3b82f6; }
+        .ai-step-title { font-size: 13px; font-weight: 600; margin-bottom: 3px; color: #f1f5f9; }
+        .ai-step-desc { font-size: 12px; color: #94a3b8; }
+        .ai-summary { background: rgba(15, 23, 42, 0.5); padding: 12px 14px; border-radius: 10px; margin-top: 10px; font-size: 12px; color: #94a3b8; line-height: 1.6; border: 1px solid #2d2640; }
+        .chat-input-area { padding: 16px; border-top: 1px solid #2d2640; background: rgba(139, 92, 246, 0.02); }
+        .chat-input-wrapper { display: flex; align-items: flex-end; gap: 10px; background: #2d2640; border-radius: 14px; padding: 4px; border: 1px solid #3d3455; transition: all 0.2s; }
+        .chat-input-wrapper:focus-within { border-color: #8b5cf6; box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1); }
+        .chat-input { flex: 1; padding: 10px 12px; background: transparent; border: none; color: white; resize: none; font-size: 13px; line-height: 1.5; max-height: 100px; }
+        .chat-input:focus { outline: none; }
+        .chat-input::placeholder { color: #6b7280; }
+        .chat-send-btn { padding: 8px 14px; background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%); border: none; border-radius: 10px; color: white; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s; }
+        .chat-send-btn:hover { transform: scale(1.02); box-shadow: 0 2px 8px rgba(139, 92, 246, 0.4); }
+        .chat-send-btn:active { transform: scale(0.98); }
         
         .main-area { flex: 1; display: flex; flex-direction: column; }
         .toolbar { padding: 10px 16px; background: #1e293b; border-bottom: 1px solid #334155; display: flex; align-items: center; gap: 8px; }
@@ -251,10 +264,13 @@
                             <div ref={messagesEndRef} />
                         </div>
                         <div className="chat-input-area">
-                            <textarea className="chat-input" placeholder="What do you want to create?"
-                                value={inputText} onChange={e => setInputText(e.target.value)}
-                                onKeyPress={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); }}}
-                                rows="2" />
+                            <div className="chat-input-wrapper">
+                                <textarea className="chat-input" placeholder="기능을 요청해보세요..."
+                                    value={inputText} onChange={e => setInputText(e.target.value)}
+                                    onKeyPress={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); }}}
+                                    rows="1" />
+                                <button className="chat-send-btn" onClick={handleSendMessage}>전송</button>
+                            </div>
                         </div>
                     </div>
                     
