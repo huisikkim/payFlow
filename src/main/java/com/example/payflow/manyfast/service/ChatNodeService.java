@@ -279,8 +279,22 @@ public class ChatNodeService {
     private String convertHanjaToKorean(String text) {
         if (text == null) return null;
         
-        // 자주 나오는 한자 → 한글 매핑
+        // 자주 나오는 한자 → 한글 매핑 (중국어 간체/번체, 일본어 포함)
         Map<String, String> hanjaMap = new LinkedHashMap<>();
+        // 중국어 간체
+        hanjaMap.put("功能", "기능");
+        hanjaMap.put("搜索", "검색");
+        hanjaMap.put("删除", "삭제");
+        hanjaMap.put("修改", "수정");
+        hanjaMap.put("添加", "추가");
+        hanjaMap.put("列表", "목록");
+        hanjaMap.put("详细", "상세");
+        hanjaMap.put("用户", "사용자");
+        hanjaMap.put("信息", "정보");
+        hanjaMap.put("这", "이");
+        hanjaMap.put("是", "는");
+        hanjaMap.put("的", "의");
+        // 일본어/번체
         hanjaMap.put("機能", "기능");
         hanjaMap.put("検索", "검색");
         hanjaMap.put("登録", "등록");
