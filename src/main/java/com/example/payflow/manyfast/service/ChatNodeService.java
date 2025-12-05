@@ -41,7 +41,7 @@ public class ChatNodeService {
         log.info("Parent hint from user message: {}", parentHint);
         
         int nodesCreated = 0;
-        ProjectNode firstCreatedNode = null; // 첫 번째 생성된 노드 추적
+        List<ProjectNode> createdNodes = new ArrayList<>(); // 생성된 모든 노드 추적
         
         for (int i = 0; i < parsedNodes.size(); i++) {
             Map<String, String> nodeData = parsedNodes.get(i);
@@ -57,8 +57,8 @@ public class ChatNodeService {
                 
                 // ★ 계층 구조 자동 생성 로직 ★
                 // 첫 번째 노드가 아니고, parent가 지정되지 않았으면 첫 번째 노드를 parent로 사용
-                if (i > 0 && (parentTitle == null || parentTitle.trim().isEmpty()) && firstCreatedNode != null) {
-                    parentTitle = firstCreatedNode.getTitle();
+                if (i > 0 && (parentTitle == null || parentTitle.trim().isEmpty()) && !createdNodes.isEmpty()) {
+                    parentTitle = createdNodes.get(0).getTitle();
                     log.info("Auto-assigning first node as parent: '{}'", parentTitle);
                 }
                 
@@ -79,9 +79,7 @@ public class ChatNodeService {
                     
                     // 모든 노드 목록 (기존 + 방금 생성된 것들)
                     List<ProjectNode> allNodes = new ArrayList<>(existingNodes);
-                    if (firstCreatedNode != null) {
-                        allNodes.add(firstCreatedNode);
-                    }
+                    allNodes.addAll(createdNodes);
                     
                     // 1. 정확한 매칭
                     Optional<ProjectNode> match = allNodes.stream()
@@ -126,12 +124,12 @@ public class ChatNodeService {
                 }
                 
                 ProjectNode createdNode = manyfastService.createNode(projectId, request);
+                createdNodes.add(createdNode);
                 
-                // 첫 번째 노드 저장
-                if (i == 0) {
-                    firstCreatedNode = createdNode;
-                    log.info("First node created: '{}' (id:{})", createdNode.getTitle(), createdNode.getId());
-                }
+                log.info("Node created: '{}' (id:{}, parent:{})", 
+                    createdNode.getTitle(), 
+                    createdNode.getId(), 
+                    createdNode.getParentId());
                 
                 nodesCreated++;
             } catch (Exception e) {
@@ -175,14 +173,24 @@ public class ChatNodeService {
         
         sb.append("사용자 요청: ").append(userMessage).append("\n\n");
         sb.append("★★★ 계층 구조 생성 규칙 ★★★\n");
-        sb.append("1. 큰 시스템/모듈을 먼저 생성하고, 그 하위에 세부 기능을 배치하세요.\n");
-        sb.append("2. 예: '모바일 주문 시스템' 요청 시:\n");
-        sb.append("   - 1단계: 모바일 주문 시스템 (parent 없음)\n");
-        sb.append("   - 2단계: 메뉴 선택, 장바구니, 결제 등 (parent: 모바일 주문 시스템)\n");
-        sb.append("   - 3단계: 메뉴 검색, 필터링 등 (parent: 메뉴 선택)\n");
-        sb.append("3. parent가 없으면 비워두세요 (루트 레벨)\n");
-        sb.append("4. parent가 있으면 정확한 기능 이름을 사용하세요\n");
-        sb.append("5. 모든 텍스트는 한글과 영문만 사용하세요. 한자 절대 금지!\n\n");
+        sb.append("1. 최소 3단계 깊이의 계층 구조를 만드세요!\n");
+        sb.append("2. 각 2단계 기능마다 2-3개의 세부 기능(3단계)을 추가하세요.\n");
+        sb.append("3. 예: '모바일 주문 시스템' 요청 시:\n");
+        sb.append("   [1단계] 모바일 주문 시스템 (parent 없음)\n");
+        sb.append("   ├─ [2단계] 메뉴 선택 (parent: 모바일 주문 시스템)\n");
+        sb.append("   │  ├─ [3단계] 카테고리 필터링 (parent: 메뉴 선택)\n");
+        sb.append("   │  ├─ [3단계] 상세 메뉴 보기 (parent: 메뉴 선택)\n");
+        sb.append("   │  └─ [3단계] 옵션 선택 (parent: 메뉴 선택)\n");
+        sb.append("   ├─ [2단계] 장바구니 (parent: 모바일 주문 시스템)\n");
+        sb.append("   │  ├─ [3단계] 수량 변경 (parent: 장바구니)\n");
+        sb.append("   │  └─ [3단계] 항목 삭제 (parent: 장바구니)\n");
+        sb.append("   └─ [2단계] 주문 상태 확인 (parent: 모바일 주문 시스템)\n");
+        sb.append("      ├─ [3단계] 주문 상세 보기 (parent: 주문 상태 확인)\n");
+        sb.append("      └─ [3단계] 주문 취소 (parent: 주문 상태 확인)\n");
+        sb.append("4. parent가 없으면 비워두세요 (루트 레벨)\n");
+        sb.append("5. parent가 있으면 정확한 기능 이름을 사용하세요\n");
+        sb.append("6. 모든 텍스트는 한글과 영문만 사용하세요. 한자 절대 금지!\n");
+        sb.append("7. 최소 8-12개의 노드를 생성하세요 (1개 루트 + 3-4개 2단계 + 각각 2-3개 3단계)\n\n");
         sb.append("반드시 다음 형식으로 기능을 정의해주세요:\n");
         sb.append("[NODE]\n");
         sb.append("title: 기능 이름 (한글/영문만)\n");
@@ -190,25 +198,62 @@ public class ChatNodeService {
         sb.append("description: 기능 설명 (한글/영문만)\n");
         sb.append("parent: 상위 기능 이름 (없으면 비워두기)\n");
         sb.append("[/NODE]\n\n");
-        sb.append("예시 - '모바일 주문 시스템' 요청 시:\n");
+        sb.append("예시 - '모바일 주문 시스템' 요청 시 (최소 10개 노드):\n\n");
+        sb.append("# 1단계 (루트)\n");
         sb.append("[NODE]\n");
         sb.append("title: 모바일 주문 시스템\n");
         sb.append("type: FEATURE\n");
         sb.append("description: 고객이 모바일로 주문할 수 있는 시스템\n");
         sb.append("parent: \n");
         sb.append("[/NODE]\n\n");
+        
+        sb.append("# 2단계\n");
         sb.append("[NODE]\n");
         sb.append("title: 메뉴 선택\n");
         sb.append("type: FEATURE\n");
         sb.append("description: 사용자가 메뉴를 선택할 수 있습니다\n");
         sb.append("parent: 모바일 주문 시스템\n");
         sb.append("[/NODE]\n\n");
+        
+        sb.append("# 3단계 (메뉴 선택의 하위)\n");
+        sb.append("[NODE]\n");
+        sb.append("title: 카테고리 필터링\n");
+        sb.append("type: TASK\n");
+        sb.append("description: 카테고리별로 메뉴를 필터링합니다\n");
+        sb.append("parent: 메뉴 선택\n");
+        sb.append("[/NODE]\n\n");
+        
+        sb.append("[NODE]\n");
+        sb.append("title: 상세 메뉴 보기\n");
+        sb.append("type: TASK\n");
+        sb.append("description: 메뉴의 상세 정보를 확인합니다\n");
+        sb.append("parent: 메뉴 선택\n");
+        sb.append("[/NODE]\n\n");
+        
+        sb.append("# 2단계\n");
         sb.append("[NODE]\n");
         sb.append("title: 장바구니\n");
         sb.append("type: FEATURE\n");
         sb.append("description: 선택한 메뉴를 장바구니에 담을 수 있습니다\n");
         sb.append("parent: 모바일 주문 시스템\n");
-        sb.append("[/NODE]");
+        sb.append("[/NODE]\n\n");
+        
+        sb.append("# 3단계 (장바구니의 하위)\n");
+        sb.append("[NODE]\n");
+        sb.append("title: 수량 변경\n");
+        sb.append("type: TASK\n");
+        sb.append("description: 장바구니 항목의 수량을 변경합니다\n");
+        sb.append("parent: 장바구니\n");
+        sb.append("[/NODE]\n\n");
+        
+        sb.append("[NODE]\n");
+        sb.append("title: 항목 삭제\n");
+        sb.append("type: TASK\n");
+        sb.append("description: 장바구니에서 항목을 삭제합니다\n");
+        sb.append("parent: 장바구니\n");
+        sb.append("[/NODE]\n\n");
+        
+        sb.append("이런 식으로 계속 작성하세요!");
         
         return sb.toString();
     }
