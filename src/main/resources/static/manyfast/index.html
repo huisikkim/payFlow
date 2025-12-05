@@ -9,7 +9,7 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #1a1a1a; color: #e2e8f0; }
         .app { display: flex; height: 100vh; }
         
         .chat-panel { width: 340px; background: linear-gradient(180deg, #1a1625 0%, #1e293b 100%); display: flex; flex-direction: column; border-right: 1px solid #2d2640; }
@@ -59,7 +59,7 @@
         .chat-send-btn:hover { transform: scale(1.02); box-shadow: 0 2px 8px rgba(139, 92, 246, 0.4); }
         .chat-send-btn:active { transform: scale(0.98); }
         
-        .main-area { flex: 1; display: flex; flex-direction: column; background: linear-gradient(180deg, #1a1625 0%, #0f0d1a 100%); }
+        .main-area { flex: 1; display: flex; flex-direction: column; background: #1a1a1a; }
         .toolbar { padding: 10px 16px; background: rgba(139, 92, 246, 0.03); border-bottom: 1px solid #2d2640; display: flex; align-items: center; gap: 8px; }
         .toolbar h1 { font-size: 16px; font-weight: 500; margin-right: 20px; }
         .tab-btn { padding: 6px 14px; background: transparent; border: 1px solid #2d2640; border-radius: 6px; color: #94a3b8; cursor: pointer; font-size: 13px; }
@@ -67,26 +67,123 @@
         .tab-btn.active { background: rgba(139, 92, 246, 0.15); border-color: #8b5cf6; color: white; }
         .export-btn { margin-left: auto; padding: 6px 14px; background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%); border: none; border-radius: 6px; color: white; cursor: pointer; }
         
-        .fs-container { flex: 1; overflow: auto; padding: 40px; background: transparent; }
+        .fs-container { flex: 1; overflow: auto; padding: 60px; background: #1a1a1a; position: relative; }
         
-        /* 마인드맵 레이아웃 */
-        .mindmap { display: flex; align-items: center; gap: 0; }
-        .node-column { display: flex; flex-direction: column; gap: 20px; position: relative; }
+        /* 마인드맵 레이아웃 - manyfast.io 스타일 */
+        .mindmap { 
+            position: relative; 
+            display: flex; 
+            align-items: center; 
+            gap: 0; 
+            min-height: 600px;
+        }
+        .mindmap-svg { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            pointer-events: none; 
+            z-index: 0;
+        }
+        .node-column { display: flex; flex-direction: column; gap: 30px; position: relative; z-index: 1; }
         
-        /* 노드 카드 */
-        .node-card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 14px 18px; min-width: 200px; max-width: 300px; position: relative; }
-        .node-card:hover { border-color: #475569; }
-        .node-card.root { background: linear-gradient(135deg, #1e293b, #334155); }
-        .node-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
-        .node-desc { font-size: 11px; color: #94a3b8; line-height: 1.4; margin-bottom: 8px; }
-        .node-meta { display: flex; gap: 6px; flex-wrap: wrap; }
-        .badge { font-size: 10px; padding: 2px 8px; border-radius: 4px; }
-        .badge.todo { background: #1e3a5f; color: #60a5fa; }
-        .badge.admin { background: #3f1e5f; color: #a78bfa; }
-        .prd-link { font-size: 11px; color: #3b82f6; cursor: pointer; }
+        /* 노드 카드 - manyfast.io 스타일 */
+        .node-card { 
+            background: #2a2a2a; 
+            border: 1px solid #3a3a3a; 
+            border-radius: 8px; 
+            padding: 16px 18px; 
+            min-width: 260px; 
+            max-width: 340px; 
+            position: relative; 
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            transition: all 0.2s ease;
+        }
+        .node-card:hover { 
+            border-color: #4a4a4a; 
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+        }
+        .node-card.root { 
+            background: #2a2a2a; 
+            border: 1px solid #3a3a3a;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        .node-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .node-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #888;
+        }
+        .node-title { 
+            font-size: 14px; 
+            font-weight: 600; 
+            color: #e8e8e8;
+            line-height: 1.4;
+            flex: 1;
+        }
+        .node-desc { 
+            font-size: 11px; 
+            color: #888; 
+            line-height: 1.5; 
+            margin-bottom: 12px; 
+        }
+        .node-meta { 
+            display: flex; 
+            gap: 8px; 
+            flex-wrap: wrap; 
+            align-items: center;
+        }
+        .badge { 
+            font-size: 10px; 
+            padding: 4px 10px; 
+            border-radius: 4px; 
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .badge.todo { 
+            background: rgba(59, 130, 246, 0.15); 
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        .badge.admin { 
+            background: rgba(139, 92, 246, 0.15); 
+            color: #a78bfa;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+        .prd-link { 
+            font-size: 11px; 
+            color: #60a5fa; 
+            cursor: pointer; 
+            font-weight: 500;
+            transition: color 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .prd-link:hover {
+            color: #93c5fd;
+        }
         
         /* 연결선 - 가로 */
-        .h-connector { width: 50px; height: 2px; background: #475569; align-self: center; }
+        .h-connector { 
+            width: 60px; 
+            height: 2px; 
+            background: linear-gradient(90deg, rgba(100, 116, 139, 0.4) 0%, rgba(139, 92, 246, 0.3) 100%); 
+            align-self: center; 
+        }
         
         /* 연결선 - 세로 브랜치 */
         .branch-container { display: flex; align-items: stretch; }
@@ -123,13 +220,31 @@
         .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #64748b; }
         .empty-state h3 { color: #94a3b8; margin-bottom: 8px; }
         
-        /* IA 뷰 스타일 - CSS 기반 */
+        /* IA 뷰 스타일 - manyfast.io 스타일 */
         .ia-tree { display: flex; flex-direction: column; align-items: center; padding: 40px; }
         .ia-root { display: flex; justify-content: center; }
-        .ia-root-card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 16px 24px; display: flex; align-items: center; gap: 12px; }
+        .ia-root-card { 
+            background: #2a2a2a; 
+            border: 1px solid #3a3a3a; 
+            border-radius: 8px; 
+            padding: 16px 24px; 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
         .ia-root-card .icon { font-size: 16px; }
-        .ia-root-card .title { font-size: 14px; font-weight: 500; }
-        .ia-root-card .prd-link { font-size: 12px; color: #3b82f6; margin-left: 12px; cursor: pointer; }
+        .ia-root-card .title { font-size: 14px; font-weight: 600; color: #e8e8e8; }
+        .ia-root-card .prd-link { 
+            font-size: 11px; 
+            color: #60a5fa; 
+            margin-left: 12px; 
+            cursor: pointer; 
+            font-weight: 500;
+        }
+        .ia-root-card .prd-link:hover {
+            color: #93c5fd;
+        }
         
         .ia-vline { width: 2px; height: 40px; background: #475569; }
         
@@ -143,15 +258,69 @@
         .ia-branch::before { width: calc(100% - 280px); }
         .ia-branch:has(.ia-branch-item:only-child)::before { width: 0; }
         
-        .ia-page-card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; width: 280px; overflow: hidden; }
-        .ia-page-header { padding: 12px 14px; border-bottom: 1px solid #334155; display: flex; align-items: center; gap: 8px; }
-        .ia-page-header .badge { background: #8b5cf6; color: white; font-size: 10px; padding: 2px 6px; border-radius: 4px; }
-        .ia-page-header .title { font-size: 13px; font-weight: 600; flex: 1; }
-        .ia-page-header .id { font-size: 10px; color: #64748b; }
-        .ia-page-desc { padding: 10px 14px; font-size: 11px; color: #94a3b8; border-bottom: 1px solid #334155; line-height: 1.5; }
+        .ia-page-card { 
+            background: #2a2a2a; 
+            border: 1px solid #3a3a3a; 
+            border-radius: 8px; 
+            width: 280px; 
+            overflow: hidden; 
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            transition: all 0.2s ease;
+        }
+        .ia-page-card:hover {
+            border-color: #4a4a4a;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+        }
+        .ia-page-header { 
+            padding: 12px 14px; 
+            border-bottom: 1px solid #3a3a3a; 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+            background: rgba(255, 255, 255, 0.02);
+        }
+        .ia-page-header .badge { 
+            background: rgba(139, 92, 246, 0.15); 
+            color: #a78bfa; 
+            font-size: 10px; 
+            padding: 3px 7px; 
+            border-radius: 4px; 
+            font-weight: 600;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+        .ia-page-header .title { 
+            font-size: 13px; 
+            font-weight: 600; 
+            flex: 1; 
+            color: #e8e8e8;
+        }
+        .ia-page-header .id { 
+            font-size: 10px; 
+            color: #666; 
+            font-weight: 500;
+        }
+        .ia-page-desc { 
+            padding: 10px 14px; 
+            font-size: 11px; 
+            color: #888; 
+            border-bottom: 1px solid #3a3a3a; 
+            line-height: 1.5; 
+        }
         .ia-page-features { padding: 10px 14px; }
-        .ia-page-features-title { font-size: 11px; color: #64748b; margin-bottom: 8px; }
-        .ia-feature-item { font-size: 12px; padding: 6px 0; border-bottom: 1px solid #334155; color: #e2e8f0; }
+        .ia-page-features-title { 
+            font-size: 10px; 
+            color: #666; 
+            margin-bottom: 8px; 
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .ia-feature-item { 
+            font-size: 11px; 
+            padding: 6px 0; 
+            border-bottom: 1px solid #3a3a3a; 
+            color: #ccc; 
+        }
         .ia-feature-item:last-child { border-bottom: none; }
         
         /* IA SVG 트리 스타일 */
@@ -308,25 +477,104 @@
             );
         }
 
-        // 마인드맵 뷰 - SVG 연결선 사용
+        // 마인드맵 뷰 - manyfast.io 스타일 곡선 연결선
         function MindmapView({ treeData, projectName, onPRDClick }) {
+            const containerRef = useRef(null);
+            const [connections, setConnections] = useState([]);
+            
+            useEffect(() => {
+                if (containerRef.current) {
+                    const updateConnections = () => {
+                        const newConnections = [];
+                        const cards = containerRef.current.querySelectorAll('.node-card');
+                        
+                        cards.forEach((card, idx) => {
+                            const parentId = card.getAttribute('data-parent-id');
+                            if (parentId) {
+                                const parentCard = containerRef.current.querySelector(`[data-node-id="${parentId}"]`);
+                                if (parentCard) {
+                                    const parentRect = parentCard.getBoundingClientRect();
+                                    const cardRect = card.getBoundingClientRect();
+                                    const containerRect = containerRef.current.getBoundingClientRect();
+                                    
+                                    const x1 = parentRect.right - containerRect.left;
+                                    const y1 = parentRect.top + parentRect.height / 2 - containerRect.top;
+                                    const x2 = cardRect.left - containerRect.left;
+                                    const y2 = cardRect.top + cardRect.height / 2 - containerRect.top;
+                                    
+                                    const cx = (x1 + x2) / 2;
+                                    
+                                    newConnections.push({
+                                        id: `${parentId}-${card.getAttribute('data-node-id')}`,
+                                        path: `M ${x1} ${y1} C ${cx} ${y1}, ${cx} ${y2}, ${x2} ${y2}`
+                                    });
+                                }
+                            }
+                        });
+                        
+                        setConnections(newConnections);
+                    };
+                    
+                    updateConnections();
+                    window.addEventListener('resize', updateConnections);
+                    return () => window.removeEventListener('resize', updateConnections);
+                }
+            }, [treeData]);
+            
             if (!treeData || treeData.length === 0) {
                 return <div className="empty-state"><h3>기능을 추가해보세요</h3><p>채팅창에서 기능을 요청해보세요</p></div>;
             }
             
             return (
-                <div className="mindmap">
-                    {/* 루트 노드 */}
-                    <div className="node-card root">
-                        <div className="node-title">{projectName || 'Project'}</div>
+                <div ref={containerRef} className="mindmap" style={{position: 'relative'}}>
+                    <svg className="mindmap-svg" style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none'}}>
+                        {connections.map(conn => (
+                            <path key={conn.id} d={conn.path} stroke="rgba(100, 116, 139, 0.3)" strokeWidth="1.5" fill="none" />
+                        ))}
+                    </svg>
+                    
+                    <div className="node-card root" data-node-id="root" style={{zIndex: 1, position: 'relative'}}>
+                        <div className="node-header">
+                            <span className="node-icon">📄</span>
+                            <div className="node-title">{projectName || 'Project'}</div>
+                        </div>
                         <span className="prd-link" onClick={onPRDClick}>↗ PRD</span>
                     </div>
                     
-                    {/* 1단계 연결선 */}
-                    <div className="h-connector"></div>
+                    <div style={{width: '80px'}}></div>
                     
-                    {/* 1단계 노드들 */}
-                    <NodeBranch nodes={treeData} level={1} />
+                    <NodeColumn nodes={treeData} parentId="root" />
+                </div>
+            );
+        }
+        
+        function NodeColumn({ nodes, parentId }) {
+            if (!nodes || nodes.length === 0) return null;
+            
+            return (
+                <div style={{display: 'flex', flexDirection: 'column', gap: '30px', position: 'relative', zIndex: 1}}>
+                    {nodes.map((node) => (
+                        <div key={node.id} style={{display: 'flex', alignItems: 'center', gap: 0}}>
+                            <div className="node-card" data-node-id={node.id} data-parent-id={parentId}>
+                                <div className="node-header">
+                                    <span className="node-icon">📊</span>
+                                    <div className="node-title">{node.title}</div>
+                                </div>
+                                {node.description && <div className="node-desc">{node.description.substring(0, 60)}...</div>}
+                                <div className="node-meta">
+                                    <span className="badge todo">↗ To Do</span>
+                                    {node.nodeType === 'FEATURE' && <span className="badge admin">Admin</span>}
+                                </div>
+                            </div>
+                            
+                            {node.children && node.children.length > 0 && (
+                                <>
+                                    <div style={{width: '80px'}}></div>
+                                    <NodeColumn nodes={node.children} parentId={node.id} />
+                                </>
+                            )}
+                        </div>
+                    ))}
                 </div>
             );
         }
