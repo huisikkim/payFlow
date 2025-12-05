@@ -99,21 +99,25 @@
         .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #64748b; }
         .empty-state h3 { color: #94a3b8; margin-bottom: 8px; }
         
-        /* IA 뷰 스타일 */
-        .ia-container { display: flex; flex-direction: column; align-items: center; padding: 40px; min-height: 100%; }
-        .ia-root { display: flex; flex-direction: column; align-items: center; }
+        /* IA 뷰 스타일 - CSS 기반 */
+        .ia-tree { display: flex; flex-direction: column; align-items: center; padding: 40px; }
+        .ia-root { display: flex; justify-content: center; }
         .ia-root-card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 16px 24px; display: flex; align-items: center; gap: 12px; }
         .ia-root-card .icon { font-size: 16px; }
         .ia-root-card .title { font-size: 14px; font-weight: 500; }
         .ia-root-card .prd-link { font-size: 12px; color: #3b82f6; margin-left: 12px; cursor: pointer; }
         
-        .ia-connector-v { width: 2px; height: 40px; background: #475569; }
-        .ia-branch-h { display: flex; align-items: flex-start; justify-content: center; position: relative; }
-        .ia-branch-h::before { content: ''; position: absolute; top: 0; height: 2px; background: #475569; }
+        .ia-vline { width: 2px; height: 40px; background: #475569; }
         
-        .ia-pages { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
-        .ia-page { display: flex; flex-direction: column; align-items: center; }
-        .ia-page-connector { width: 2px; height: 30px; background: #475569; }
+        .ia-branch { display: flex; gap: 24px; position: relative; }
+        .ia-branch::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); height: 2px; background: #475569; }
+        .ia-branch-item { display: flex; flex-direction: column; align-items: center; }
+        .ia-branch-item:first-child:last-child .ia-branch-vline { display: block; }
+        .ia-branch-vline { width: 2px; height: 30px; background: #475569; }
+        
+        /* 가로선 너비 자동 계산 */
+        .ia-branch::before { width: calc(100% - 280px); }
+        .ia-branch:has(.ia-branch-item:only-child)::before { width: 0; }
         
         .ia-page-card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; width: 280px; overflow: hidden; }
         .ia-page-header { padding: 12px 14px; border-bottom: 1px solid #334155; display: flex; align-items: center; gap: 8px; }
@@ -459,23 +463,16 @@
             );
         }
 
-        // IA 뷰 - 세로 트리 형태
+        // IA 뷰 - CSS 기반 세로 트리
         function IAView({ treeData, projectName, onPRDClick }) {
             if (!treeData || treeData.length === 0) {
                 return <div className="empty-state"><h3>기능을 추가해보세요</h3><p>채팅창에서 기능을 요청해보세요</p></div>;
             }
             
-            // 페이지 단위로 그룹화 (최상위 노드들을 페이지로 취급)
-            const pages = treeData.map(node => ({
-                ...node,
-                features: node.children || []
-            }));
-            
-            // 가로 연결선 너비 계산
-            const branchWidth = Math.max(pages.length * 304 - 24, 100);
+            const pages = treeData.map(node => ({ ...node, features: node.children || [] }));
             
             return (
-                <div className="ia-container">
+                <div className="ia-tree">
                     {/* 루트 노드 */}
                     <div className="ia-root">
                         <div className="ia-root-card">
@@ -483,67 +480,51 @@
                             <span className="title">{projectName || 'Untitled'}</span>
                             <span className="prd-link" onClick={onPRDClick}>↗ PRD</span>
                         </div>
-                        
-                        {/* 세로 연결선 */}
-                        <div className="ia-connector-v"></div>
-                        
-                        {/* 가로 분기선 */}
-                        {pages.length > 1 && (
-                            <div className="ia-branch-h" style={{width: branchWidth + 'px'}}>
-                                <div style={{position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: branchWidth + 'px', height: '2px', background: '#475569'}}></div>
-                            </div>
-                        )}
                     </div>
                     
-                    {/* 페이지 카드들 */}
-                    <div className="ia-pages">
+                    {/* 세로 연결선 */}
+                    <div className="ia-vline"></div>
+                    
+                    {/* 가로 분기 + 카드들 */}
+                    <div className="ia-branch">
                         {pages.map((page, idx) => (
-                            <IAPageCard key={page.id} page={page} index={idx} />
+                            <div key={page.id} className="ia-branch-item">
+                                <div className="ia-branch-vline"></div>
+                                <IAPageCard page={page} />
+                            </div>
                         ))}
                     </div>
                 </div>
             );
         }
         
-        function IAPageCard({ page, index }) {
+        function IAPageCard({ page }) {
             const pageId = `P-${page.id.toString().padStart(4, '0')}`;
             
             return (
-                <div className="ia-page">
-                    {/* 세로 연결선 */}
-                    <div className="ia-page-connector"></div>
-                    
-                    {/* 페이지 카드 */}
-                    <div className="ia-page-card">
-                        <div className="ia-page-header">
-                            <span className="badge">1d</span>
-                            <span className="title">{page.title}</span>
-                            <span className="id">{pageId}</span>
-                        </div>
-                        
-                        {page.description && (
-                            <div className="ia-page-desc">
-                                {page.description.substring(0, 80)}{page.description.length > 80 ? '...' : ''}
-                            </div>
-                        )}
-                        
-                        {page.features && page.features.length > 0 && (
-                            <div className="ia-page-features">
-                                <div className="ia-page-features-title">{page.title} 기능</div>
-                                {page.features.map(feature => (
-                                    <div key={feature.id} className="ia-feature-item">
-                                        {feature.title}
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                        
-                        {(!page.features || page.features.length === 0) && !page.description && (
-                            <div className="ia-page-features">
-                                <div className="ia-feature-item" style={{color: '#64748b'}}>하위 기능 없음</div>
-                            </div>
-                        )}
+                <div className="ia-page-card">
+                    <div className="ia-page-header">
+                        <span className="badge">1d</span>
+                        <span className="title">{page.title}</span>
+                        <span className="id">{pageId}</span>
                     </div>
+                    
+                    {page.description && (
+                        <div className="ia-page-desc">
+                            {page.description.substring(0, 80)}{page.description.length > 80 ? '...' : ''}
+                        </div>
+                    )}
+                    
+                    {page.features && page.features.length > 0 && (
+                        <div className="ia-page-features">
+                            <div className="ia-page-features-title">{page.title} 기능</div>
+                            {page.features.map(feature => (
+                                <div key={feature.id} className="ia-feature-item">
+                                    {feature.title}
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             );
         }
