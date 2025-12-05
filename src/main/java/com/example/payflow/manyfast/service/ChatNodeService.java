@@ -32,6 +32,8 @@ public class ChatNodeService {
         String prompt = buildPrompt(userMessage, existingNodes);
         String aiResponse = callOllama(prompt);
         
+        log.info("=== AI Response ===\n{}\n==================", aiResponse);
+        
         List<Map<String, String>> parsedNodes = parseNodesFromResponse(aiResponse);
         
         // 사용자 메시지에서 parent 힌트 추출
@@ -39,8 +41,10 @@ public class ChatNodeService {
         log.info("Parent hint from user message: {}", parentHint);
         
         int nodesCreated = 0;
+        ProjectNode firstCreatedNode = null; // 첫 번째 생성된 노드 추적
         
-        for (Map<String, String> nodeData : parsedNodes) {
+        for (int i = 0; i < parsedNodes.size(); i++) {
+            Map<String, String> nodeData = parsedNodes.get(i);
             try {
                 NodeRequest request = new NodeRequest();
                 request.setTitle(nodeData.get("title"));
@@ -49,11 +53,21 @@ public class ChatNodeService {
                 request.setPosition(existingNodes.size() + nodesCreated);
                 
                 String parentTitle = nodeData.get("parent");
+                log.info("Node #{}: '{}', parent from AI: '{}'", i, nodeData.get("title"), parentTitle);
+                
+                // ★ 계층 구조 자동 생성 로직 ★
+                // 첫 번째 노드가 아니고, parent가 지정되지 않았으면 첫 번째 노드를 parent로 사용
+                if (i > 0 && (parentTitle == null || parentTitle.trim().isEmpty()) && firstCreatedNode != null) {
+                    parentTitle = firstCreatedNode.getTitle();
+                    log.info("Auto-assigning first node as parent: '{}'", parentTitle);
+                }
+                
                 // AI가 parent를 비워뒀으면 사용자 메시지에서 추출한 힌트 사용
                 if ((parentTitle == null || parentTitle.isEmpty()) && parentHint != null) {
                     parentTitle = parentHint;
                     log.info("Using parent hint: {}", parentHint);
                 }
+                
                 if (parentTitle != null && !parentTitle.isEmpty()) {
                     // 특수문자, 공백 정리
                     String cleanParent = parentTitle.trim()
@@ -63,15 +77,21 @@ public class ChatNodeService {
                     
                     log.info("Looking for parent: '{}' (cleaned: '{}')", parentTitle, cleanParent);
                     
+                    // 모든 노드 목록 (기존 + 방금 생성된 것들)
+                    List<ProjectNode> allNodes = new ArrayList<>(existingNodes);
+                    if (firstCreatedNode != null) {
+                        allNodes.add(firstCreatedNode);
+                    }
+                    
                     // 1. 정확한 매칭
-                    Optional<ProjectNode> match = existingNodes.stream()
+                    Optional<ProjectNode> match = allNodes.stream()
                         .filter(n -> n.getTitle().equalsIgnoreCase(cleanParent))
                         .findFirst();
                     
                     // 2. 부분 매칭 (한글 키워드 기준)
                     if (match.isEmpty()) {
                         String[] keywords = cleanParent.split("\\s+");
-                        match = existingNodes.stream()
+                        match = allNodes.stream()
                             .filter(n -> {
                                 String nodeTitle = n.getTitle().toLowerCase();
                                 for (String kw : keywords) {
@@ -86,7 +106,7 @@ public class ChatNodeService {
                     
                     // 3. 유사도 기반 매칭 (공통 글자 수)
                     if (match.isEmpty() && cleanParent.length() >= 2) {
-                        match = existingNodes.stream()
+                        match = allNodes.stream()
                             .max((a, b) -> {
                                 int scoreA = countCommonChars(a.getTitle(), cleanParent);
                                 int scoreB = countCommonChars(b.getTitle(), cleanParent);
@@ -97,14 +117,25 @@ public class ChatNodeService {
                     
                     match.ifPresent(parent -> {
                         request.setParentId(parent.getId());
-                        log.info("Parent matched: '{}' -> '{}'(id:{})", cleanParent, parent.getTitle(), parent.getId());
+                        log.info("✓ Parent matched: '{}' -> '{}'(id:{})", cleanParent, parent.getTitle(), parent.getId());
                     });
+                    
+                    if (match.isEmpty()) {
+                        log.warn("✗ Parent not found: '{}'", cleanParent);
+                    }
                 }
                 
-                manyfastService.createNode(projectId, request);
+                ProjectNode createdNode = manyfastService.createNode(projectId, request);
+                
+                // 첫 번째 노드 저장
+                if (i == 0) {
+                    firstCreatedNode = createdNode;
+                    log.info("First node created: '{}' (id:{})", createdNode.getTitle(), createdNode.getId());
+                }
+                
                 nodesCreated++;
             } catch (Exception e) {
-                log.error("Failed to create node: {}", e.getMessage());
+                log.error("Failed to create node: {}", e.getMessage(), e);
             }
         }
         
@@ -120,7 +151,7 @@ public class ChatNodeService {
     
     private String buildPrompt(String userMessage, List<ProjectNode> existingNodes) {
         StringBuilder sb = new StringBuilder();
-        sb.append("당신은 소프트웨어 기능 설계 전문가입니다. 사용자의 요청을 분석하여 새로운 기능을 정의해주세요.\n\n");
+        sb.append("당신은 소프트웨어 기능 설계 전문가입니다. 사용자의 요청을 분석하여 계층적 기능 구조를 정의해주세요.\n\n");
         
         // 한글 강제 지시
         sb.append("★★★ 중요: 반드시 한글로만 응답하세요! ★★★\n");
@@ -143,23 +174,40 @@ public class ChatNodeService {
         }
         
         sb.append("사용자 요청: ").append(userMessage).append("\n\n");
-        sb.append("중요 규칙:\n");
-        sb.append("1. 사용자가 '~에', '~의', '~기능에' 등으로 기존 기능을 언급하면 해당 기능을 parent로 지정하세요.\n");
-        sb.append("2. parent는 위 기존 기능 목록에서 정확한 이름을 복사해서 사용하세요.\n");
-        sb.append("3. 모든 텍스트는 한글과 영문만 사용하세요. 한자 절대 금지!\n\n");
+        sb.append("★★★ 계층 구조 생성 규칙 ★★★\n");
+        sb.append("1. 큰 시스템/모듈을 먼저 생성하고, 그 하위에 세부 기능을 배치하세요.\n");
+        sb.append("2. 예: '모바일 주문 시스템' 요청 시:\n");
+        sb.append("   - 1단계: 모바일 주문 시스템 (parent 없음)\n");
+        sb.append("   - 2단계: 메뉴 선택, 장바구니, 결제 등 (parent: 모바일 주문 시스템)\n");
+        sb.append("   - 3단계: 메뉴 검색, 필터링 등 (parent: 메뉴 선택)\n");
+        sb.append("3. parent가 없으면 비워두세요 (루트 레벨)\n");
+        sb.append("4. parent가 있으면 정확한 기능 이름을 사용하세요\n");
+        sb.append("5. 모든 텍스트는 한글과 영문만 사용하세요. 한자 절대 금지!\n\n");
         sb.append("반드시 다음 형식으로 기능을 정의해주세요:\n");
         sb.append("[NODE]\n");
-        sb.append("title: 새 기능 이름 (한글/영문만)\n");
+        sb.append("title: 기능 이름 (한글/영문만)\n");
         sb.append("type: FEATURE\n");
         sb.append("description: 기능 설명 (한글/영문만)\n");
-        sb.append("parent: 상위 기능 이름 (기존 기능 목록에서 복사)\n");
+        sb.append("parent: 상위 기능 이름 (없으면 비워두기)\n");
         sb.append("[/NODE]\n\n");
-        sb.append("예시 - '공고내용 목록에 검색 추가해줘' 요청 시:\n");
+        sb.append("예시 - '모바일 주문 시스템' 요청 시:\n");
         sb.append("[NODE]\n");
-        sb.append("title: 검색 기능\n");
-        sb.append("type: TASK\n");
-        sb.append("description: 공고 내용을 검색할 수 있습니다.\n");
-        sb.append("parent: 공고내용 목록\n");
+        sb.append("title: 모바일 주문 시스템\n");
+        sb.append("type: FEATURE\n");
+        sb.append("description: 고객이 모바일로 주문할 수 있는 시스템\n");
+        sb.append("parent: \n");
+        sb.append("[/NODE]\n\n");
+        sb.append("[NODE]\n");
+        sb.append("title: 메뉴 선택\n");
+        sb.append("type: FEATURE\n");
+        sb.append("description: 사용자가 메뉴를 선택할 수 있습니다\n");
+        sb.append("parent: 모바일 주문 시스템\n");
+        sb.append("[/NODE]\n\n");
+        sb.append("[NODE]\n");
+        sb.append("title: 장바구니\n");
+        sb.append("type: FEATURE\n");
+        sb.append("description: 선택한 메뉴를 장바구니에 담을 수 있습니다\n");
+        sb.append("parent: 모바일 주문 시스템\n");
         sb.append("[/NODE]");
         
         return sb.toString();
