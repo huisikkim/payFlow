@@ -4,6 +4,7 @@ import com.example.payflow.manyfast.dto.NodeRequest;
 import com.example.payflow.manyfast.dto.NodeResponse;
 import com.example.payflow.manyfast.entity.Project;
 import com.example.payflow.manyfast.entity.ProjectNode;
+import com.example.payflow.manyfast.service.ChatNodeService;
 import com.example.payflow.manyfast.service.ManyfastService;
 import com.example.payflow.manyfast.service.PrdGeneratorService;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ public class ManyfastController {
     
     private final ManyfastService manyfastService;
     private final PrdGeneratorService prdGeneratorService;
+    private final ChatNodeService chatNodeService;
     
     @PostMapping("/projects")
     public ResponseEntity<Project> createProject(@RequestBody Map<String, String> request) {
@@ -81,5 +83,15 @@ public class ManyfastController {
     public ResponseEntity<Map<String, String>> generatePRD(@PathVariable String projectId) {
         String prd = prdGeneratorService.generatePrd(projectId);
         return ResponseEntity.ok(Map.of("prd", prd));
+    }
+    
+    @PostMapping("/projects/{projectId}/chat")
+    public ResponseEntity<Map<String, Object>> chat(
+        @PathVariable String projectId,
+        @RequestBody Map<String, String> request
+    ) {
+        String message = request.get("message");
+        Map<String, Object> result = chatNodeService.processChat(projectId, message);
+        return ResponseEntity.ok(result);
     }
 }
