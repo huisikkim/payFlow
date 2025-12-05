@@ -239,44 +239,48 @@
         function NodeBranch({ nodes, level }) {
             if (!nodes || nodes.length === 0) return null;
             
-            const totalHeight = nodes.length * 80; // 각 노드 높이 + 간격
+            const nodeHeight = 100; // 각 노드 높이 + 간격
+            const totalHeight = nodes.length * nodeHeight;
+            const firstNodeY = nodeHeight / 2;
+            const lastNodeY = totalHeight - nodeHeight / 2;
             
             return (
-                <div className="branch-container">
-                    {/* 세로 연결선 */}
-                    {nodes.length > 1 && (
-                        <svg width="50" height={totalHeight} style={{overflow: 'visible'}}>
-                            {/* 메인 가로선 */}
-                            <line x1="0" y1={totalHeight/2} x2="25" y2={totalHeight/2} stroke="#475569" strokeWidth="2"/>
-                            {/* 세로선 */}
-                            <line x1="25" y1={nodes.length > 1 ? 40 : totalHeight/2} x2="25" y2={totalHeight - 40} stroke="#475569" strokeWidth="2"/>
-                            {/* 각 노드로 가는 가로선 */}
-                            {nodes.map((_, idx) => (
-                                <line key={idx} x1="25" y1={40 + idx * 80} x2="50" y2={40 + idx * 80} stroke="#475569" strokeWidth="2"/>
-                            ))}
-                        </svg>
-                    )}
-                    {nodes.length === 1 && <div className="h-connector"></div>}
+                <div className="branch-container" style={{display: 'flex', alignItems: 'stretch'}}>
+                    {/* 세로 연결선 SVG */}
+                    <svg width="50" height={totalHeight} style={{flexShrink: 0, overflow: 'visible'}}>
+                        {/* 입력 가로선 (왼쪽에서 중앙으로) */}
+                        <line x1="0" y1={totalHeight/2} x2="25" y2={totalHeight/2} stroke="#475569" strokeWidth="2"/>
+                        
+                        {nodes.length > 1 ? (
+                            <>
+                                {/* 세로선 (첫 노드부터 마지막 노드까지) */}
+                                <line x1="25" y1={firstNodeY} x2="25" y2={lastNodeY} stroke="#475569" strokeWidth="2"/>
+                                {/* 각 노드로 가는 가로선 */}
+                                {nodes.map((_, idx) => (
+                                    <line key={idx} x1="25" y1={firstNodeY + idx * nodeHeight} x2="50" y2={firstNodeY + idx * nodeHeight} stroke="#475569" strokeWidth="2"/>
+                                ))}
+                            </>
+                        ) : (
+                            /* 노드가 1개면 직선 */
+                            <line x1="25" y1={totalHeight/2} x2="50" y2={totalHeight/2} stroke="#475569" strokeWidth="2"/>
+                        )}
+                    </svg>
                     
                     {/* 노드 컬럼 */}
-                    <div className="node-column">
+                    <div className="node-column" style={{gap: `${nodeHeight - 80}px`}}>
                         {nodes.map((node, idx) => (
-                            <div key={node.id} className="branch-item">
+                            <div key={node.id} className="branch-item" style={{minHeight: '80px', display: 'flex', alignItems: 'center'}}>
                                 <div className="node-card">
                                     <div className="node-title">{node.title}</div>
-                                    {node.description && <div className="node-desc">{node.description.substring(0, 60)}...</div>}
+                                    {node.description && <div className="node-desc">{node.description.substring(0, 50)}...</div>}
                                     <div className="node-meta">
                                         <span className="badge todo">To Do</span>
                                         {node.nodeType === 'FEATURE' && <span className="badge admin">Admin</span>}
                                     </div>
                                 </div>
                                 
-                                {/* 자식 노드가 있으면 재귀 */}
                                 {node.children && node.children.length > 0 && (
-                                    <>
-                                        <div className="h-connector"></div>
-                                        <NodeBranch nodes={node.children} level={level + 1} />
-                                    </>
+                                    <NodeBranch nodes={node.children} level={level + 1} />
                                 )}
                             </div>
                         ))}
