@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${business.name} + ' - ReviewKit'">Business - ReviewKit</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            color: #2d3748;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        header .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header h1 { font-size: 24px; }
+        header a {
+            color: #fff;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 0 24px;
+        }
+        
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+        .stat-card {
+            background: #fff;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .stat-card .value {
+            font-size: 36px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+        .stat-card .label {
+            color: #718096;
+            font-size: 14px;
+        }
+        
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            color: #718096;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+        
+        /* Review Cards */
+        .review-grid {
+            display: grid;
+            gap: 16px;
+        }
+        .review-card {
+            background: #fff;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 16px;
+        }
+        .review-info h4 {
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+        .review-info .email {
+            color: #718096;
+            font-size: 14px;
+        }
+        .review-rating {
+            color: #fbbf24;
+            font-size: 20px;
+        }
+        .review-content {
+            color: #4a5568;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+        .review-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .review-meta {
+            color: #a0aec0;
+            font-size: 12px;
+            margin-top: 12px;
+        }
+        
+        /* Buttons */
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-approve {
+            background: #10b981;
+            color: #fff;
+        }
+        .btn-approve:hover {
+            background: #059669;
+        }
+        .btn-reject {
+            background: #ef4444;
+            color: #fff;
+        }
+        .btn-reject:hover {
+            background: #dc2626;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            padding: 12px 24px;
+            font-size: 16px;
+        }
+        
+        /* Widget Section */
+        .widget-grid {
+            display: grid;
+            gap: 16px;
+        }
+        .widget-card {
+            background: #fff;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .widget-card h4 {
+            font-size: 18px;
+            margin-bottom: 16px;
+        }
+        .widget-code {
+            background: #1a202c;
+            color: #68d391;
+            padding: 16px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            margin-top: 12px;
+        }
+        .widget-config {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #e2e8f0;
+        }
+        .widget-config-item {
+            font-size: 14px;
+        }
+        .widget-config-label {
+            color: #718096;
+            font-size: 12px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 24px;
+            color: #a0aec0;
+        }
+        .empty-state .icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        .section-header h3 {
+            font-size: 24px;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .badge-approved {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .badge-rejected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1 th:text="'⭐ ' + ${business.name}">⭐ Business Name</h1>
+            <a href="/reviewkit/dashboard">← 대시보드</a>
+        </div>
+    </header>
+    
+    <div class="container">
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="value" th:text="${pendingCount}">0</div>
+                <div class="label">대기중 리뷰</div>
+            </div>
+            <div class="stat-card">
+                <div class="value" th:text="${approvedCount}">0</div>
+                <div class="label">승인된 리뷰</div>
+            </div>
+            <div class="stat-card">
+                <div class="value" th:text="${widgets.size()}">0</div>
+                <div class="label">위젯</div>
+            </div>
+            <div class="stat-card">
+                <div class="value">
+                    <a th:href="@{/reviewkit/r/{slug}(slug=${business.slug})}" 
+                       style="color: #667eea; text-decoration: none; font-size: 16px;">
+                        📝 리뷰 작성 페이지
+                    </a>
+                </div>
+                <div class="label" th:text="'/r/' + ${business.slug}">/r/slug</div>
+            </div>
+            <div class="stat-card">
+                <div class="value">
+                    <a th:href="@{/reviewkit/businesses/{id}/qr-code(id=${business.id})}" 
+                       style="color: #667eea; text-decoration: none; font-size: 16px;">
+                        📱 QR 코드 생성
+                    </a>
+                </div>
+                <div class="label">테이블에 부착하세요</div>
+            </div>
+        </div>
+        
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('pending')">대기중 리뷰</button>
+            <button class="tab" onclick="showTab('approved')">승인된 리뷰</button>
+            <button class="tab" onclick="showTab('widgets')">위젯 관리</button>
+        </div>
+        
+        <!-- Pending Reviews -->
+        <div id="pending-tab" class="tab-content">
+            <div class="review-grid" th:if="${!#lists.isEmpty(pendingReviews)}">
+                <div class="review-card" th:each="review : ${pendingReviews}">
+                    <div class="review-header">
+                        <div class="review-info">
+                            <h4 th:text="${review.reviewerName}">김철수</h4>
+                            <div class="email" th:text="${review.reviewerEmail}">email@example.com</div>
+                            <span class="badge badge-pending">대기중</span>
+                        </div>
+                        <div class="review-rating" th:text="${#strings.repeat('⭐', review.rating)}">⭐⭐⭐⭐⭐</div>
+                    </div>
+                    <div class="review-content" th:text="${review.content}">리뷰 내용</div>
+                    <div class="review-actions">
+                        <button class="btn btn-approve" 
+                                th:onclick="'approveReview(' + ${review.id} + ')'">✓ 승인</button>
+                        <button class="btn btn-reject" 
+                                th:onclick="'rejectReview(' + ${review.id} + ')'">✗ 거부</button>
+                    </div>
+                    <div class="review-meta" th:text="${#temporals.format(review.createdAt, 'yyyy-MM-dd HH:mm')}">2024-01-01 12:00</div>
+                </div>
+            </div>
+            <div class="empty-state" th:if="${#lists.isEmpty(pendingReviews)}">
+                <div class="icon">📭</div>
+                <p>대기중인 리뷰가 없습니다</p>
+            </div>
+        </div>
+        
+        <!-- Approved Reviews -->
+        <div id="approved-tab" class="tab-content" style="display: none;">
+            <div class="review-grid" th:if="${!#lists.isEmpty(approvedReviews)}">
+                <div class="review-card" th:each="review : ${approvedReviews}">
+                    <div class="review-header">
+                        <div class="review-info">
+                            <h4 th:text="${review.reviewerName}">김철수</h4>
+                            <div class="email" th:text="${review.reviewerEmail}">email@example.com</div>
+                            <span class="badge badge-approved">승인됨</span>
+                        </div>
+                        <div class="review-rating" th:text="${#strings.repeat('⭐', review.rating)}">⭐⭐⭐⭐⭐</div>
+                    </div>
+                    <div class="review-content" th:text="${review.content}">리뷰 내용</div>
+                    <div class="review-meta">
+                        승인: <span th:text="${#temporals.format(review.approvedAt, 'yyyy-MM-dd HH:mm')}">2024-01-01 12:00</span>
+                    </div>
+                </div>
+            </div>
+            <div class="empty-state" th:if="${#lists.isEmpty(approvedReviews)}">
+                <div class="icon">📝</div>
+                <p>승인된 리뷰가 없습니다</p>
+            </div>
+        </div>
+        
+        <!-- Widgets -->
+        <div id="widgets-tab" class="tab-content" style="display: none;">
+            <div class="section-header">
+                <h3>위젯 목록</h3>
+                <a th:href="@{/reviewkit/businesses/{id}/widgets/new(id=${business.id})}" 
+                   class="btn btn-primary">+ 새 위젯 만들기</a>
+            </div>
+            
+            <div class="widget-grid" th:if="${!#lists.isEmpty(widgets)}">
+                <div class="widget-card" th:each="widget : ${widgets}">
+                    <h4 th:text="${widget.name}">Widget Name</h4>
+                    <div class="widget-config">
+                        <div class="widget-config-item">
+                            <div class="widget-config-label">테마</div>
+                            <div th:text="${widget.theme}">light</div>
+                        </div>
+                        <div class="widget-config-item">
+                            <div class="widget-config-label">레이아웃</div>
+                            <div th:text="${widget.layout}">grid</div>
+                        </div>
+                        <div class="widget-config-item">
+                            <div class="widget-config-label">표시 개수</div>
+                            <div th:text="${widget.displayLimit}">6</div>
+                        </div>
+                        <div class="widget-config-item">
+                            <div class="widget-config-label">언어</div>
+                            <div th:text="${widget.language}">ko</div>
+                        </div>
+                    </div>
+                    <div class="widget-code" th:text="${widget.embedCode}">
+                        &lt;script src="/static/js/reviewkit-widget.js"&gt;&lt;/script&gt;
+                    </div>
+                </div>
+            </div>
+            <div class="empty-state" th:if="${#lists.isEmpty(widgets)}">
+                <div class="icon">🎨</div>
+                <p>위젯이 없습니다. 첫 번째 위젯을 만들어보세요!</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.style.display = 'none';
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName + '-tab').style.display = 'block';
+            event.target.classList.add('active');
+        }
+        
+        async function approveReview(reviewId) {
+            try {
+                const response = await fetch(`/api/reviewkit/reviews/${reviewId}/approve`, {
+                    method: 'POST'
+                });
+                if (response.ok) {
+                    location.reload();
+                }
+            } catch (error) {
+                alert('승인 실패: ' + error.message);
+            }
+        }
+        
+        async function rejectReview(reviewId) {
+            if (!confirm('이 리뷰를 거부하시겠습니까?')) return;
+            
+            try {
+                const response = await fetch(`/api/reviewkit/reviews/${reviewId}/reject`, {
+                    method: 'POST'
+                });
+                if (response.ok) {
+                    location.reload();
+                }
+            } catch (error) {
+                alert('거부 실패: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

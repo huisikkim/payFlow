@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReviewKit Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            color: #2d3748;
+        }
+        
+        /* Header */
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        header .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header h1 { font-size: 24px; }
+        header a {
+            color: #fff;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
+        }
+        header a:hover { background: rgba(255,255,255,0.3); }
+        
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 24px;
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 80px 24px;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .empty-state .icon {
+            font-size: 80px;
+            margin-bottom: 24px;
+        }
+        .empty-state h2 {
+            font-size: 32px;
+            margin-bottom: 16px;
+            color: #2d3748;
+        }
+        .empty-state p {
+            font-size: 18px;
+            color: #718096;
+            margin-bottom: 32px;
+        }
+        
+        /* Business Grid */
+        .business-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+            margin-top: 24px;
+        }
+        .business-card {
+            background: #fff;
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .business-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+        }
+        .business-card h3 {
+            font-size: 20px;
+            margin-bottom: 8px;
+            color: #2d3748;
+        }
+        .business-card .slug {
+            color: #718096;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+        .business-card .stats {
+            display: flex;
+            gap: 16px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #e2e8f0;
+        }
+        .business-card .stat {
+            flex: 1;
+            text-align: center;
+        }
+        .business-card .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+        }
+        .business-card .stat-label {
+            font-size: 12px;
+            color: #718096;
+            margin-top: 4px;
+        }
+        
+        /* Button */
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
+        }
+        
+        /* Header Actions */
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        .header-actions h2 {
+            font-size: 28px;
+            color: #2d3748;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>⭐ ReviewKit</h1>
+            <a href="/">← 홈으로</a>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="header-actions">
+            <h2>내 비즈니스</h2>
+            <a href="/reviewkit/businesses/new" class="btn btn-primary">+ 새 비즈니스 만들기</a>
+        </div>
+        
+        <!-- Empty State -->
+        <div class="empty-state" th:if="${#lists.isEmpty(businesses)}">
+            <div class="icon">🏪</div>
+            <h2>아직 비즈니스가 없습니다</h2>
+            <p>첫 번째 비즈니스를 만들고 리뷰 수집을 시작하세요!</p>
+            <a href="/reviewkit/businesses/new" class="btn btn-primary">비즈니스 만들기</a>
+        </div>
+        
+        <!-- Business Grid -->
+        <div class="business-grid" th:if="${!#lists.isEmpty(businesses)}">
+            <div class="business-card" th:each="business : ${businesses}" 
+                 th:onclick="'location.href=\'/reviewkit/businesses/' + ${business.id} + '\''">
+                <h3 th:text="${business.name}">홍대 지민 카페</h3>
+                <div class="slug" th:text="'reviewkit.com/r/' + ${business.slug}">reviewkit.com/r/jimin-cafe</div>
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-value" th:text="${business.reviews.size()}">0</div>
+                        <div class="stat-label">총 리뷰</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" th:text="${business.widgets.size()}">0</div>
+                        <div class="stat-label">위젯</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

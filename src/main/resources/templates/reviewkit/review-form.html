@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${business.name} + ' - 리뷰 작성'">리뷰 작성</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        
+        .form-container {
+            background: #fff;
+            max-width: 600px;
+            width: 100%;
+            padding: 48px;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .business-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .business-header h1 {
+            font-size: 32px;
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+        .business-header p {
+            color: #718096;
+            font-size: 16px;
+        }
+        
+        .form-group {
+            margin-bottom: 24px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2d3748;
+        }
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+        
+        /* Star Rating */
+        .star-rating {
+            display: flex;
+            gap: 8px;
+            font-size: 40px;
+            margin-top: 8px;
+        }
+        .star {
+            cursor: pointer;
+            color: #e2e8f0;
+            transition: all 0.2s ease;
+        }
+        .star:hover,
+        .star.active {
+            color: #fbbf24;
+            transform: scale(1.1);
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            border: none;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(102, 126, 234, 0.5);
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .success-message {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        .success-message .icon {
+            font-size: 80px;
+            margin-bottom: 24px;
+        }
+        .success-message h2 {
+            font-size: 28px;
+            color: #2d3748;
+            margin-bottom: 12px;
+        }
+        .success-message p {
+            color: #718096;
+            font-size: 16px;
+        }
+        
+        .error-message {
+            display: none;
+            padding: 12px 16px;
+            background: #fee2e2;
+            color: #991b1b;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <div id="form-section">
+            <div class="business-header">
+                <h1 th:text="${business.name}">Business Name</h1>
+                <p>서비스는 어떠셨나요? 솔직한 리뷰를 남겨주세요 😊</p>
+            </div>
+            
+            <div class="error-message" id="error-message"></div>
+            
+            <form id="review-form">
+                <div class="form-group">
+                    <label for="reviewerName">이름 *</label>
+                    <input type="text" id="reviewerName" name="reviewerName" required 
+                           placeholder="홍길동">
+                </div>
+                
+                <div class="form-group">
+                    <label for="reviewerEmail">이메일 *</label>
+                    <input type="email" id="reviewerEmail" name="reviewerEmail" required 
+                           placeholder="example@email.com">
+                </div>
+                
+                <div class="form-group">
+                    <label for="reviewerCompany">회사명 (선택)</label>
+                    <input type="text" id="reviewerCompany" name="reviewerCompany" 
+                           placeholder="ABC 스타트업">
+                </div>
+                
+                <div class="form-group">
+                    <label>별점 *</label>
+                    <div class="star-rating" id="star-rating">
+                        <span class="star" data-rating="1">⭐</span>
+                        <span class="star" data-rating="2">⭐</span>
+                        <span class="star" data-rating="3">⭐</span>
+                        <span class="star" data-rating="4">⭐</span>
+                        <span class="star" data-rating="5">⭐</span>
+                    </div>
+                    <input type="hidden" id="rating" name="rating" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="content">리뷰 내용</label>
+                    <textarea id="content" name="content" 
+                              placeholder="서비스에 대한 솔직한 의견을 남겨주세요"></textarea>
+                </div>
+                
+                <button type="submit" class="btn" id="submit-btn">리뷰 제출하기</button>
+            </form>
+        </div>
+        
+        <div class="success-message" id="success-message">
+            <div class="icon">🎉</div>
+            <h2>감사합니다!</h2>
+            <p>리뷰가 성공적으로 제출되었습니다.<br>승인 후 공개됩니다.</p>
+        </div>
+    </div>
+    
+    <script th:inline="javascript">
+        const businessSlug = /*[[${business.slug}]]*/ 'business-slug';
+        let selectedRating = 0;
+        
+        // Star rating
+        document.querySelectorAll('.star').forEach(star => {
+            star.addEventListener('click', function() {
+                selectedRating = parseInt(this.dataset.rating);
+                document.getElementById('rating').value = selectedRating;
+                
+                document.querySelectorAll('.star').forEach((s, index) => {
+                    if (index < selectedRating) {
+                        s.classList.add('active');
+                    } else {
+                        s.classList.remove('active');
+                    }
+                });
+            });
+            
+            star.addEventListener('mouseenter', function() {
+                const rating = parseInt(this.dataset.rating);
+                document.querySelectorAll('.star').forEach((s, index) => {
+                    if (index < rating) {
+                        s.style.color = '#fbbf24';
+                    } else {
+                        s.style.color = '#e2e8f0';
+                    }
+                });
+            });
+        });
+        
+        document.getElementById('star-rating').addEventListener('mouseleave', function() {
+            document.querySelectorAll('.star').forEach((s, index) => {
+                if (index < selectedRating) {
+                    s.style.color = '#fbbf24';
+                } else {
+                    s.style.color = '#e2e8f0';
+                }
+            });
+        });
+        
+        // Form submission
+        document.getElementById('review-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const errorMsg = document.getElementById('error-message');
+            errorMsg.style.display = 'none';
+            
+            if (!selectedRating) {
+                errorMsg.textContent = '별점을 선택해주세요';
+                errorMsg.style.display = 'block';
+                return;
+            }
+            
+            const submitBtn = document.getElementById('submit-btn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = '제출 중...';
+            
+            const formData = {
+                reviewerName: document.getElementById('reviewerName').value,
+                reviewerEmail: document.getElementById('reviewerEmail').value,
+                reviewerCompany: document.getElementById('reviewerCompany').value,
+                rating: selectedRating,
+                content: document.getElementById('content').value
+            };
+            
+            try {
+                const response = await fetch(`/api/reviewkit/businesses/${businessSlug}/reviews`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                if (response.ok) {
+                    document.getElementById('form-section').style.display = 'none';
+                    document.getElementById('success-message').style.display = 'block';
+                } else {
+                    const error = await response.json();
+                    errorMsg.textContent = error.message || '리뷰 제출에 실패했습니다';
+                    errorMsg.style.display = 'block';
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = '리뷰 제출하기';
+                }
+            } catch (error) {
+                errorMsg.textContent = '네트워크 오류가 발생했습니다';
+                errorMsg.style.display = 'block';
+                submitBtn.disabled = false;
+                submitBtn.textContent = '리뷰 제출하기';
+            }
+        });
+    </script>
+</body>
+</html>

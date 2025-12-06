@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReviewKit Widget Demo</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            padding: 40px 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 40px;
+            color: #2d3748;
+        }
+        
+        .demo-section {
+            background: #fff;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin-bottom: 40px;
+        }
+        
+        .demo-section h2 {
+            margin-bottom: 24px;
+            color: #2d3748;
+        }
+        
+        .demo-controls {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .control-group label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+        
+        .control-group select,
+        .control-group input {
+            padding: 8px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            align-self: flex-end;
+        }
+        
+        .btn:hover {
+            opacity: 0.9;
+        }
+        
+        .code-block {
+            background: #1a202c;
+            color: #68d391;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            margin-top: 16px;
+        }
+        
+        .widget-preview {
+            min-height: 200px;
+            padding: 20px;
+            background: #f7fafc;
+            border-radius: 12px;
+            border: 2px dashed #cbd5e0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 ReviewKit Widget Demo</h1>
+        
+        <!-- Live Demo -->
+        <div class="demo-section">
+            <h2>라이브 데모</h2>
+            
+            <div class="demo-controls">
+                <div class="control-group">
+                    <label>Widget ID</label>
+                    <input type="text" id="widgetId" value="test-widget-123" placeholder="위젯 ID 입력">
+                </div>
+                
+                <div class="control-group">
+                    <label>테마</label>
+                    <select id="theme">
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label>레이아웃</label>
+                    <select id="layout">
+                        <option value="grid">Grid</option>
+                        <option value="list">List</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label>표시 개수</label>
+                    <input type="number" id="limit" value="6" min="1" max="20">
+                </div>
+                
+                <div class="control-group">
+                    <label>언어</label>
+                    <select id="lang">
+                        <option value="ko">한국어</option>
+                        <option value="en">English</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label>&nbsp;</label>
+                    <button class="btn" onclick="reloadWidget()">위젯 새로고침</button>
+                </div>
+            </div>
+            
+            <div class="widget-preview" id="widget-container">
+                <!-- Widget will be rendered here -->
+            </div>
+            
+            <div class="code-block" id="embed-code">
+                &lt;script src="/js/reviewkit-widget.js"&gt;&lt;/script&gt;
+                &lt;div data-reviewkit-widget="test-widget-123"&gt;&lt;/div&gt;
+            </div>
+        </div>
+        
+        <!-- Examples -->
+        <div class="demo-section">
+            <h2>📋 사용 예제</h2>
+            
+            <h3 style="margin-top: 24px; margin-bottom: 12px;">1. 기본 사용법</h3>
+            <div class="code-block">
+&lt;!-- 1. SDK 스크립트 추가 --&gt;
+&lt;script src="https://yoursite.com/js/reviewkit-widget.js"&gt;&lt;/script&gt;
+
+&lt;!-- 2. 위젯 컨테이너 추가 --&gt;
+&lt;div data-reviewkit-widget="your-widget-id"&gt;&lt;/div&gt;
+            </div>
+            
+            <h3 style="margin-top: 24px; margin-bottom: 12px;">2. 옵션 설정</h3>
+            <div class="code-block">
+&lt;!-- 데이터 속성으로 설정 --&gt;
+&lt;div 
+  data-reviewkit-widget="your-widget-id"
+  data-theme="dark"
+  data-layout="list"
+  data-limit="10"
+  data-lang="en"
+&gt;&lt;/div&gt;
+            </div>
+            
+            <h3 style="margin-top: 24px; margin-bottom: 12px;">3. JavaScript API</h3>
+            <div class="code-block">
+&lt;script&gt;
+  // 수동 초기화
+  const element = document.getElementById('my-reviews');
+  ReviewKit.init(element, 'your-widget-id', {
+    theme: 'dark',
+    layout: 'grid',
+    limit: 6,
+    lang: 'ko'
+  });
+&lt;/script&gt;
+            </div>
+        </div>
+        
+        <!-- Features -->
+        <div class="demo-section">
+            <h2>✨ 주요 기능</h2>
+            <ul style="line-height: 2; color: #4a5568;">
+                <li>✅ Shadow DOM을 사용한 스타일 격리 (고객 사이트 CSS와 충돌 없음)</li>
+                <li>✅ 라이트/다크 테마 지원</li>
+                <li>✅ 그리드/리스트 레이아웃</li>
+                <li>✅ 반응형 디자인 (모바일 최적화)</li>
+                <li>✅ 다국어 지원 (한국어/영어)</li>
+                <li>✅ 자동 날짜 포맷팅 (상대 시간)</li>
+                <li>✅ XSS 방지 (HTML 이스케이프)</li>
+                <li>✅ 에러 핸들링</li>
+            </ul>
+        </div>
+    </div>
+    
+    <script src="/js/reviewkit-widget.js"></script>
+    <script>
+        function reloadWidget() {
+            const container = document.getElementById('widget-container');
+            const widgetId = document.getElementById('widgetId').value;
+            const theme = document.getElementById('theme').value;
+            const layout = document.getElementById('layout').value;
+            const limit = document.getElementById('limit').value;
+            const lang = document.getElementById('lang').value;
+            
+            // Clear container
+            container.innerHTML = '';
+            
+            // Create new widget element
+            const widgetElement = document.createElement('div');
+            widgetElement.dataset.reviewkitWidget = widgetId;
+            widgetElement.dataset.theme = theme;
+            widgetElement.dataset.layout = layout;
+            widgetElement.dataset.limit = limit;
+            widgetElement.dataset.lang = lang;
+            
+            container.appendChild(widgetElement);
+            
+            // Initialize widget
+            ReviewKit.init(widgetElement, widgetId, {
+                theme: theme,
+                layout: layout,
+                limit: parseInt(limit),
+                lang: lang
+            });
+            
+            // Update embed code
+            const embedCode = document.getElementById('embed-code');
+            embedCode.innerHTML = `&lt;script src="/js/reviewkit-widget.js"&gt;&lt;/script&gt;
+&lt;div 
+  data-reviewkit-widget="${widgetId}"
+  data-theme="${theme}"
+  data-layout="${layout}"
+  data-limit="${limit}"
+  data-lang="${lang}"
+&gt;&lt;/div&gt;`;
+        }
+        
+        // Initial load
+        reloadWidget();
+    </script>
+</body>
+</html>
