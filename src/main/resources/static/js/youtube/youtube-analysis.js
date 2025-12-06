@@ -107,6 +107,33 @@ function displayReport(report) {
     // 연락처 정보
     displayContactInfo(report);
     
+    // ===== 새로운 분석 결과 표시 =====
+    
+    // 경쟁 영상 상세 통계
+    if (report.competitorAnalysis) {
+        displayCompetitorAnalysis(report.competitorAnalysis);
+    }
+    
+    // 제목 분석
+    if (report.titleAnalysis) {
+        displayTitleAnalysis(report.titleAnalysis);
+    }
+    
+    // SEO 분석
+    if (report.seoAnalysis) {
+        displaySeoAnalysis(report.seoAnalysis);
+    }
+    
+    // CTR 추정
+    if (report.ctrEstimate) {
+        displayCtrEstimate(report.ctrEstimate);
+    }
+    
+    // 품질 점수
+    if (report.qualityScore) {
+        displayQualityScore(report.qualityScore);
+    }
+    
     // 리포트 섹션 표시
     showReport();
 }
@@ -298,6 +325,275 @@ function formatDate(dateString) {
     if (diffDays < 30) return Math.floor(diffDays / 7) + '주 전';
     if (diffDays < 365) return Math.floor(diffDays / 30) + '개월 전';
     return Math.floor(diffDays / 365) + '년 전';
+}
+
+/**
+ * 경쟁 영상 상세 분석 표시
+ */
+function displayCompetitorAnalysis(analysis) {
+    // 통계 표시
+    document.getElementById('viewsMedian').textContent = formatNumber(analysis.viewsMedian || 0);
+    document.getElementById('viewsAverage').textContent = formatNumber(analysis.viewsAverage || 0);
+    document.getElementById('engagementAverage').textContent = (analysis.engagementAverage || 0).toFixed(2) + '%';
+    
+    // 성장 패턴 표시
+    const patternsContainer = document.getElementById('growthPatterns');
+    if (analysis.growthPatterns && analysis.growthPatterns.length > 0) {
+        let html = '<h4>🚀 성장 패턴 (일일 조회수 기준)</h4><div class="patterns-list">';
+        analysis.growthPatterns.slice(0, 5).forEach(pattern => {
+            html += `
+                <div class="pattern-item">
+                    <p class="pattern-title">${pattern.title}</p>
+                    <p class="pattern-stats">
+                        조회수: ${formatNumber(pattern.views)} | 
+                        일일: ${formatNumber(pattern.viewsPerDay)} | 
+                        ${pattern.daysOld}일 전 | 
+                        <span class="growth-badge">${pattern.growthRate}</span>
+                    </p>
+                </div>
+            `;
+        });
+        html += '</div>';
+        patternsContainer.innerHTML = html;
+    }
+}
+
+/**
+ * 제목 분석 표시
+ */
+function displayTitleAnalysis(analysis) {
+    const container = document.getElementById('titleAnalysisContent');
+    
+    let html = `
+        <div class="analysis-card">
+            <div class="score-header">
+                <h4>제목 최적화 점수</h4>
+                <div class="score-badge-large">${analysis.score}/100</div>
+            </div>
+            
+            <div class="analysis-details">
+                <p><strong>제목:</strong> ${analysis.title}</p>
+                <p><strong>길이:</strong> ${analysis.length}자 
+                    ${analysis.isOptimalLength ? '✅ 최적' : '⚠️ ' + (analysis.length < 40 ? '너무 짧음' : '너무 김')}
+                </p>
+                <p><strong>단어 수:</strong> ${analysis.wordCount}개</p>
+                <p><strong>숫자 포함:</strong> ${analysis.hasNumbers ? '✅ 예' : '❌ 아니오'}</p>
+                <p><strong>감정 단어:</strong> ${analysis.hasEmotionalWords ? '✅ 포함' : '❌ 없음'}</p>
+                <p><strong>질문형:</strong> ${analysis.hasQuestionMark ? '✅ 예' : '❌ 아니오'}</p>
+            </div>
+            
+            <div class="keywords-section">
+                <h5>🔑 추출된 키워드</h5>
+                <div class="keywords-list">
+                    ${analysis.keywords.map(k => `<span class="keyword-tag">${k}</span>`).join('')}
+                </div>
+            </div>
+            
+            <div class="suggestions-section">
+                <h5>💡 개선 제안</h5>
+                ${analysis.suggestions.map(s => `<p class="suggestion-item">• ${s}</p>`).join('')}
+            </div>
+        </div>
+    `;
+    
+    container.innerHTML = html;
+}
+
+/**
+ * SEO 분석 표시
+ */
+function displaySeoAnalysis(analysis) {
+    const container = document.getElementById('seoAnalysisContent');
+    
+    let html = `
+        <div class="analysis-card">
+            <div class="score-header">
+                <h4>전체 SEO 점수</h4>
+                <div class="score-badge-large">${analysis.overallSeoScore}/100</div>
+            </div>
+            
+            <div class="seo-section">
+                <h5>🏷️ 태그 분석 (점수: ${analysis.tagDiversityScore}/100)</h5>
+                <p><strong>현재 태그 수:</strong> ${analysis.tagCount}개</p>
+                ${analysis.currentTags.length > 0 ? `
+                    <div class="tags-list">
+                        ${analysis.currentTags.map(t => `<span class="tag-item">${t}</span>`).join('')}
+                    </div>
+                ` : '<p class="no-data">태그가 없습니다.</p>'}
+                
+                ${analysis.recommendedTags.length > 0 ? `
+                    <p><strong>추천 태그:</strong></p>
+                    <div class="tags-list">
+                        ${analysis.recommendedTags.slice(0, 10).map(t => `<span class="tag-item recommended">${t}</span>`).join('')}
+                    </div>
+                ` : ''}
+                
+                ${analysis.missingTags.length > 0 ? `
+                    <p class="warning-text">⚠️ 인기 태그 중 누락: ${analysis.missingTags.join(', ')}</p>
+                ` : ''}
+            </div>
+            
+            <div class="seo-section">
+                <h5>📝 설명문 분석 (점수: ${analysis.descriptionScore}/100)</h5>
+                <p><strong>길이:</strong> ${analysis.descriptionLength}자 
+                    ${analysis.descriptionLength >= 250 ? '✅' : '⚠️ 최소 250자 권장'}
+                </p>
+                <p><strong>링크 포함:</strong> ${analysis.hasLinks ? '✅ 예' : '❌ 아니오'}</p>
+                <p><strong>타임스탬프:</strong> ${analysis.hasTimestamps ? '✅ 예' : '❌ 아니오'}</p>
+                <p><strong>해시태그:</strong> ${analysis.hasHashtags ? '✅ ' + analysis.hashtagCount + '개' : '❌ 없음'}</p>
+                
+                ${analysis.hashtags.length > 0 ? `
+                    <div class="hashtags-list">
+                        ${analysis.hashtags.map(h => `<span class="hashtag-item">${h}</span>`).join('')}
+                    </div>
+                ` : ''}
+            </div>
+            
+            <div class="seo-section">
+                <h5>✅ 최적화 체크리스트</h5>
+                ${analysis.descriptionChecklist.map(item => `
+                    <div class="checklist-item ${item.checked ? 'checked' : ''}">
+                        <span class="check-icon">${item.checked ? '✅' : '❌'}</span>
+                        <div>
+                            <p class="check-title">${item.item}</p>
+                            <p class="check-desc">${item.recommendation}</p>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+    
+    container.innerHTML = html;
+}
+
+/**
+ * CTR 추정 표시
+ */
+function displayCtrEstimate(estimate) {
+    const container = document.getElementById('ctrEstimateContent');
+    
+    let html = `
+        <div class="analysis-card">
+            <div class="ctr-header">
+                <h4>예상 클릭률 (CTR)</h4>
+                <div class="ctr-value-large">${estimate.estimatedCtr.toFixed(2)}%</div>
+                <div class="ctr-level">${estimate.ctrLevel}</div>
+            </div>
+            
+            <div class="ctr-factors">
+                <h5>📊 CTR 영향 요소</h5>
+                ${estimate.factors.map(factor => `
+                    <div class="factor-item">
+                        <div class="factor-header">
+                            <span class="factor-name">${factor.factor}</span>
+                            <span class="factor-score ${factor.impact === '긍정적' ? 'positive' : factor.impact === '부정적' ? 'negative' : 'neutral'}">
+                                ${factor.score}점
+                            </span>
+                        </div>
+                        <p class="factor-desc">${factor.description}</p>
+                        <div class="factor-bar">
+                            <div class="factor-fill ${factor.impact === '긍정적' ? 'positive' : factor.impact === '부정적' ? 'negative' : 'neutral'}" 
+                                 style="width: ${(factor.score / 20) * 100}%"></div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+            
+            ${estimate.improvements.length > 0 ? `
+                <div class="improvements-section">
+                    <h5>💡 개선 방안</h5>
+                    ${estimate.improvements.map(imp => `<p class="improvement-item">• ${imp}</p>`).join('')}
+                </div>
+            ` : ''}
+        </div>
+    `;
+    
+    container.innerHTML = html;
+}
+
+/**
+ * 품질 점수 표시
+ */
+function displayQualityScore(score) {
+    const container = document.getElementById('qualityScoreContent');
+    
+    let html = `
+        <div class="analysis-card">
+            <div class="quality-header">
+                <h4>종합 품질 점수</h4>
+                <div class="quality-score-large">
+                    <div class="score-circle-large">
+                        <div class="score-value-large">${score.overallScore}</div>
+                        <div class="score-label-large">/ 100</div>
+                    </div>
+                    <div class="grade-badge-large">${score.grade}</div>
+                </div>
+            </div>
+            
+            <div class="quality-breakdown">
+                <h5>📊 세부 점수</h5>
+                
+                <div class="quality-item">
+                    <div class="quality-item-header">
+                        <span class="quality-name">제목 최적화</span>
+                        <span class="quality-score">${score.titleOptimizationScore}/100</span>
+                    </div>
+                    <div class="quality-bar">
+                        <div class="quality-fill" style="width: ${score.titleOptimizationScore}%"></div>
+                    </div>
+                    <div class="quality-detail">
+                        <span class="status-badge ${score.titleDetail.status}">${score.titleDetail.status}</span>
+                        <p>${score.titleDetail.feedback}</p>
+                    </div>
+                </div>
+                
+                <div class="quality-item">
+                    <div class="quality-item-header">
+                        <span class="quality-name">태그 다양성</span>
+                        <span class="quality-score">${score.tagDiversityScore}/100</span>
+                    </div>
+                    <div class="quality-bar">
+                        <div class="quality-fill" style="width: ${score.tagDiversityScore}%"></div>
+                    </div>
+                    <div class="quality-detail">
+                        <span class="status-badge ${score.tagDetail.status}">${score.tagDetail.status}</span>
+                        <p>${score.tagDetail.feedback}</p>
+                    </div>
+                </div>
+                
+                <div class="quality-item">
+                    <div class="quality-item-header">
+                        <span class="quality-name">설명문 품질</span>
+                        <span class="quality-score">${score.descriptionLengthScore}/100</span>
+                    </div>
+                    <div class="quality-bar">
+                        <div class="quality-fill" style="width: ${score.descriptionLengthScore}%"></div>
+                    </div>
+                    <div class="quality-detail">
+                        <span class="status-badge ${score.descriptionDetail.status}">${score.descriptionDetail.status}</span>
+                        <p>${score.descriptionDetail.feedback}</p>
+                    </div>
+                </div>
+                
+                <div class="quality-item">
+                    <div class="quality-item-header">
+                        <span class="quality-name">참여도</span>
+                        <span class="quality-score">${score.engagementScore}/100</span>
+                    </div>
+                    <div class="quality-bar">
+                        <div class="quality-fill" style="width: ${score.engagementScore}%"></div>
+                    </div>
+                    <div class="quality-detail">
+                        <span class="status-badge ${score.engagementDetail.status}">${score.engagementDetail.status}</span>
+                        <p>${score.engagementDetail.feedback}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    container.innerHTML = html;
 }
 
 /**

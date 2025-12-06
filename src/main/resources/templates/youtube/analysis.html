@@ -119,6 +119,10 @@
             <!-- 상세 분석 탭 -->
             <div class="tabs">
                 <button class="tab-btn active" onclick="switchTab('competition')">경쟁 분석</button>
+                <button class="tab-btn" onclick="switchTab('title')">제목 분석</button>
+                <button class="tab-btn" onclick="switchTab('seo')">SEO 분석</button>
+                <button class="tab-btn" onclick="switchTab('ctr')">CTR 추정</button>
+                <button class="tab-btn" onclick="switchTab('quality')">품질 점수</button>
                 <button class="tab-btn" onclick="switchTab('engagement')">참여율 분석</button>
                 <button class="tab-btn" onclick="switchTab('recommendations')">추천 사항</button>
                 <button class="tab-btn" onclick="switchTab('contact')">채널 연락처</button>
@@ -141,6 +145,52 @@
                     <p>👁️ 경쟁 영상 평균 조회수: <strong id="avgCompetitorViews">0</strong></p>
                     <p class="recommendation-text" id="competitionRecommendation"></p>
                 </div>
+                
+                <!-- 경쟁 영상 상세 통계 -->
+                <div id="competitorStats" class="competitor-stats" style="margin-top: 20px;">
+                    <h4>📈 Top 20 경쟁 영상 통계</h4>
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <p class="stat-label">조회수 중앙값</p>
+                            <p class="stat-value" id="viewsMedian">-</p>
+                        </div>
+                        <div class="stat-box">
+                            <p class="stat-label">조회수 평균</p>
+                            <p class="stat-value" id="viewsAverage">-</p>
+                        </div>
+                        <div class="stat-box">
+                            <p class="stat-label">참여도 평균</p>
+                            <p class="stat-value" id="engagementAverage">-</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 성장 패턴 -->
+                <div id="growthPatterns" class="growth-patterns" style="margin-top: 20px;"></div>
+            </div>
+            
+            <!-- 제목 분석 탭 -->
+            <div id="titleTab" class="tab-content">
+                <h3>📝 제목 분석</h3>
+                <div id="titleAnalysisContent" class="analysis-content"></div>
+            </div>
+            
+            <!-- SEO 분석 탭 -->
+            <div id="seoTab" class="tab-content">
+                <h3>🔍 SEO 분석</h3>
+                <div id="seoAnalysisContent" class="analysis-content"></div>
+            </div>
+            
+            <!-- CTR 추정 탭 -->
+            <div id="ctrTab" class="tab-content">
+                <h3>👆 CTR 추정</h3>
+                <div id="ctrEstimateContent" class="analysis-content"></div>
+            </div>
+            
+            <!-- 품질 점수 탭 -->
+            <div id="qualityTab" class="tab-content">
+                <h3>⭐ 품질 점수</h3>
+                <div id="qualityScoreContent" class="analysis-content"></div>
             </div>
             
             <!-- 참여율 분석 탭 -->

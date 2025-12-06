@@ -562,3 +562,501 @@ body {
         overflow-x: auto;
     }
 }
+
+/* ===== 새로운 분석 결과 스타일 ===== */
+
+/* 분석 카드 공통 */
+.analysis-card {
+    background: #1f2937;
+    padding: 25px;
+    border-radius: 12px;
+    border: 1px solid #374151;
+}
+
+.score-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #374151;
+}
+
+.score-badge-large {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #10b981;
+}
+
+.analysis-details {
+    margin-bottom: 20px;
+}
+
+.analysis-details p {
+    margin-bottom: 10px;
+    color: #e5e7eb;
+}
+
+/* 경쟁 영상 통계 */
+.competitor-stats {
+    background: #111827;
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 20px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.stat-box {
+    background: #1f2937;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    color: #9ca3af;
+    margin-bottom: 8px;
+}
+
+.stat-box .stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #10b981;
+}
+
+/* 성장 패턴 */
+.growth-patterns {
+    background: #111827;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.patterns-list {
+    margin-top: 15px;
+}
+
+.pattern-item {
+    background: #1f2937;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    border-left: 4px solid #3b82f6;
+}
+
+.pattern-title {
+    font-weight: 600;
+    color: #e5e7eb;
+    margin-bottom: 8px;
+}
+
+.pattern-stats {
+    font-size: 0.9rem;
+    color: #9ca3af;
+}
+
+.growth-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    background: #374151;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    color: #10b981;
+}
+
+/* 제목 분석 */
+.keywords-section,
+.suggestions-section {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #374151;
+}
+
+.keywords-section h5,
+.suggestions-section h5 {
+    margin-bottom: 12px;
+    color: #e5e7eb;
+}
+
+.keywords-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.suggestion-item {
+    padding: 10px;
+    margin-bottom: 8px;
+    background: #111827;
+    border-radius: 6px;
+    color: #e5e7eb;
+}
+
+/* SEO 분석 */
+.seo-section {
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #374151;
+}
+
+.seo-section:last-child {
+    border-bottom: none;
+}
+
+.seo-section h5 {
+    margin-bottom: 15px;
+    color: #e5e7eb;
+}
+
+.tags-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 10px 0;
+}
+
+.tag-item {
+    padding: 6px 12px;
+    background: #374151;
+    border-radius: 15px;
+    font-size: 0.85rem;
+    color: #e5e7eb;
+}
+
+.tag-item.recommended {
+    background: #065f46;
+    color: #6ee7b7;
+}
+
+.hashtags-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 10px 0;
+}
+
+.hashtag-item {
+    padding: 6px 12px;
+    background: #1e40af;
+    border-radius: 15px;
+    font-size: 0.85rem;
+    color: #93c5fd;
+}
+
+.warning-text {
+    color: #fbbf24;
+    font-size: 0.9rem;
+    margin-top: 10px;
+}
+
+.no-data {
+    color: #6b7280;
+    font-style: italic;
+}
+
+/* 체크리스트 */
+.checklist-item {
+    display: flex;
+    gap: 12px;
+    padding: 12px;
+    margin-bottom: 10px;
+    background: #111827;
+    border-radius: 8px;
+}
+
+.checklist-item.checked {
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.check-icon {
+    font-size: 1.2rem;
+}
+
+.check-title {
+    font-weight: 600;
+    color: #e5e7eb;
+    margin-bottom: 4px;
+}
+
+.check-desc {
+    font-size: 0.9rem;
+    color: #9ca3af;
+}
+
+/* CTR 추정 */
+.ctr-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.ctr-value-large {
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: #3b82f6;
+    margin: 10px 0;
+}
+
+.ctr-level {
+    display: inline-block;
+    padding: 8px 20px;
+    background: #1e40af;
+    color: #93c5fd;
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+.ctr-factors {
+    margin-top: 25px;
+}
+
+.ctr-factors h5 {
+    margin-bottom: 15px;
+    color: #e5e7eb;
+}
+
+.factor-item {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #111827;
+    border-radius: 8px;
+}
+
+.factor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.factor-name {
+    font-weight: 600;
+    color: #e5e7eb;
+}
+
+.factor-score {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.factor-score.positive {
+    background: rgba(16, 185, 129, 0.2);
+    color: #6ee7b7;
+}
+
+.factor-score.negative {
+    background: rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+}
+
+.factor-score.neutral {
+    background: rgba(107, 114, 128, 0.2);
+    color: #d1d5db;
+}
+
+.factor-desc {
+    font-size: 0.9rem;
+    color: #9ca3af;
+    margin-bottom: 10px;
+}
+
+.factor-bar {
+    width: 100%;
+    height: 8px;
+    background: #374151;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.factor-fill {
+    height: 100%;
+    transition: width 0.5s ease;
+}
+
+.factor-fill.positive {
+    background: #10b981;
+}
+
+.factor-fill.negative {
+    background: #ef4444;
+}
+
+.factor-fill.neutral {
+    background: #6b7280;
+}
+
+.improvements-section {
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid #374151;
+}
+
+.improvements-section h5 {
+    margin-bottom: 12px;
+    color: #e5e7eb;
+}
+
+.improvement-item {
+    padding: 10px;
+    margin-bottom: 8px;
+    background: #111827;
+    border-radius: 6px;
+    color: #e5e7eb;
+}
+
+/* 품질 점수 */
+.quality-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.quality-score-large {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+    margin: 20px 0;
+}
+
+.score-circle-large {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.score-value-large {
+    font-size: 3rem;
+    font-weight: 700;
+    color: white;
+}
+
+.score-label-large {
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.grade-badge-large {
+    font-size: 4rem;
+    font-weight: 700;
+    color: #fbbf24;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.quality-breakdown {
+    margin-top: 30px;
+}
+
+.quality-breakdown h5 {
+    margin-bottom: 20px;
+    color: #e5e7eb;
+}
+
+.quality-item {
+    margin-bottom: 25px;
+    padding: 20px;
+    background: #111827;
+    border-radius: 10px;
+}
+
+.quality-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.quality-name {
+    font-weight: 600;
+    color: #e5e7eb;
+}
+
+.quality-score {
+    font-weight: 700;
+    color: #10b981;
+}
+
+.quality-bar {
+    width: 100%;
+    height: 12px;
+    background: #374151;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+
+.quality-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #10b981, #34d399);
+    transition: width 0.8s ease;
+}
+
+.quality-detail {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.status-badge.우수 {
+    background: rgba(16, 185, 129, 0.2);
+    color: #6ee7b7;
+}
+
+.status-badge.양호 {
+    background: rgba(59, 130, 246, 0.2);
+    color: #93c5fd;
+}
+
+.status-badge.개선\ 필요 {
+    background: rgba(251, 191, 36, 0.2);
+    color: #fde68a;
+}
+
+.quality-detail p {
+    flex: 1;
+    font-size: 0.9rem;
+    color: #9ca3af;
+    margin: 0;
+}
+
+/* 반응형 추가 */
+@media (max-width: 768px) {
+    .quality-score-large {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .tabs {
+        flex-wrap: wrap;
+    }
+    
+    .tab-btn {
+        font-size: 0.85rem;
+        padding: 10px 16px;
+    }
+}
