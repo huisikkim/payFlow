@@ -28,6 +28,13 @@ public class VideoAnalysisService {
     private final ViewPredictionModel viewPredictionModel;
     private final CompetitionAnalyzer competitionAnalyzer;
     
+    // 새로운 분석기들
+    private final TitleAnalyzer titleAnalyzer;
+    private final SeoAnalyzer seoAnalyzer;
+    private final CompetitorAnalyzer competitorAnalyzer;
+    private final CtrAnalyzer ctrAnalyzer;
+    private final QualityScoreCalculator qualityScoreCalculator;
+    
     /**
      * YouTube URL에서 videoId 추출
      */
@@ -130,7 +137,24 @@ public class VideoAnalysisService {
         // 10. 제목 추천 (경쟁 영상 기반)
         List<String> recommendedTitles = generateTitleRecommendations(video, competitors);
         
-        // 11. 리포트 생성
+        // ===== 새로운 분석 기능 =====
+        
+        // 11. 제목 분석
+        TitleAnalysis titleAnalysis = titleAnalyzer.analyze(video.getTitle(), competitors);
+        
+        // 12. SEO 분석
+        SeoAnalysis seoAnalysis = seoAnalyzer.analyze(video, competitors);
+        
+        // 13. 경쟁 영상 상세 분석
+        CompetitorAnalysis competitorAnalysis = competitorAnalyzer.analyzeDetailed(video, competitors);
+        
+        // 14. CTR 추정
+        CtrEstimate ctrEstimate = ctrAnalyzer.estimate(video, titleAnalysis, seoAnalysis);
+        
+        // 15. 품질 세부 점수
+        QualityScore qualityScore = qualityScoreCalculator.calculate(titleAnalysis, seoAnalysis, video);
+        
+        // 16. 리포트 생성
         return VideoAnalysisReport.builder()
                 // 기본 정보
                 .videoId(video.getVideoId())
@@ -160,7 +184,7 @@ public class VideoAnalysisService {
                 .predictedRevenue(futureRevenue.getAvgRevenue())
                 .revenuePotentialScore(currentRevenue.getPotentialScore())
                 
-                // 경쟁 분석
+                // 경쟁 분석 (기존)
                 .competitionScore(competitionScore != null ? competitionScore.getScore() : 50)
                 .competitionLevel(competitionScore != null ? competitionScore.getLevel() : "알 수 없음")
                 .recentCompetitors(competitionScore != null ? competitionScore.getRecentCompetitors() : 0)
@@ -184,6 +208,13 @@ public class VideoAnalysisService {
                 .channelInstagram(video.getChannelInstagram())
                 .channelTwitter(video.getChannelTwitter())
                 .channelWebsite(video.getChannelWebsite())
+                
+                // ===== 새로운 분석 결과 =====
+                .titleAnalysis(titleAnalysis)
+                .seoAnalysis(seoAnalysis)
+                .competitorAnalysis(competitorAnalysis)
+                .ctrEstimate(ctrEstimate)
+                .qualityScore(qualityScore)
                 
                 .build();
     }

@@ -6,7 +6,7 @@ import lombok.Getter;
 import java.util.List;
 
 /**
- * YouTube 영상 종합 분석 리포트
+ * YouTube 영상 종합 분석 리포트 (강화 버전)
  */
 @Getter
 @Builder
@@ -40,7 +40,7 @@ public class VideoAnalysisReport {
     private Long predictedRevenue;  // 예측 조회수 기반 수익
     private Integer revenuePotentialScore;
     
-    // 경쟁 분석
+    // 경쟁 분석 (기존)
     private Integer competitionScore;
     private String competitionLevel;
     private Integer recentCompetitors;
@@ -64,4 +64,21 @@ public class VideoAnalysisReport {
     private String channelInstagram;
     private String channelTwitter;
     private String channelWebsite;
+    
+    // ===== 새로운 분석 기능 =====
+    
+    // 제목 분석
+    private TitleAnalysis titleAnalysis;
+    
+    // SEO 분석
+    private SeoAnalysis seoAnalysis;
+    
+    // 경쟁 영상 상세 분석
+    private CompetitorAnalysis competitorAnalysis;
+    
+    // CTR 추정
+    private CtrEstimate ctrEstimate;
+    
+    // 품질 세부 점수
+    private QualityScore qualityScore;
 }
