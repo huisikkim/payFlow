@@ -54,6 +54,6 @@ public class Business {
     }
 
     public String getPublicReviewUrl() {
-        return "/r/" + slug;
+        return "/reviewkit/r/" + slug;
     }
 }

@@ -52,12 +52,23 @@ public class BusinessService {
     }
 
     public String generateSlug(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            return "business-" + System.currentTimeMillis();
+        }
+        
         // Simple slug generation: lowercase, replace spaces with hyphens
+        // Support Korean characters (가-힣), English (a-z), numbers (0-9)
         String baseSlug = name.toLowerCase()
-                .replaceAll("[^a-z0-9\\s-]", "")
-                .replaceAll("\\s+", "-")
-                .replaceAll("-+", "-")
+                .replaceAll("[^a-z0-9가-힣\\s-]", "")  // Keep Korean, English, numbers
+                .replaceAll("\\s+", "-")                // Replace spaces with hyphens
+                .replaceAll("-+", "-")                  // Remove duplicate hyphens
+                .replaceAll("^-|-$", "")                // Remove leading/trailing hyphens
                 .trim();
+
+        // If slug is empty after processing (e.g., only special characters), use timestamp
+        if (baseSlug.isEmpty()) {
+            baseSlug = "business-" + System.currentTimeMillis();
+        }
 
         // Ensure uniqueness
         String slug = baseSlug;

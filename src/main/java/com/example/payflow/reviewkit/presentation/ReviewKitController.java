@@ -158,7 +158,9 @@ public class ReviewKitController {
         }
 
         Business business = businessService.getBusinessById(businessId);
-        String reviewUrl = "http://localhost:8080" + business.getPublicReviewUrl();
+        // Build full URL with proper domain
+        String baseUrl = "http://localhost:8080"; // TODO: Get from configuration
+        String reviewUrl = baseUrl + business.getPublicReviewUrl();
         
         model.addAttribute("business", business);
         model.addAttribute("reviewUrl", reviewUrl);
