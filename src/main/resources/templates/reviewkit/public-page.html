@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${business.name}">Business Name</title>
+    <meta th:content="${business.description}" name="description">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        /* Header Card */
+        .header-card {
+            background: #fff;
+            padding: 32px;
+            border-radius: 24px 24px 0 0;
+            text-align: center;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+        .business-name {
+            font-size: 32px;
+            font-weight: 800;
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+        .business-description {
+            color: #718096;
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+        .business-address {
+            color: #4a5568;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+        
+        /* Rating Summary */
+        .rating-summary {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 16px;
+            padding: 20px;
+            background: #f7fafc;
+            border-radius: 12px;
+            margin-bottom: 24px;
+        }
+        .rating-number {
+            font-size: 48px;
+            font-weight: 800;
+            color: #667eea;
+        }
+        .rating-details {
+            text-align: left;
+        }
+        .rating-stars {
+            font-size: 24px;
+            color: #fbbf24;
+            margin-bottom: 4px;
+        }
+        .rating-count {
+            color: #718096;
+            font-size: 14px;
+        }
+        
+        /* Action Buttons */
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .action-btn {
+            padding: 14px 20px;
+            border-radius: 12px;
+            border: none;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .action-btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .action-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
+        }
+        .action-btn-secondary {
+            background: #fff;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+        .action-btn-secondary:hover {
+            background: #f7fafc;
+        }
+        
+        /* Reviews Section */
+        .reviews-card {
+            background: #fff;
+            padding: 32px;
+            border-radius: 0 0 24px 24px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+        .section-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .review-item {
+            padding: 20px;
+            background: #f7fafc;
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 12px;
+        }
+        .reviewer-info h4 {
+            font-size: 16px;
+            color: #2d3748;
+            margin-bottom: 4px;
+        }
+        .reviewer-company {
+            font-size: 13px;
+            color: #718096;
+        }
+        .review-rating {
+            font-size: 18px;
+            color: #fbbf24;
+        }
+        .review-content {
+            color: #4a5568;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+        .review-date {
+            font-size: 12px;
+            color: #a0aec0;
+        }
+        
+        .empty-reviews {
+            text-align: center;
+            padding: 60px 20px;
+            color: #a0aec0;
+        }
+        .empty-reviews .icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+        
+        /* Info Section */
+        .info-card {
+            background: #fff;
+            padding: 24px;
+            border-radius: 16px;
+            margin-top: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .info-item {
+            padding: 12px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .info-item:last-child {
+            border-bottom: none;
+        }
+        .info-label {
+            font-size: 12px;
+            color: #718096;
+            margin-bottom: 4px;
+        }
+        .info-value {
+            color: #2d3748;
+            font-size: 15px;
+            white-space: pre-line;
+        }
+        
+        /* Social Links */
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 24px;
+        }
+        .social-link {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #f7fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .social-link:hover {
+            transform: scale(1.1);
+            background: #e2e8f0;
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 32px;
+            padding: 20px;
+            color: rgba(255,255,255,0.8);
+            font-size: 14px;
+        }
+        .footer a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header-card">
+            <h1 class="business-name" th:text="${business.name}">Business Name</h1>
+            <p class="business-description" th:if="${business.description != null}" 
+               th:text="${business.description}">Description</p>
+            <p class="business-address" th:if="${business.address != null}" 
+               th:text="${business.address}">Address</p>
+            
+            <!-- Rating Summary -->
+            <div class="rating-summary" th:if="${reviewCount > 0}">
+                <div class="rating-number" th:text="${averageRating}">4.8</div>
+                <div class="rating-details">
+                    <div class="rating-stars" th:text="${#strings.repeat('⭐', T(java.lang.Math).round(T(java.lang.Double).parseDouble(averageRating)))}">⭐⭐⭐⭐⭐</div>
+                    <div class="rating-count" th:text="${reviewCount} + '개의 리뷰'">47개의 리뷰</div>
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <a th:if="${business.phoneNumber != null}" 
+                   th:href="'tel:' + ${business.phoneNumber}" 
+                   class="action-btn action-btn-secondary">
+                    📞 전화하기
+                </a>
+                <a th:if="${business.mapUrl != null}" 
+                   th:href="${business.mapUrl}" 
+                   target="_blank"
+                   class="action-btn action-btn-secondary">
+                    📍 지도보기
+                </a>
+                <a th:href="@{/reviewkit/r/{slug}(slug=${business.slug})}" 
+                   class="action-btn action-btn-primary">
+                    ⭐ 리뷰 남기기
+                </a>
+                <a th:if="${business.websiteUrl != null}" 
+                   th:href="${business.websiteUrl}" 
+                   target="_blank"
+                   class="action-btn action-btn-secondary">
+                    🌐 웹사이트
+                </a>
+            </div>
+            
+            <!-- Social Links -->
+            <div class="social-links" th:if="${business.instagramUrl != null or business.facebookUrl != null or business.youtubeUrl != null}">
+                <a th:if="${business.instagramUrl != null}" 
+                   th:href="${business.instagramUrl}" 
+                   target="_blank"
+                   class="social-link">📷</a>
+                <a th:if="${business.facebookUrl != null}" 
+                   th:href="${business.facebookUrl}" 
+                   target="_blank"
+                   class="social-link">👍</a>
+                <a th:if="${business.youtubeUrl != null}" 
+                   th:href="${business.youtubeUrl}" 
+                   target="_blank"
+                   class="social-link">▶️</a>
+            </div>
+        </div>
+        
+        <!-- Reviews -->
+        <div class="reviews-card">
+            <h2 class="section-title">💬 고객 후기</h2>
+            
+            <div th:if="${!#lists.isEmpty(reviews)}">
+                <div class="review-item" th:each="review : ${reviews}">
+                    <div class="review-header">
+                        <div class="reviewer-info">
+                            <h4 th:text="${review.reviewerName}">김철수</h4>
+                            <div class="reviewer-company" th:if="${review.reviewerCompany != null}" 
+                                 th:text="${review.reviewerCompany}">ABC 스타트업</div>
+                        </div>
+                        <div class="review-rating" th:text="${#strings.repeat('⭐', review.rating)}">⭐⭐⭐⭐⭐</div>
+                    </div>
+                    <div class="review-content" th:if="${review.content != null}" 
+                         th:text="${review.content}">리뷰 내용</div>
+                    <div class="review-date" th:text="${#temporals.format(review.createdAt, 'yyyy.MM.dd')}">2024.12.05</div>
+                </div>
+            </div>
+            
+            <div class="empty-reviews" th:if="${#lists.isEmpty(reviews)}">
+                <div class="icon">📝</div>
+                <p>아직 리뷰가 없습니다<br>첫 번째 리뷰를 남겨주세요!</p>
+            </div>
+        </div>
+        
+        <!-- Business Info -->
+        <div class="info-card" th:if="${business.openingHours != null or business.phoneNumber != null or business.address != null}">
+            <h3 class="section-title" style="font-size: 18px; margin-bottom: 16px;">ℹ️ 영업 정보</h3>
+            
+            <div class="info-item" th:if="${business.openingHours != null}">
+                <div class="info-label">영업시간</div>
+                <div class="info-value" th:text="${business.openingHours}">월-금: 09:00 - 22:00</div>
+            </div>
+            
+            <div class="info-item" th:if="${business.phoneNumber != null}">
+                <div class="info-label">전화번호</div>
+                <div class="info-value" th:text="${business.phoneNumber}">010-1234-5678</div>
+            </div>
+            
+            <div class="info-item" th:if="${business.address != null}">
+                <div class="info-label">주소</div>
+                <div class="info-value" th:text="${business.address}">서울 마포구</div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            Powered by <a href="/reviewkit">ReviewKit</a>
+        </div>
+    </div>
+</body>
+</html>

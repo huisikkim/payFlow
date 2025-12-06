@@ -152,10 +152,23 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="websiteUrl">웹사이트 URL</label>
+                    <label for="phoneNumber">전화번호 (선택)</label>
+                    <input type="tel" id="phoneNumber" th:field="*{phoneNumber}" 
+                           placeholder="010-1234-5678">
+                    <div class="hint">고객이 전화할 수 있는 번호</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="address">주소 (선택)</label>
+                    <input type="text" id="address" th:field="*{address}" 
+                           placeholder="서울 마포구 홍대입구역 3번 출구">
+                </div>
+                
+                <div class="form-group">
+                    <label for="websiteUrl">웹사이트 URL (선택)</label>
                     <input type="url" id="websiteUrl" th:field="*{websiteUrl}" 
                            placeholder="https://example.com">
-                    <div class="hint">위젯을 설치할 웹사이트 주소</div>
+                    <div class="hint">나중에 설정에서 더 많은 정보를 추가할 수 있습니다</div>
                 </div>
                 
                 <div class="form-actions">

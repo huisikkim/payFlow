@@ -68,10 +68,85 @@ public class ReviewKitController {
                 slug,
                 userId,
                 request.getDescription(),
-                request.getWebsiteUrl()
+                request.getWebsiteUrl(),
+                request.getPhoneNumber(),
+                request.getAddress(),
+                request.getOpeningHours(),
+                request.getInstagramUrl(),
+                request.getFacebookUrl(),
+                request.getYoutubeUrl(),
+                request.getMapUrl()
         );
 
         return "redirect:/reviewkit/dashboard";
+    }
+    
+    /**
+     * Business settings form
+     */
+    @GetMapping("/businesses/{businessId}/settings")
+    public String businessSettings(@PathVariable Long businessId, Authentication auth, Model model) {
+        Long userId = getUserId(auth);
+        
+        if (!businessService.isOwner(businessId, userId)) {
+            return "redirect:/reviewkit/dashboard";
+        }
+
+        Business business = businessService.getBusinessById(businessId);
+        model.addAttribute("business", business);
+        
+        return "reviewkit/business-settings";
+    }
+    
+    /**
+     * Update business settings
+     */
+    @PostMapping("/businesses/{businessId}/settings")
+    public String updateBusinessSettings(@PathVariable Long businessId,
+                                         @ModelAttribute BusinessCreateRequest request,
+                                         Authentication auth) {
+        Long userId = getUserId(auth);
+        
+        if (!businessService.isOwner(businessId, userId)) {
+            return "redirect:/reviewkit/dashboard";
+        }
+        
+        businessService.updateBusiness(
+                businessId,
+                request.getDescription(),
+                request.getWebsiteUrl(),
+                request.getPhoneNumber(),
+                request.getAddress(),
+                request.getOpeningHours(),
+                request.getInstagramUrl(),
+                request.getFacebookUrl(),
+                request.getYoutubeUrl(),
+                request.getMapUrl()
+        );
+
+        return "redirect:/reviewkit/businesses/" + businessId;
+    }
+    
+    /**
+     * Public business page (Link-in-bio style)
+     */
+    @GetMapping("/{slug}")
+    public String publicBusinessPage(@PathVariable String slug, Model model) {
+        Business business = businessService.getBusinessBySlug(slug);
+        List<Review> approvedReviews = reviewService.getApprovedReviews(business.getId());
+        
+        // Calculate average rating
+        double averageRating = approvedReviews.stream()
+                .mapToInt(Review::getRating)
+                .average()
+                .orElse(0.0);
+        
+        model.addAttribute("business", business);
+        model.addAttribute("reviews", approvedReviews);
+        model.addAttribute("reviewCount", approvedReviews.size());
+        model.addAttribute("averageRating", String.format("%.1f", averageRating));
+        
+        return "reviewkit/public-page";
     }
 
     /**

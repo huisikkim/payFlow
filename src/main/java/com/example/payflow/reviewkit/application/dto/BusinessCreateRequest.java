@@ -12,4 +12,20 @@ public class BusinessCreateRequest {
     private String description;
 
     private String websiteUrl;
+    
+    // Contact Information
+    private String phoneNumber;
+    
+    private String address;
+    
+    private String openingHours;
+    
+    // Social Links
+    private String instagramUrl;
+    
+    private String facebookUrl;
+    
+    private String youtubeUrl;
+    
+    private String mapUrl;
 }

@@ -37,6 +37,23 @@ public class Business {
     
     private String websiteUrl;
 
+    // Contact Information
+    private String phoneNumber;
+    
+    private String address;
+    
+    @Column(length = 500)
+    private String openingHours; // JSON or simple text format
+    
+    // Social Links
+    private String instagramUrl;
+    
+    private String facebookUrl;
+    
+    private String youtubeUrl;
+    
+    private String mapUrl; // Google Maps or Naver Map link
+
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
