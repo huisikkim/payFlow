@@ -10,7 +10,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 @Slf4j
-//@Component  // 🔒 코인 비교 기능 비활성화 - 나중에 다시 활성화하려면 주석 해제
+@Component
 @RequiredArgsConstructor
 public class BithumbWebSocketHandler extends TextWebSocketHandler {
     

@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 @Slf4j
-//@Service  // 🔒 코인 비교 기능 비활성화 - 나중에 다시 활성화하려면 주석 해제
+@Service
 public class BithumbWebSocketService extends TextWebSocketHandler {
     
     private static final String BITHUMB_WS_URL = "wss://pubwss.bithumb.com/pub/ws";
