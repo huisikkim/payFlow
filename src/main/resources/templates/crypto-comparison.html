@@ -253,6 +253,145 @@
             height: 400px;
         }
         
+        /* 모바일 반응형 */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .header {
+                padding: 20px;
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .header h1 {
+                font-size: 22px;
+            }
+            
+            .stats-bar {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+            
+            .stat-card {
+                padding: 15px;
+            }
+            
+            .stat-value {
+                font-size: 20px;
+            }
+            
+            .tabs {
+                overflow-x: auto;
+                flex-wrap: nowrap;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+            }
+            
+            .tabs::-webkit-scrollbar {
+                display: none;
+            }
+            
+            .tab {
+                padding: 10px 16px;
+                font-size: 13px;
+                white-space: nowrap;
+            }
+            
+            .comparison-table {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            table {
+                font-size: 12px;
+            }
+            
+            th, td {
+                padding: 10px 8px;
+            }
+            
+            .coin-symbol {
+                font-size: 14px;
+            }
+            
+            .coin-name {
+                font-size: 11px;
+            }
+            
+            .price {
+                font-size: 14px;
+            }
+            
+            .premium {
+                padding: 4px 8px;
+                font-size: 12px;
+            }
+            
+            .chart-container {
+                height: 300px;
+                padding: 10px;
+            }
+            
+            .search-box input {
+                font-size: 16px; /* iOS 줌 방지 */
+            }
+            
+            .reference-selector {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .reference-selector select {
+                flex: 1;
+                max-width: 200px;
+            }
+        }
+        
+        /* 작은 모바일 (iPhone SE 등) */
+        @media (max-width: 375px) {
+            .header h1 {
+                font-size: 20px;
+            }
+            
+            .stats-bar {
+                grid-template-columns: 1fr;
+            }
+            
+            .stat-card {
+                padding: 12px;
+            }
+            
+            .stat-value {
+                font-size: 18px;
+            }
+            
+            table {
+                font-size: 11px;
+            }
+            
+            th, td {
+                padding: 8px 6px;
+            }
+            
+            .chart-container {
+                height: 250px;
+                padding: 8px;
+            }
+        }
+        
+        /* 태블릿 */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .stats-bar {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .chart-container {
+                height: 350px;
+            }
+        }
+        
         .loading {
             text-align: center;
             padding: 40px;
@@ -479,15 +618,22 @@
                 <span>거래소별 가격 변동을 실시간으로 비교합니다</span>
             </div>
             
-            <div style="margin-bottom: 20px;">
-                <label style="color: #8b92b0; margin-right: 10px;">코인 선택:</label>
-                <select id="chartCoinSelect" style="padding: 10px; border-radius: 8px; border: 1px solid #2a3555; background: #1a1f3a; color: #fff; font-size: 14px;">
+            <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <label style="color: #8b92b0;">코인 선택:</label>
+                <select id="chartCoinSelect" style="padding: 10px 15px; border-radius: 8px; border: 1px solid #2a3555; background: #1a1f3a; color: #fff; font-size: 14px; flex: 1; min-width: 200px; max-width: 300px;">
                     <option value="KRW-BTC">비트코인 (BTC)</option>
                     <option value="KRW-ETH">이더리움 (ETH)</option>
                     <option value="KRW-XRP">리플 (XRP)</option>
                     <option value="KRW-ADA">에이다 (ADA)</option>
                     <option value="KRW-SOL">솔라나 (SOL)</option>
+                    <option value="KRW-DOGE">도지코인 (DOGE)</option>
+                    <option value="KRW-AVAX">아발란체 (AVAX)</option>
+                    <option value="KRW-MATIC">폴리곤 (MATIC)</option>
                 </select>
+                <div id="chartInfo" style="color: #8b92b0; font-size: 13px; display: flex; gap: 15px; flex-wrap: wrap;">
+                    <span>📊 <span id="chartDataPoints">0</span>개 데이터</span>
+                    <span id="chartPremium"></span>
+                </div>
             </div>
             
             <div class="chart-container">
@@ -874,16 +1020,17 @@
                     plugins: {
                         legend: {
                             display: true,
-                            position: 'top',
+                            position: window.innerWidth < 768 ? 'bottom' : 'top',
                             labels: {
                                 color: '#e0e0e0',
                                 font: {
-                                    size: 13,
+                                    size: window.innerWidth < 768 ? 11 : 13,
                                     weight: '600'
                                 },
-                                padding: 15,
+                                padding: window.innerWidth < 768 ? 10 : 15,
                                 usePointStyle: true,
-                                pointStyle: 'circle'
+                                pointStyle: 'circle',
+                                boxWidth: window.innerWidth < 768 ? 8 : 12
                             }
                         },
                         tooltip: {
@@ -895,11 +1042,18 @@
                             bodyColor: '#e0e0e0',
                             borderColor: '#4a9eff',
                             borderWidth: 1,
-                            padding: 12,
+                            padding: window.innerWidth < 768 ? 8 : 12,
                             displayColors: true,
+                            titleFont: {
+                                size: window.innerWidth < 768 ? 11 : 13
+                            },
+                            bodyFont: {
+                                size: window.innerWidth < 768 ? 10 : 12
+                            },
                             callbacks: {
                                 label: function(context) {
-                                    return context.dataset.label + ': ' + formatPrice(context.parsed.y);
+                                    const price = formatPrice(context.parsed.y);
+                                    return context.dataset.label + ': ' + price;
                                 },
                                 afterLabel: function(context) {
                                     if (context.datasetIndex < 2) {
@@ -921,15 +1075,16 @@
                             ticks: { 
                                 color: '#8b92b0',
                                 font: {
-                                    size: 11
+                                    size: window.innerWidth < 768 ? 9 : 11
                                 },
                                 maxRotation: 0,
                                 autoSkip: true,
-                                maxTicksLimit: 10
+                                maxTicksLimit: window.innerWidth < 768 ? 6 : 10
                             },
                             grid: { 
                                 color: 'rgba(42, 53, 85, 0.5)',
-                                drawBorder: false
+                                drawBorder: false,
+                                display: window.innerWidth >= 768
                             }
                         },
                         y: {
@@ -937,13 +1092,24 @@
                             ticks: { 
                                 color: '#8b92b0',
                                 font: {
-                                    size: 11
+                                    size: window.innerWidth < 768 ? 9 : 11
                                 },
                                 callback: function(value) {
-                                    return new Intl.NumberFormat('ko-KR', {
-                                        notation: 'compact',
-                                        compactDisplay: 'short'
-                                    }).format(value);
+                                    if (window.innerWidth < 768) {
+                                        // 모바일: 더 짧은 표기
+                                        if (value >= 1000000) {
+                                            return (value / 1000000).toFixed(0) + 'M';
+                                        } else if (value >= 1000) {
+                                            return (value / 1000).toFixed(0) + 'K';
+                                        }
+                                        return value;
+                                    } else {
+                                        // 데스크톱: 일반 표기
+                                        return new Intl.NumberFormat('ko-KR', {
+                                            notation: 'compact',
+                                            compactDisplay: 'short'
+                                        }).format(value);
+                                    }
                                 }
                             },
                             grid: { 
@@ -1002,8 +1168,28 @@
                 priceChart.data.datasets[1].data = chartData.bithumb;
                 priceChart.data.datasets[2].data = chartData.vwap;
                 
+                // 차트 정보 업데이트
+                updateChartInfo(premium);
+                
                 // 부드러운 애니메이션으로 업데이트
                 priceChart.update('active');
+            }
+        }
+        
+        // 차트 정보 업데이트
+        function updateChartInfo(premium) {
+            const dataPointsEl = document.getElementById('chartDataPoints');
+            const premiumEl = document.getElementById('chartPremium');
+            
+            if (dataPointsEl) {
+                dataPointsEl.textContent = chartData.labels.length;
+            }
+            
+            if (premiumEl && premium) {
+                const maxPremium = premium.maxPremium;
+                const premiumClass = maxPremium > 0 ? '🔴' : maxPremium < 0 ? '🔵' : '⚪';
+                const premiumText = (maxPremium >= 0 ? '+' : '') + maxPremium.toFixed(2) + '%';
+                premiumEl.innerHTML = `${premiumClass} 프리미엄: <strong style="color: ${maxPremium > 0 ? '#ef4444' : maxPremium < 0 ? '#3b82f6' : '#6b7280'}">${premiumText}</strong>`;
             }
         }
         
