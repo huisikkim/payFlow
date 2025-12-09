@@ -19,23 +19,22 @@
             theme: {
                 extend: {
                     colors: {
-                        primary: "#00e5ff",
-                        "background-dark": "#0A051A",
-                        "brand-red": "#FF5555",
-                        "brand-blue": "#5555FF",
-                        "brand-green": "#55FF55",
-                        "chart-bg": "#1f2349",
-                        "grid-line": "rgba(0, 229, 255, 0.15)",
+                        primary: "#9CA3AF",
+                        "background-dark": "#1F2937",
+                        "upbit-blue": "#0066FF",
+                        "bithumb-orange": "#FF6B00",
+                        "vwap-gray": "#6B7280",
+                        "chart-bg": "#374151",
+                        "grid-line": "rgba(156, 163, 175, 0.2)",
                     },
                     fontFamily: {
                         display: ["VT323", "monospace"],
                         digital: ["Press Start 2P", "monospace"],
                     },
                     boxShadow: {
-                        'glow-cyan': '0 0 10px rgba(0, 229, 255, 0.7), 0 0 20px rgba(0, 229, 255, 0.5)',
-                        'glow-red': '0 0 8px rgba(255, 85, 85, 0.8)',
-                        'glow-blue': '0 0 8px rgba(85, 85, 255, 0.8)',
-                        'glow-green': '0 0 8px rgba(85, 255, 85, 0.8)',
+                        'glow-blue': '0 0 15px rgba(0, 102, 255, 0.6), 0 0 30px rgba(0, 102, 255, 0.3)',
+                        'glow-orange': '0 0 15px rgba(255, 107, 0, 0.6), 0 0 30px rgba(255, 107, 0, 0.3)',
+                        'glow-gray': '0 0 10px rgba(107, 114, 128, 0.5)',
                     },
                 },
             },
@@ -50,8 +49,8 @@
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             background-image: 
-                radial-gradient(circle at center, rgba(31, 35, 73, 0.6) 0%, transparent 70%),
-                repeating-linear-gradient(0deg, rgba(0, 229, 255, 0.03) 0px, transparent 2px, transparent 4px);
+                radial-gradient(circle at center, rgba(55, 65, 81, 0.5) 0%, transparent 70%),
+                repeating-linear-gradient(0deg, rgba(156, 163, 175, 0.05) 0px, transparent 2px, transparent 4px);
             min-height: 100vh;
         }
         
@@ -133,18 +132,18 @@
         }
         
         .premium-positive {
-            color: #FF5555;
-            text-shadow: 0 0 8px rgba(255, 85, 85, 0.8);
+            color: #FF6B00;
+            text-shadow: 0 0 8px rgba(255, 107, 0, 0.6);
         }
         
         .premium-negative {
-            color: #5555FF;
-            text-shadow: 0 0 8px rgba(85, 85, 255, 0.8);
+            color: #0066FF;
+            text-shadow: 0 0 8px rgba(0, 102, 255, 0.6);
         }
         
         .premium-neutral {
-            color: #55FF55;
-            text-shadow: 0 0 8px rgba(85, 255, 85, 0.8);
+            color: #9CA3AF;
+            text-shadow: 0 0 6px rgba(156, 163, 175, 0.5);
         }
     </style>
 </head>
@@ -152,10 +151,10 @@
     <div class="min-h-screen p-4">
         <!-- Header -->
         <header class="mb-6 text-center">
-            <h1 class="font-digital text-primary text-2xl md:text-3xl tracking-wider text-shadow-glow uppercase mb-2">
+            <h1 class="font-digital text-gray-300 text-2xl md:text-3xl tracking-wider uppercase mb-2" style="text-shadow: 2px 2px 0px #4B5563;">
                 🎮 CRYPTO ARCADE
             </h1>
-            <p class="text-primary/70 text-sm">REAL-TIME EXCHANGE COMPARISON SYSTEM</p>
+            <p class="text-gray-400 text-sm font-display">REAL-TIME EXCHANGE COMPARISON SYSTEM</p>
         </header>
         
         <!-- Controls -->
@@ -164,8 +163,8 @@
                 <div class="segmented-border-inner bg-chart-bg p-4 scanlines">
                     <div class="flex flex-wrap gap-4 items-center justify-between">
                         <div class="flex items-center gap-3">
-                            <span class="text-primary text-shadow-glow text-xl font-display">코인 선택:</span>
-                            <select id="coinSelect" class="bg-black/50 border-2 border-primary text-primary px-4 py-2 shadow-glow-cyan font-display text-lg">
+                            <span class="text-gray-300 text-xl font-display">코인 선택:</span>
+                            <select id="coinSelect" class="bg-gray-700 border-2 border-gray-500 text-gray-200 px-4 py-2 font-display text-lg">
                                 <option value="KRW-BTC">비트코인 (BTC)</option>
                                 <option value="KRW-ETH">이더리움 (ETH)</option>
                                 <option value="KRW-XRP">리플 (XRP)</option>
@@ -175,8 +174,8 @@
                         </div>
                         
                         <div class="flex items-center gap-3">
-                            <span class="text-primary text-shadow-glow text-xl font-display">기준 거래소:</span>
-                            <select id="referenceExchange" class="bg-black/50 border-2 border-primary text-primary px-4 py-2 shadow-glow-cyan font-display text-lg">
+                            <span class="text-gray-300 text-xl font-display">기준 거래소:</span>
+                            <select id="referenceExchange" class="bg-gray-700 border-2 border-gray-500 text-gray-200 px-4 py-2 font-display text-lg">
                                 <option value="UPBIT">업비트</option>
                                 <option value="BITHUMB">빗썸</option>
                             </select>
@@ -188,20 +187,20 @@
         
         <!-- Stats Bar -->
         <div class="max-w-6xl mx-auto mb-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div class="pixel-corners bg-chart-bg border-2 border-brand-red p-4 text-center scanlines">
-                <div class="text-brand-red text-xl uppercase mb-2 font-display">최대 프리미엄</div>
+            <div class="pixel-corners bg-chart-bg border-2 border-upbit-blue p-4 text-center scanlines">
+                <div class="text-upbit-blue text-xl uppercase mb-2 font-display font-bold">최대 프리미엄</div>
                 <div class="text-3xl font-display text-white font-bold" id="maxPremium">-</div>
             </div>
-            <div class="pixel-corners bg-chart-bg border-2 border-brand-blue p-4 text-center scanlines">
-                <div class="text-brand-blue text-xl uppercase mb-2 font-display">평균 가격</div>
+            <div class="pixel-corners bg-chart-bg border-2 border-bithumb-orange p-4 text-center scanlines">
+                <div class="text-bithumb-orange text-xl uppercase mb-2 font-display font-bold">평균 가격</div>
                 <div class="text-3xl font-display text-white font-bold" id="vwapPrice">-</div>
             </div>
-            <div class="pixel-corners bg-chart-bg border-2 border-brand-green p-4 text-center scanlines">
-                <div class="text-brand-green text-xl uppercase mb-2 font-display">가격 차이</div>
+            <div class="pixel-corners bg-chart-bg border-2 border-vwap-gray p-4 text-center scanlines">
+                <div class="text-vwap-gray text-xl uppercase mb-2 font-display font-bold">가격 차이</div>
                 <div class="text-3xl font-display text-white font-bold" id="spreadValue">-</div>
             </div>
-            <div class="pixel-corners bg-chart-bg border-2 border-primary p-4 text-center scanlines">
-                <div class="text-primary text-xl uppercase mb-2 font-display blink">실시간 데이터</div>
+            <div class="pixel-corners bg-chart-bg border-2 border-gray-400 p-4 text-center scanlines">
+                <div class="text-gray-300 text-xl uppercase mb-2 font-display blink font-bold">실시간 데이터</div>
                 <div class="text-3xl font-display text-white font-bold" id="dataPoints">0</div>
             </div>
         </div>
@@ -213,16 +212,16 @@
                     <!-- Legend -->
                     <div class="mb-4 flex justify-center gap-8 text-xl flex-wrap font-display">
                         <div class="flex items-center space-x-3">
-                            <div class="w-5 h-5 bg-brand-red shadow-glow-red"></div>
-                            <span class="text-brand-red text-shadow-glow">업비트</span>
+                            <div class="w-6 h-6 bg-upbit-blue shadow-glow-blue"></div>
+                            <span class="text-upbit-blue font-bold">업비트</span>
                         </div>
                         <div class="flex items-center space-x-3">
-                            <div class="w-5 h-5 bg-brand-blue shadow-glow-blue"></div>
-                            <span class="text-brand-blue text-shadow-glow">빗썸</span>
+                            <div class="w-6 h-6 bg-bithumb-orange shadow-glow-orange"></div>
+                            <span class="text-bithumb-orange font-bold">빗썸</span>
                         </div>
                         <div class="flex items-center space-x-3">
-                            <div class="w-5 h-5 bg-brand-green shadow-glow-green"></div>
-                            <span class="text-brand-green text-shadow-glow">평균가</span>
+                            <div class="w-6 h-6 bg-vwap-gray shadow-glow-gray"></div>
+                            <span class="text-vwap-gray font-bold">평균가</span>
                         </div>
                     </div>
                     
@@ -263,31 +262,31 @@
                             <rect width="800" height="300" fill="url(#grid)"/>
                             
                             <!-- Chart Lines -->
-                            <polyline id="upbitLine" fill="none" stroke="#FF5555" stroke-width="3" filter="url(#glow-red)" points=""/>
-                            <polyline id="bithumbLine" fill="none" stroke="#5555FF" stroke-width="3" filter="url(#glow-blue)" points=""/>
-                            <polyline id="vwapLine" fill="none" stroke="#55FF55" stroke-width="2" stroke-dasharray="8,4" filter="url(#glow-green)" points=""/>
+                            <polyline id="upbitLine" fill="none" stroke="#0066FF" stroke-width="4" filter="url(#glow-red)" points=""/>
+                            <polyline id="bithumbLine" fill="none" stroke="#FF6B00" stroke-width="4" filter="url(#glow-blue)" points=""/>
+                            <polyline id="vwapLine" fill="none" stroke="#9CA3AF" stroke-width="3" stroke-dasharray="10,5" filter="url(#glow-green)" points=""/>
                             
                             <!-- Current Price Dots -->
-                            <circle id="upbitDot" cx="0" cy="0" r="5" fill="#FF5555" filter="url(#glow-red)" opacity="0">
-                                <animate attributeName="r" values="5;7;5" dur="1s" repeatCount="indefinite"/>
+                            <circle id="upbitDot" cx="0" cy="0" r="6" fill="#0066FF" filter="url(#glow-red)" opacity="0">
+                                <animate attributeName="r" values="6;9;6" dur="1s" repeatCount="indefinite"/>
                             </circle>
-                            <circle id="bithumbDot" cx="0" cy="0" r="5" fill="#5555FF" filter="url(#glow-blue)" opacity="0">
-                                <animate attributeName="r" values="5;7;5" dur="1s" repeatCount="indefinite"/>
+                            <circle id="bithumbDot" cx="0" cy="0" r="6" fill="#FF6B00" filter="url(#glow-blue)" opacity="0">
+                                <animate attributeName="r" values="6;9;6" dur="1s" repeatCount="indefinite"/>
                             </circle>
-                            <circle id="vwapDot" cx="0" cy="0" r="4" fill="#55FF55" filter="url(#glow-green)" opacity="0">
-                                <animate attributeName="r" values="4;6;4" dur="1s" repeatCount="indefinite"/>
+                            <circle id="vwapDot" cx="0" cy="0" r="5" fill="#9CA3AF" filter="url(#glow-green)" opacity="0">
+                                <animate attributeName="r" values="5;8;5" dur="1s" repeatCount="indefinite"/>
                             </circle>
                         </svg>
                         
                         <!-- Y-Axis Labels -->
-                        <div class="absolute left-0 top-0 bottom-10 flex flex-col justify-between font-display text-base text-primary/90">
+                        <div class="absolute left-0 top-0 bottom-10 flex flex-col justify-between font-display text-base text-gray-400">
                             <span id="yMax">-</span>
                             <span id="yMid">-</span>
                             <span id="yMin">-</span>
                         </div>
                         
                         <!-- X-Axis Labels -->
-                        <div class="absolute bottom-0 left-12 right-4 flex justify-between font-display text-base text-primary/90">
+                        <div class="absolute bottom-0 left-12 right-4 flex justify-between font-display text-base text-gray-400">
                             <span id="xLabel1">--:--</span>
                             <span id="xLabel2">--:--</span>
                             <span id="xLabel3">--:--</span>
@@ -295,12 +294,12 @@
                         </div>
                         
                         <!-- Hover Info -->
-                        <div id="hoverInfo" class="absolute hidden bg-black/95 border-2 border-primary p-4 pointer-events-none shadow-glow-cyan" style="z-index: 10;">
+                        <div id="hoverInfo" class="absolute hidden bg-gray-900/95 border-2 border-gray-400 p-4 pointer-events-none" style="z-index: 10; box-shadow: 0 0 10px rgba(156, 163, 175, 0.5);">
                             <div class="font-display text-base space-y-2">
-                                <div class="text-primary text-lg font-bold" id="hoverTime">--:--:--</div>
-                                <div class="text-brand-red" id="hoverUpbit">업비트: -</div>
-                                <div class="text-brand-blue" id="hoverBithumb">빗썸: -</div>
-                                <div class="text-brand-green" id="hoverVwap">평균가: -</div>
+                                <div class="text-gray-300 text-lg font-bold" id="hoverTime">--:--:--</div>
+                                <div class="text-upbit-blue font-bold" id="hoverUpbit">업비트: -</div>
+                                <div class="text-bithumb-orange font-bold" id="hoverBithumb">빗썸: -</div>
+                                <div class="text-vwap-gray font-bold" id="hoverVwap">평균가: -</div>
                             </div>
                         </div>
                     </div>
@@ -311,36 +310,36 @@
         <!-- Price Cards -->
         <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4">
             <!-- Upbit Card -->
-            <div class="coin-card pixel-corners p-6 scanlines">
+            <div class="coin-card pixel-corners p-6 scanlines border-2 border-upbit-blue">
                 <div class="flex items-center justify-between mb-4">
-                    <span class="text-brand-red text-shadow-glow text-2xl font-display">업비트</span>
+                    <span class="text-upbit-blue text-2xl font-display font-bold">업비트</span>
                     <span class="text-3xl" id="upbitIcon">📈</span>
                 </div>
                 <div class="text-4xl font-display text-white mb-3 font-bold" id="upbitPrice">-</div>
-                <div class="text-2xl font-display mb-2" id="upbitPremium">-</div>
-                <div class="text-lg text-gray-400 font-display" id="upbitVolume">-</div>
+                <div class="text-2xl font-display mb-2 font-bold" id="upbitPremium">-</div>
+                <div class="text-lg text-gray-300 font-display" id="upbitVolume">-</div>
             </div>
             
             <!-- VWAP Card -->
-            <div class="coin-card pixel-corners p-6 scanlines">
+            <div class="coin-card pixel-corners p-6 scanlines border-2 border-vwap-gray">
                 <div class="flex items-center justify-between mb-4">
-                    <span class="text-brand-green text-shadow-glow text-2xl font-display">평균 가격</span>
+                    <span class="text-vwap-gray text-2xl font-display font-bold">평균 가격</span>
                     <span class="text-3xl">⚖️</span>
                 </div>
                 <div class="text-4xl font-display text-white mb-3 font-bold" id="vwapCardPrice">-</div>
-                <div class="text-2xl font-display mb-2" id="vwapPremium">-</div>
-                <div class="text-lg text-gray-400 font-display">거래량 가중 평균</div>
+                <div class="text-2xl font-display mb-2 font-bold" id="vwapPremium">-</div>
+                <div class="text-lg text-gray-300 font-display">거래량 가중 평균</div>
             </div>
             
             <!-- Bithumb Card -->
-            <div class="coin-card pixel-corners p-6 scanlines">
+            <div class="coin-card pixel-corners p-6 scanlines border-2 border-bithumb-orange">
                 <div class="flex items-center justify-between mb-4">
-                    <span class="text-brand-blue text-shadow-glow text-2xl font-display">빗썸</span>
+                    <span class="text-bithumb-orange text-2xl font-display font-bold">빗썸</span>
                     <span class="text-3xl" id="bithumbIcon">📈</span>
                 </div>
                 <div class="text-4xl font-display text-white mb-3 font-bold" id="bithumbPrice">-</div>
-                <div class="text-2xl font-display mb-2" id="bithumbPremium">-</div>
-                <div class="text-lg text-gray-400 font-display" id="bithumbVolume">-</div>
+                <div class="text-2xl font-display mb-2 font-bold" id="bithumbPremium">-</div>
+                <div class="text-lg text-gray-300 font-display" id="bithumbVolume">-</div>
             </div>
         </div>
     </div>
