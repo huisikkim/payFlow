@@ -164,21 +164,21 @@
                 <div class="segmented-border-inner bg-chart-bg p-4 scanlines">
                     <div class="flex flex-wrap gap-4 items-center justify-between">
                         <div class="flex items-center gap-3">
-                            <span class="text-primary text-shadow-glow uppercase text-sm">SELECT COIN:</span>
-                            <select id="coinSelect" class="bg-black/50 border-2 border-primary text-primary px-4 py-2 shadow-glow-cyan font-display text-base">
-                                <option value="KRW-BTC">BITCOIN (BTC)</option>
-                                <option value="KRW-ETH">ETHEREUM (ETH)</option>
-                                <option value="KRW-XRP">RIPPLE (XRP)</option>
-                                <option value="KRW-SOL">SOLANA (SOL)</option>
-                                <option value="KRW-ADA">CARDANO (ADA)</option>
+                            <span class="text-primary text-shadow-glow text-xl font-display">코인 선택:</span>
+                            <select id="coinSelect" class="bg-black/50 border-2 border-primary text-primary px-4 py-2 shadow-glow-cyan font-display text-lg">
+                                <option value="KRW-BTC">비트코인 (BTC)</option>
+                                <option value="KRW-ETH">이더리움 (ETH)</option>
+                                <option value="KRW-XRP">리플 (XRP)</option>
+                                <option value="KRW-SOL">솔라나 (SOL)</option>
+                                <option value="KRW-ADA">에이다 (ADA)</option>
                             </select>
                         </div>
                         
                         <div class="flex items-center gap-3">
-                            <span class="text-primary text-shadow-glow uppercase text-sm">REFERENCE:</span>
-                            <select id="referenceExchange" class="bg-black/50 border-2 border-primary text-primary px-4 py-2 shadow-glow-cyan font-display text-base">
-                                <option value="UPBIT">UPBIT</option>
-                                <option value="BITHUMB">BITHUMB</option>
+                            <span class="text-primary text-shadow-glow text-xl font-display">기준 거래소:</span>
+                            <select id="referenceExchange" class="bg-black/50 border-2 border-primary text-primary px-4 py-2 shadow-glow-cyan font-display text-lg">
+                                <option value="UPBIT">업비트</option>
+                                <option value="BITHUMB">빗썸</option>
                             </select>
                         </div>
                     </div>
@@ -189,20 +189,20 @@
         <!-- Stats Bar -->
         <div class="max-w-6xl mx-auto mb-6 grid grid-cols-2 md:grid-cols-4 gap-4">
             <div class="pixel-corners bg-chart-bg border-2 border-brand-red p-4 text-center scanlines">
-                <div class="text-brand-red text-sm uppercase mb-1">MAX PREMIUM</div>
-                <div class="text-2xl font-digital text-white" id="maxPremium">-</div>
+                <div class="text-brand-red text-xl uppercase mb-2 font-display">최대 프리미엄</div>
+                <div class="text-3xl font-display text-white font-bold" id="maxPremium">-</div>
             </div>
             <div class="pixel-corners bg-chart-bg border-2 border-brand-blue p-4 text-center scanlines">
-                <div class="text-brand-blue text-sm uppercase mb-1">VWAP</div>
-                <div class="text-2xl font-digital text-white" id="vwapPrice">-</div>
+                <div class="text-brand-blue text-xl uppercase mb-2 font-display">평균 가격</div>
+                <div class="text-3xl font-display text-white font-bold" id="vwapPrice">-</div>
             </div>
             <div class="pixel-corners bg-chart-bg border-2 border-brand-green p-4 text-center scanlines">
-                <div class="text-brand-green text-sm uppercase mb-1">SPREAD</div>
-                <div class="text-2xl font-digital text-white" id="spreadValue">-</div>
+                <div class="text-brand-green text-xl uppercase mb-2 font-display">가격 차이</div>
+                <div class="text-3xl font-display text-white font-bold" id="spreadValue">-</div>
             </div>
             <div class="pixel-corners bg-chart-bg border-2 border-primary p-4 text-center scanlines">
-                <div class="text-primary text-sm uppercase mb-1 blink">LIVE DATA</div>
-                <div class="text-2xl font-digital text-white" id="dataPoints">0</div>
+                <div class="text-primary text-xl uppercase mb-2 font-display blink">실시간 데이터</div>
+                <div class="text-3xl font-display text-white font-bold" id="dataPoints">0</div>
             </div>
         </div>
         
@@ -211,24 +211,98 @@
             <div class="segmented-border">
                 <div class="segmented-border-inner bg-chart-bg p-6 scanlines">
                     <!-- Legend -->
-                    <div class="mb-4 flex justify-center gap-6 text-base flex-wrap">
-                        <div class="flex items-center space-x-2">
-                            <div class="w-4 h-4 bg-brand-red shadow-glow-red"></div>
-                            <span class="text-gray-300 uppercase">UPBIT</span>
+                    <div class="mb-4 flex justify-center gap-8 text-xl flex-wrap font-display">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-5 h-5 bg-brand-red shadow-glow-red"></div>
+                            <span class="text-brand-red text-shadow-glow">업비트</span>
                         </div>
-                        <div class="flex items-center space-x-2">
-                            <div class="w-4 h-4 bg-brand-blue shadow-glow-blue"></div>
-                            <span class="text-gray-300 uppercase">BITHUMB</span>
+                        <div class="flex items-center space-x-3">
+                            <div class="w-5 h-5 bg-brand-blue shadow-glow-blue"></div>
+                            <span class="text-brand-blue text-shadow-glow">빗썸</span>
                         </div>
-                        <div class="flex items-center space-x-2">
-                            <div class="w-4 h-4 bg-brand-green shadow-glow-green"></div>
-                            <span class="text-gray-300 uppercase">VWAP</span>
+                        <div class="flex items-center space-x-3">
+                            <div class="w-5 h-5 bg-brand-green shadow-glow-green"></div>
+                            <span class="text-brand-green text-shadow-glow">평균가</span>
                         </div>
                     </div>
                     
-                    <!-- Chart Canvas -->
-                    <div class="relative" style="height: 400px;">
-                        <canvas id="priceChart"></canvas>
+                    <!-- Custom SVG Chart -->
+                    <div class="relative pl-12 pr-4 pb-10" style="height: 400px;">
+                        <svg id="customChart" class="w-full h-full" viewBox="0 0 800 300" preserveAspectRatio="none">
+                            <!-- Grid Lines -->
+                            <defs>
+                                <pattern id="grid" width="80" height="50" patternUnits="userSpaceOnUse">
+                                    <path d="M 80 0 L 0 0 0 50" fill="none" stroke="rgba(0, 229, 255, 0.15)" stroke-width="1"/>
+                                </pattern>
+                                
+                                <!-- Glow Filters -->
+                                <filter id="glow-red">
+                                    <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                                    <feMerge>
+                                        <feMergeNode in="coloredBlur"/>
+                                        <feMergeNode in="SourceGraphic"/>
+                                    </feMerge>
+                                </filter>
+                                <filter id="glow-blue">
+                                    <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                                    <feMerge>
+                                        <feMergeNode in="coloredBlur"/>
+                                        <feMergeNode in="SourceGraphic"/>
+                                    </feMerge>
+                                </filter>
+                                <filter id="glow-green">
+                                    <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                                    <feMerge>
+                                        <feMergeNode in="coloredBlur"/>
+                                        <feMergeNode in="SourceGraphic"/>
+                                    </feMerge>
+                                </filter>
+                            </defs>
+                            
+                            <!-- Background Grid -->
+                            <rect width="800" height="300" fill="url(#grid)"/>
+                            
+                            <!-- Chart Lines -->
+                            <polyline id="upbitLine" fill="none" stroke="#FF5555" stroke-width="3" filter="url(#glow-red)" points=""/>
+                            <polyline id="bithumbLine" fill="none" stroke="#5555FF" stroke-width="3" filter="url(#glow-blue)" points=""/>
+                            <polyline id="vwapLine" fill="none" stroke="#55FF55" stroke-width="2" stroke-dasharray="8,4" filter="url(#glow-green)" points=""/>
+                            
+                            <!-- Current Price Dots -->
+                            <circle id="upbitDot" cx="0" cy="0" r="5" fill="#FF5555" filter="url(#glow-red)" opacity="0">
+                                <animate attributeName="r" values="5;7;5" dur="1s" repeatCount="indefinite"/>
+                            </circle>
+                            <circle id="bithumbDot" cx="0" cy="0" r="5" fill="#5555FF" filter="url(#glow-blue)" opacity="0">
+                                <animate attributeName="r" values="5;7;5" dur="1s" repeatCount="indefinite"/>
+                            </circle>
+                            <circle id="vwapDot" cx="0" cy="0" r="4" fill="#55FF55" filter="url(#glow-green)" opacity="0">
+                                <animate attributeName="r" values="4;6;4" dur="1s" repeatCount="indefinite"/>
+                            </circle>
+                        </svg>
+                        
+                        <!-- Y-Axis Labels -->
+                        <div class="absolute left-0 top-0 bottom-10 flex flex-col justify-between font-display text-base text-primary/90">
+                            <span id="yMax">-</span>
+                            <span id="yMid">-</span>
+                            <span id="yMin">-</span>
+                        </div>
+                        
+                        <!-- X-Axis Labels -->
+                        <div class="absolute bottom-0 left-12 right-4 flex justify-between font-display text-base text-primary/90">
+                            <span id="xLabel1">--:--</span>
+                            <span id="xLabel2">--:--</span>
+                            <span id="xLabel3">--:--</span>
+                            <span id="xLabel4">--:--</span>
+                        </div>
+                        
+                        <!-- Hover Info -->
+                        <div id="hoverInfo" class="absolute hidden bg-black/95 border-2 border-primary p-4 pointer-events-none shadow-glow-cyan" style="z-index: 10;">
+                            <div class="font-display text-base space-y-2">
+                                <div class="text-primary text-lg font-bold" id="hoverTime">--:--:--</div>
+                                <div class="text-brand-red" id="hoverUpbit">업비트: -</div>
+                                <div class="text-brand-blue" id="hoverBithumb">빗썸: -</div>
+                                <div class="text-brand-green" id="hoverVwap">평균가: -</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -239,34 +313,34 @@
             <!-- Upbit Card -->
             <div class="coin-card pixel-corners p-6 scanlines">
                 <div class="flex items-center justify-between mb-4">
-                    <span class="text-brand-red text-shadow-glow uppercase font-digital text-sm">UPBIT</span>
-                    <span class="text-2xl" id="upbitIcon">📈</span>
+                    <span class="text-brand-red text-shadow-glow text-2xl font-display">업비트</span>
+                    <span class="text-3xl" id="upbitIcon">📈</span>
                 </div>
-                <div class="text-3xl font-digital text-white mb-2" id="upbitPrice">-</div>
-                <div class="text-xl font-digital mb-2" id="upbitPremium">-</div>
-                <div class="text-sm text-gray-400" id="upbitVolume">-</div>
+                <div class="text-4xl font-display text-white mb-3 font-bold" id="upbitPrice">-</div>
+                <div class="text-2xl font-display mb-2" id="upbitPremium">-</div>
+                <div class="text-lg text-gray-400 font-display" id="upbitVolume">-</div>
             </div>
             
             <!-- VWAP Card -->
             <div class="coin-card pixel-corners p-6 scanlines">
                 <div class="flex items-center justify-between mb-4">
-                    <span class="text-brand-green text-shadow-glow uppercase font-digital text-sm">VWAP</span>
-                    <span class="text-2xl">⚖️</span>
+                    <span class="text-brand-green text-shadow-glow text-2xl font-display">평균 가격</span>
+                    <span class="text-3xl">⚖️</span>
                 </div>
-                <div class="text-3xl font-digital text-white mb-2" id="vwapCardPrice">-</div>
-                <div class="text-xl font-digital mb-2" id="vwapPremium">-</div>
-                <div class="text-sm text-gray-400">VOLUME WEIGHTED AVG</div>
+                <div class="text-4xl font-display text-white mb-3 font-bold" id="vwapCardPrice">-</div>
+                <div class="text-2xl font-display mb-2" id="vwapPremium">-</div>
+                <div class="text-lg text-gray-400 font-display">거래량 가중 평균</div>
             </div>
             
             <!-- Bithumb Card -->
             <div class="coin-card pixel-corners p-6 scanlines">
                 <div class="flex items-center justify-between mb-4">
-                    <span class="text-brand-blue text-shadow-glow uppercase font-digital text-sm">BITHUMB</span>
-                    <span class="text-2xl" id="bithumbIcon">📈</span>
+                    <span class="text-brand-blue text-shadow-glow text-2xl font-display">빗썸</span>
+                    <span class="text-3xl" id="bithumbIcon">📈</span>
                 </div>
-                <div class="text-3xl font-digital text-white mb-2" id="bithumbPrice">-</div>
-                <div class="text-xl font-digital mb-2" id="bithumbPremium">-</div>
-                <div class="text-sm text-gray-400" id="bithumbVolume">-</div>
+                <div class="text-4xl font-display text-white mb-3 font-bold" id="bithumbPrice">-</div>
+                <div class="text-2xl font-display mb-2" id="bithumbPremium">-</div>
+                <div class="text-lg text-gray-400 font-display" id="bithumbVolume">-</div>
             </div>
         </div>
     </div>
@@ -284,145 +358,95 @@
             vwap: []
         };
         
-        // Chart 초기화
-        function initChart() {
-            const ctx = document.getElementById('priceChart');
-            if (!ctx) return;
+        // SVG 차트 업데이트
+        function updateSVGChart() {
+            if (chartData.upbit.length === 0) return;
             
-            priceChart = new Chart(ctx.getContext('2d'), {
-                type: 'line',
-                data: {
-                    labels: chartData.labels,
-                    datasets: [
-                        {
-                            label: 'UPBIT',
-                            data: chartData.upbit,
-                            borderColor: '#FF5555',
-                            backgroundColor: 'rgba(255, 85, 85, 0.1)',
-                            fill: true,
-                            tension: 0.4,
-                            borderWidth: 3,
-                            pointRadius: 0,
-                            pointHoverRadius: 8,
-                            pointHoverBackgroundColor: '#FF5555',
-                            pointHoverBorderColor: '#fff',
-                            pointHoverBorderWidth: 2,
-                            shadowOffsetX: 0,
-                            shadowOffsetY: 0,
-                            shadowBlur: 10,
-                            shadowColor: 'rgba(255, 85, 85, 0.8)'
-                        },
-                        {
-                            label: 'BITHUMB',
-                            data: chartData.bithumb,
-                            borderColor: '#5555FF',
-                            backgroundColor: 'rgba(85, 85, 255, 0.1)',
-                            fill: true,
-                            tension: 0.4,
-                            borderWidth: 3,
-                            pointRadius: 0,
-                            pointHoverRadius: 8,
-                            pointHoverBackgroundColor: '#5555FF',
-                            pointHoverBorderColor: '#fff',
-                            pointHoverBorderWidth: 2
-                        },
-                        {
-                            label: 'VWAP',
-                            data: chartData.vwap,
-                            borderColor: '#55FF55',
-                            backgroundColor: 'transparent',
-                            fill: false,
-                            tension: 0.4,
-                            borderWidth: 2,
-                            borderDash: [8, 4],
-                            pointRadius: 0,
-                            pointHoverRadius: 6,
-                            pointHoverBackgroundColor: '#55FF55',
-                            pointHoverBorderColor: '#fff',
-                            pointHoverBorderWidth: 2
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    animation: {
-                        duration: 500,
-                        easing: 'easeInOutQuart'
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            enabled: true,
-                            mode: 'index',
-                            intersect: false,
-                            backgroundColor: 'rgba(10, 5, 26, 0.95)',
-                            titleColor: '#00e5ff',
-                            bodyColor: '#fff',
-                            borderColor: '#00e5ff',
-                            borderWidth: 2,
-                            padding: 12,
-                            titleFont: {
-                                family: 'VT323',
-                                size: 16
-                            },
-                            bodyFont: {
-                                family: 'VT323',
-                                size: 14
-                            },
-                            callbacks: {
-                                label: function(context) {
-                                    return context.dataset.label + ': ' + formatPrice(context.parsed.y);
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            display: true,
-                            grid: {
-                                color: 'rgba(0, 229, 255, 0.15)',
-                                drawBorder: false
-                            },
-                            ticks: {
-                                color: 'rgba(0, 229, 255, 0.8)',
-                                font: {
-                                    family: 'VT323',
-                                    size: 14
-                                },
-                                maxTicksLimit: 8
-                            }
-                        },
-                        y: {
-                            display: true,
-                            grid: {
-                                color: 'rgba(0, 229, 255, 0.15)',
-                                drawBorder: false
-                            },
-                            ticks: {
-                                color: 'rgba(0, 229, 255, 0.8)',
-                                font: {
-                                    family: 'VT323',
-                                    size: 14
-                                },
-                                callback: function(value) {
-                                    return new Intl.NumberFormat('ko-KR', {
-                                        notation: 'compact',
-                                        compactDisplay: 'short'
-                                    }).format(value);
-                                }
-                            }
-                        }
-                    },
-                    interaction: {
-                        mode: 'index',
-                        intersect: false
-                    }
-                }
-            });
+            const width = 800;
+            const height = 300;
+            const padding = 20;
+            
+            // 가격 범위 계산
+            const allPrices = [...chartData.upbit, ...chartData.bithumb, ...chartData.vwap];
+            const minPrice = Math.min(...allPrices);
+            const maxPrice = Math.max(...allPrices);
+            const priceRange = maxPrice - minPrice || 1;
+            
+            // Y축 레이블 업데이트
+            document.getElementById('yMax').textContent = formatPriceShort(maxPrice);
+            document.getElementById('yMid').textContent = formatPriceShort((maxPrice + minPrice) / 2);
+            document.getElementById('yMin').textContent = formatPriceShort(minPrice);
+            
+            // X축 레이블 업데이트
+            const labelCount = 4;
+            const step = Math.floor(chartData.labels.length / (labelCount - 1));
+            for (let i = 0; i < labelCount; i++) {
+                const idx = Math.min(i * step, chartData.labels.length - 1);
+                const label = chartData.labels[idx] || '--:--';
+                document.getElementById(`xLabel${i + 1}`).textContent = label.substring(0, 5);
+            }
+            
+            // 포인트 생성 함수
+            function createPoints(data) {
+                return data.map((price, i) => {
+                    const x = (i / (data.length - 1)) * (width - padding * 2) + padding;
+                    const y = height - padding - ((price - minPrice) / priceRange) * (height - padding * 2);
+                    return `${x},${y}`;
+                }).join(' ');
+            }
+            
+            // 라인 업데이트
+            document.getElementById('upbitLine').setAttribute('points', createPoints(chartData.upbit));
+            document.getElementById('bithumbLine').setAttribute('points', createPoints(chartData.bithumb));
+            document.getElementById('vwapLine').setAttribute('points', createPoints(chartData.vwap));
+            
+            // 현재 가격 점 업데이트
+            if (chartData.upbit.length > 0) {
+                const lastIdx = chartData.upbit.length - 1;
+                const x = width - padding;
+                
+                const upbitY = height - padding - ((chartData.upbit[lastIdx] - minPrice) / priceRange) * (height - padding * 2);
+                const bithumbY = height - padding - ((chartData.bithumb[lastIdx] - minPrice) / priceRange) * (height - padding * 2);
+                const vwapY = height - padding - ((chartData.vwap[lastIdx] - minPrice) / priceRange) * (height - padding * 2);
+                
+                document.getElementById('upbitDot').setAttribute('cx', x);
+                document.getElementById('upbitDot').setAttribute('cy', upbitY);
+                document.getElementById('upbitDot').setAttribute('opacity', '1');
+                
+                document.getElementById('bithumbDot').setAttribute('cx', x);
+                document.getElementById('bithumbDot').setAttribute('cy', bithumbY);
+                document.getElementById('bithumbDot').setAttribute('opacity', '1');
+                
+                document.getElementById('vwapDot').setAttribute('cx', x);
+                document.getElementById('vwapDot').setAttribute('cy', vwapY);
+                document.getElementById('vwapDot').setAttribute('opacity', '1');
+            }
         }
+        
+        // 호버 이벤트
+        document.getElementById('customChart')?.addEventListener('mousemove', (e) => {
+            const svg = e.currentTarget;
+            const rect = svg.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const relativeX = x / rect.width;
+            const dataIndex = Math.floor(relativeX * chartData.labels.length);
+            
+            if (dataIndex >= 0 && dataIndex < chartData.labels.length) {
+                const hoverInfo = document.getElementById('hoverInfo');
+                hoverInfo.style.left = e.clientX - rect.left + 10 + 'px';
+                hoverInfo.style.top = e.clientY - rect.top - 80 + 'px';
+                hoverInfo.classList.remove('hidden');
+                
+                document.getElementById('hoverTime').textContent = chartData.labels[dataIndex];
+                document.getElementById('hoverUpbit').textContent = '업비트: ' + formatPrice(chartData.upbit[dataIndex]);
+                document.getElementById('hoverBithumb').textContent = '빗썸: ' + formatPrice(chartData.bithumb[dataIndex]);
+                document.getElementById('hoverVwap').textContent = '평균가: ' + formatPrice(chartData.vwap[dataIndex]);
+            }
+        });
+        
+        document.getElementById('customChart')?.addEventListener('mouseleave', () => {
+            document.getElementById('hoverInfo').classList.add('hidden');
+        });
         
         // EventSource 연결
         function connectEventSource() {
@@ -465,10 +489,6 @@
         
         // 차트 업데이트
         function updateChart(premiums) {
-            if (!priceChart) {
-                initChart();
-            }
-            
             const premium = premiums.find(p => p.market === currentCoin);
             if (!premium) return;
             
@@ -490,11 +510,7 @@
             chartData.bithumb.push(premium.exchangePrices.BITHUMB.price);
             chartData.vwap.push(premium.vwap);
             
-            priceChart.data.labels = chartData.labels;
-            priceChart.data.datasets[0].data = chartData.upbit;
-            priceChart.data.datasets[1].data = chartData.bithumb;
-            priceChart.data.datasets[2].data = chartData.vwap;
-            priceChart.update('active');
+            updateSVGChart();
         }
         
         // 카드 업데이트
@@ -506,14 +522,14 @@
             document.getElementById('upbitPrice').textContent = formatPrice(upbit.price);
             document.getElementById('upbitPremium').textContent = formatPremium(upbit.premium);
             document.getElementById('upbitPremium').className = 'text-xl font-digital mb-2 ' + getPremiumClass(upbit.premium);
-            document.getElementById('upbitVolume').textContent = 'VOL: ' + formatVolume(upbit.volume24h);
+            document.getElementById('upbitVolume').textContent = '거래량: ' + formatVolume(upbit.volume24h);
             document.getElementById('upbitIcon').textContent = upbit.changeDirection === 'RISE' ? '📈' : upbit.changeDirection === 'FALL' ? '📉' : '➡️';
             
             // Bithumb
             document.getElementById('bithumbPrice').textContent = formatPrice(bithumb.price);
             document.getElementById('bithumbPremium').textContent = formatPremium(bithumb.premium);
             document.getElementById('bithumbPremium').className = 'text-xl font-digital mb-2 ' + getPremiumClass(bithumb.premium);
-            document.getElementById('bithumbVolume').textContent = 'VOL: ' + formatVolume(bithumb.volume24h);
+            document.getElementById('bithumbVolume').textContent = '거래량: ' + formatVolume(bithumb.volume24h);
             document.getElementById('bithumbIcon').textContent = bithumb.changeDirection === 'RISE' ? '📈' : bithumb.changeDirection === 'FALL' ? '📉' : '➡️';
             
             // VWAP
@@ -561,9 +577,7 @@
             chartData.upbit = [];
             chartData.bithumb = [];
             chartData.vwap = [];
-            if (priceChart) {
-                priceChart.update();
-            }
+            updateSVGChart();
         });
         
         document.getElementById('referenceExchange').addEventListener('change', (e) => {
