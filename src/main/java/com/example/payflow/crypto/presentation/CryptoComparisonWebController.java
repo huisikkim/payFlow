@@ -18,4 +18,9 @@ public class CryptoComparisonWebController {
     public String apiDocsPage() {
         return "crypto-api-docs";
     }
+    
+    @GetMapping("/crypto/arcade")
+    public String arcadePage() {
+        return "crypto-comparison-arcade";
+    }
 }

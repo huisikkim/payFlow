@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html class="dark" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 CRYPTO ARCADE - 거래소 비교</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#00e5ff",
+                        "background-dark": "#0A051A",
+                        "brand-red": "#FF5555",
+                        "brand-blue": "#5555FF",
+                        "brand-green": "#55FF55",
+                        "chart-bg": "#1f2349",
+                        "grid-line": "rgba(0, 229, 255, 0.15)",
+                    },
+                    fontFamily: {
+                        display: ["VT323", "monospace"],
+                        digital: ["Press Start 2P", "monospace"],
+                    },
+                    boxShadow: {
+                        'glow-cyan': '0 0 10px rgba(0, 229, 255, 0.7), 0 0 20px rgba(0, 229, 255, 0.5)',
+                        'glow-red': '0 0 8px rgba(255, 85, 85, 0.8)',
+                        'glow-blue': '0 0 8px rgba(85, 85, 255, 0.8)',
+                        'glow-green': '0 0 8px rgba(85, 255, 85, 0.8)',
+                    },
+                },
+            },
+        };
+    </script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <style>
+        body {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background-image: 
+                radial-gradient(circle at center, rgba(31, 35, 73, 0.6) 0%, transparent 70%),
+                repeating-linear-gradient(0deg, rgba(0, 229, 255, 0.03) 0px, transparent 2px, transparent 4px);
+            min-height: 100vh;
+        }
+        
+        .text-shadow-glow {
+            text-shadow: 0 0 5px currentColor, 0 0 10px currentColor;
+        }
+        
+        .scanlines {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .scanlines::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.15),
+                rgba(0, 0, 0, 0.15) 1px,
+                transparent 1px,
+                transparent 3px
+            );
+            pointer-events: none;
+            z-index: 2;
+        }
+        
+        .segmented-border {
+            border: 2px solid #00e5ff;
+            box-shadow: 
+                0 0 10px rgba(0, 229, 255, 0.7),
+                inset 0 0 10px rgba(0, 229, 255, 0.3);
+            clip-path: polygon(
+                0% 10px, 10px 0%, calc(100% - 10px) 0%, 100% 10px,
+                100% calc(100% - 10px), calc(100% - 10px) 100%,
+                10px 100%, 0% calc(100% - 10px)
+            );
+            padding: 2px;
+        }
+        
+        .segmented-border-inner {
+            clip-path: polygon(
+                0% 9px, 9px 0%, calc(100% - 9px) 0%, 100% 9px,
+                100% calc(100% - 9px), calc(100% - 9px) 100%,
+                9px 100%, 0% calc(100% - 9px)
+            );
+        }
+        
+        .pixel-corners {
+            clip-path: polygon(
+                0% 8px, 8px 0%, calc(100% - 8px) 0%, 100% 8px,
+                100% calc(100% - 8px), calc(100% - 8px) 100%,
+                8px 100%, 0% calc(100% - 8px)
+            );
+        }
+        
+        .blink {
+            animation: blink 1.5s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 49% { opacity: 1; }
+            50%, 100% { opacity: 0.3; }
+        }
+        
+        .coin-card {
+            background: linear-gradient(135deg, rgba(31, 35, 73, 0.8) 0%, rgba(10, 5, 26, 0.9) 100%);
+            border: 2px solid rgba(0, 229, 255, 0.3);
+            transition: all 0.3s;
+        }
+        
+        .coin-card:hover {
+            border-color: #00e5ff;
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.5);
+            transform: translateY(-2px);
+        }
+        
+        .premium-positive {
+            color: #FF5555;
+            text-shadow: 0 0 8px rgba(255, 85, 85, 0.8);
+        }
+        
+        .premium-negative {
+            color: #5555FF;
+            text-shadow: 0 0 8px rgba(85, 85, 255, 0.8);
+        }
+        
+        .premium-neutral {
+            color: #55FF55;
+            text-shadow: 0 0 8px rgba(85, 255, 85, 0.8);
+        }
+    </style>
+</head>
+<body class="bg-background-dark font-display text-lg antialiased text-gray-200">
+    <div class="min-h-screen p-4">
+        <!-- Header -->
+        <header class="mb-6 text-center">
+            <h1 class="font-digital text-primary text-2xl md:text-3xl tracking-wider text-shadow-glow uppercase mb-2">
+                🎮 CRYPTO ARCADE
+            </h1>
+            <p class="text-primary/70 text-sm">REAL-TIME EXCHANGE COMPARISON SYSTEM</p>
+        </header>
+        
+        <!-- Controls -->
+        <div class="max-w-6xl mx-auto mb-6">
+            <div class="segmented-border">
+                <div class="segmented-border-inner bg-chart-bg p-4 scanlines">
+                    <div class="flex flex-wrap gap-4 items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <span class="text-primary text-shadow-glow uppercase text-sm">SELECT COIN:</span>
+                            <select id="coinSelect" class="bg-black/50 border-2 border-primary text-primary px-4 py-2 shadow-glow-cyan font-display text-base">
+                                <option value="KRW-BTC">BITCOIN (BTC)</option>
+                                <option value="KRW-ETH">ETHEREUM (ETH)</option>
+                                <option value="KRW-XRP">RIPPLE (XRP)</option>
+                                <option value="KRW-SOL">SOLANA (SOL)</option>
+                                <option value="KRW-ADA">CARDANO (ADA)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="flex items-center gap-3">
+                            <span class="text-primary text-shadow-glow uppercase text-sm">REFERENCE:</span>
+                            <select id="referenceExchange" class="bg-black/50 border-2 border-primary text-primary px-4 py-2 shadow-glow-cyan font-display text-base">
+                                <option value="UPBIT">UPBIT</option>
+                                <option value="BITHUMB">BITHUMB</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Stats Bar -->
+        <div class="max-w-6xl mx-auto mb-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="pixel-corners bg-chart-bg border-2 border-brand-red p-4 text-center scanlines">
+                <div class="text-brand-red text-sm uppercase mb-1">MAX PREMIUM</div>
+                <div class="text-2xl font-digital text-white" id="maxPremium">-</div>
+            </div>
+            <div class="pixel-corners bg-chart-bg border-2 border-brand-blue p-4 text-center scanlines">
+                <div class="text-brand-blue text-sm uppercase mb-1">VWAP</div>
+                <div class="text-2xl font-digital text-white" id="vwapPrice">-</div>
+            </div>
+            <div class="pixel-corners bg-chart-bg border-2 border-brand-green p-4 text-center scanlines">
+                <div class="text-brand-green text-sm uppercase mb-1">SPREAD</div>
+                <div class="text-2xl font-digital text-white" id="spreadValue">-</div>
+            </div>
+            <div class="pixel-corners bg-chart-bg border-2 border-primary p-4 text-center scanlines">
+                <div class="text-primary text-sm uppercase mb-1 blink">LIVE DATA</div>
+                <div class="text-2xl font-digital text-white" id="dataPoints">0</div>
+            </div>
+        </div>
+        
+        <!-- Main Chart -->
+        <div class="max-w-6xl mx-auto mb-6">
+            <div class="segmented-border">
+                <div class="segmented-border-inner bg-chart-bg p-6 scanlines">
+                    <!-- Legend -->
+                    <div class="mb-4 flex justify-center gap-6 text-base flex-wrap">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-4 h-4 bg-brand-red shadow-glow-red"></div>
+                            <span class="text-gray-300 uppercase">UPBIT</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-4 h-4 bg-brand-blue shadow-glow-blue"></div>
+                            <span class="text-gray-300 uppercase">BITHUMB</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-4 h-4 bg-brand-green shadow-glow-green"></div>
+                            <span class="text-gray-300 uppercase">VWAP</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Chart Canvas -->
+                    <div class="relative" style="height: 400px;">
+                        <canvas id="priceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Price Cards -->
+        <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Upbit Card -->
+            <div class="coin-card pixel-corners p-6 scanlines">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-brand-red text-shadow-glow uppercase font-digital text-sm">UPBIT</span>
+                    <span class="text-2xl" id="upbitIcon">📈</span>
+                </div>
+                <div class="text-3xl font-digital text-white mb-2" id="upbitPrice">-</div>
+                <div class="text-xl font-digital mb-2" id="upbitPremium">-</div>
+                <div class="text-sm text-gray-400" id="upbitVolume">-</div>
+            </div>
+            
+            <!-- VWAP Card -->
+            <div class="coin-card pixel-corners p-6 scanlines">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-brand-green text-shadow-glow uppercase font-digital text-sm">VWAP</span>
+                    <span class="text-2xl">⚖️</span>
+                </div>
+                <div class="text-3xl font-digital text-white mb-2" id="vwapCardPrice">-</div>
+                <div class="text-xl font-digital mb-2" id="vwapPremium">-</div>
+                <div class="text-sm text-gray-400">VOLUME WEIGHTED AVG</div>
+            </div>
+            
+            <!-- Bithumb Card -->
+            <div class="coin-card pixel-corners p-6 scanlines">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-brand-blue text-shadow-glow uppercase font-digital text-sm">BITHUMB</span>
+                    <span class="text-2xl" id="bithumbIcon">📈</span>
+                </div>
+                <div class="text-3xl font-digital text-white mb-2" id="bithumbPrice">-</div>
+                <div class="text-xl font-digital mb-2" id="bithumbPremium">-</div>
+                <div class="text-sm text-gray-400" id="bithumbVolume">-</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentReference = 'UPBIT';
+        let currentCoin = 'KRW-BTC';
+        let allPremiums = [];
+        let eventSource = null;
+        let priceChart = null;
+        let chartData = {
+            labels: [],
+            upbit: [],
+            bithumb: [],
+            vwap: []
+        };
+        
+        // Chart 초기화
+        function initChart() {
+            const ctx = document.getElementById('priceChart');
+            if (!ctx) return;
+            
+            priceChart = new Chart(ctx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: chartData.labels,
+                    datasets: [
+                        {
+                            label: 'UPBIT',
+                            data: chartData.upbit,
+                            borderColor: '#FF5555',
+                            backgroundColor: 'rgba(255, 85, 85, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            borderWidth: 3,
+                            pointRadius: 0,
+                            pointHoverRadius: 8,
+                            pointHoverBackgroundColor: '#FF5555',
+                            pointHoverBorderColor: '#fff',
+                            pointHoverBorderWidth: 2,
+                            shadowOffsetX: 0,
+                            shadowOffsetY: 0,
+                            shadowBlur: 10,
+                            shadowColor: 'rgba(255, 85, 85, 0.8)'
+                        },
+                        {
+                            label: 'BITHUMB',
+                            data: chartData.bithumb,
+                            borderColor: '#5555FF',
+                            backgroundColor: 'rgba(85, 85, 255, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            borderWidth: 3,
+                            pointRadius: 0,
+                            pointHoverRadius: 8,
+                            pointHoverBackgroundColor: '#5555FF',
+                            pointHoverBorderColor: '#fff',
+                            pointHoverBorderWidth: 2
+                        },
+                        {
+                            label: 'VWAP',
+                            data: chartData.vwap,
+                            borderColor: '#55FF55',
+                            backgroundColor: 'transparent',
+                            fill: false,
+                            tension: 0.4,
+                            borderWidth: 2,
+                            borderDash: [8, 4],
+                            pointRadius: 0,
+                            pointHoverRadius: 6,
+                            pointHoverBackgroundColor: '#55FF55',
+                            pointHoverBorderColor: '#fff',
+                            pointHoverBorderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 500,
+                        easing: 'easeInOutQuart'
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            enabled: true,
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(10, 5, 26, 0.95)',
+                            titleColor: '#00e5ff',
+                            bodyColor: '#fff',
+                            borderColor: '#00e5ff',
+                            borderWidth: 2,
+                            padding: 12,
+                            titleFont: {
+                                family: 'VT323',
+                                size: 16
+                            },
+                            bodyFont: {
+                                family: 'VT323',
+                                size: 14
+                            },
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + formatPrice(context.parsed.y);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: true,
+                            grid: {
+                                color: 'rgba(0, 229, 255, 0.15)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: 'rgba(0, 229, 255, 0.8)',
+                                font: {
+                                    family: 'VT323',
+                                    size: 14
+                                },
+                                maxTicksLimit: 8
+                            }
+                        },
+                        y: {
+                            display: true,
+                            grid: {
+                                color: 'rgba(0, 229, 255, 0.15)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: 'rgba(0, 229, 255, 0.8)',
+                                font: {
+                                    family: 'VT323',
+                                    size: 14
+                                },
+                                callback: function(value) {
+                                    return new Intl.NumberFormat('ko-KR', {
+                                        notation: 'compact',
+                                        compactDisplay: 'short'
+                                    }).format(value);
+                                }
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                }
+            });
+        }
+        
+        // EventSource 연결
+        function connectEventSource() {
+            if (eventSource) {
+                eventSource.close();
+            }
+            
+            eventSource = new EventSource(`/api/crypto/comparison/premiums/stream?referenceExchange=${currentReference}`);
+            
+            eventSource.onmessage = (event) => {
+                allPremiums = JSON.parse(event.data);
+                updateUI(allPremiums);
+            };
+            
+            eventSource.onerror = (error) => {
+                console.error('EventSource error:', error);
+                setTimeout(connectEventSource, 5000);
+            };
+        }
+        
+        // UI 업데이트
+        function updateUI(premiums) {
+            const premium = premiums.find(p => p.market === currentCoin);
+            if (!premium) return;
+            
+            updateStats(premium);
+            updateChart(premiums);
+            updateCards(premium);
+        }
+        
+        // 통계 업데이트
+        function updateStats(premium) {
+            document.getElementById('maxPremium').textContent = 
+                (premium.maxPremium >= 0 ? '+' : '') + premium.maxPremium.toFixed(2) + '%';
+            document.getElementById('vwapPrice').textContent = formatPriceShort(premium.vwap);
+            document.getElementById('spreadValue').textContent = 
+                Math.abs(premium.exchangePrices.UPBIT.premium - premium.exchangePrices.BITHUMB.premium).toFixed(2) + '%';
+            document.getElementById('dataPoints').textContent = chartData.labels.length;
+        }
+        
+        // 차트 업데이트
+        function updateChart(premiums) {
+            if (!priceChart) {
+                initChart();
+            }
+            
+            const premium = premiums.find(p => p.market === currentCoin);
+            if (!premium) return;
+            
+            const now = new Date().toLocaleTimeString('ko-KR', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            
+            if (chartData.labels.length >= 60) {
+                chartData.labels.shift();
+                chartData.upbit.shift();
+                chartData.bithumb.shift();
+                chartData.vwap.shift();
+            }
+            
+            chartData.labels.push(now);
+            chartData.upbit.push(premium.exchangePrices.UPBIT.price);
+            chartData.bithumb.push(premium.exchangePrices.BITHUMB.price);
+            chartData.vwap.push(premium.vwap);
+            
+            priceChart.data.labels = chartData.labels;
+            priceChart.data.datasets[0].data = chartData.upbit;
+            priceChart.data.datasets[1].data = chartData.bithumb;
+            priceChart.data.datasets[2].data = chartData.vwap;
+            priceChart.update('active');
+        }
+        
+        // 카드 업데이트
+        function updateCards(premium) {
+            const upbit = premium.exchangePrices.UPBIT;
+            const bithumb = premium.exchangePrices.BITHUMB;
+            
+            // Upbit
+            document.getElementById('upbitPrice').textContent = formatPrice(upbit.price);
+            document.getElementById('upbitPremium').textContent = formatPremium(upbit.premium);
+            document.getElementById('upbitPremium').className = 'text-xl font-digital mb-2 ' + getPremiumClass(upbit.premium);
+            document.getElementById('upbitVolume').textContent = 'VOL: ' + formatVolume(upbit.volume24h);
+            document.getElementById('upbitIcon').textContent = upbit.changeDirection === 'RISE' ? '📈' : upbit.changeDirection === 'FALL' ? '📉' : '➡️';
+            
+            // Bithumb
+            document.getElementById('bithumbPrice').textContent = formatPrice(bithumb.price);
+            document.getElementById('bithumbPremium').textContent = formatPremium(bithumb.premium);
+            document.getElementById('bithumbPremium').className = 'text-xl font-digital mb-2 ' + getPremiumClass(bithumb.premium);
+            document.getElementById('bithumbVolume').textContent = 'VOL: ' + formatVolume(bithumb.volume24h);
+            document.getElementById('bithumbIcon').textContent = bithumb.changeDirection === 'RISE' ? '📈' : bithumb.changeDirection === 'FALL' ? '📉' : '➡️';
+            
+            // VWAP
+            document.getElementById('vwapCardPrice').textContent = formatPrice(premium.vwap);
+            document.getElementById('vwapPremium').textContent = formatPremium(premium.vwapPremium);
+            document.getElementById('vwapPremium').className = 'text-xl font-digital mb-2 ' + getPremiumClass(premium.vwapPremium);
+        }
+        
+        // 유틸리티 함수
+        function formatPrice(price) {
+            return new Intl.NumberFormat('ko-KR').format(Math.round(price)) + '₩';
+        }
+        
+        function formatPriceShort(price) {
+            if (price >= 1000000) {
+                return (price / 1000000).toFixed(1) + 'M';
+            } else if (price >= 1000) {
+                return (price / 1000).toFixed(0) + 'K';
+            }
+            return Math.round(price);
+        }
+        
+        function formatVolume(volume) {
+            if (volume >= 1000000000) {
+                return (volume / 1000000000).toFixed(1) + 'B';
+            } else if (volume >= 1000000) {
+                return (volume / 1000000).toFixed(0) + 'M';
+            }
+            return (volume / 1000).toFixed(0) + 'K';
+        }
+        
+        function formatPremium(premium) {
+            return (premium >= 0 ? '+' : '') + premium.toFixed(2) + '%';
+        }
+        
+        function getPremiumClass(premium) {
+            if (Math.abs(premium) < 0.1) return 'premium-neutral';
+            return premium > 0 ? 'premium-positive' : 'premium-negative';
+        }
+        
+        // 이벤트 리스너
+        document.getElementById('coinSelect').addEventListener('change', (e) => {
+            currentCoin = e.target.value;
+            chartData.labels = [];
+            chartData.upbit = [];
+            chartData.bithumb = [];
+            chartData.vwap = [];
+            if (priceChart) {
+                priceChart.update();
+            }
+        });
+        
+        document.getElementById('referenceExchange').addEventListener('change', (e) => {
+            currentReference = e.target.value;
+            connectEventSource();
+        });
+        
+        // 초기화
+        connectEventSource();
+        
+        // 페이지 종료 시 연결 해제
+        window.addEventListener('beforeunload', () => {
+            if (eventSource) {
+                eventSource.close();
+            }
+        });
+    </script>
+</body>
+</html>
